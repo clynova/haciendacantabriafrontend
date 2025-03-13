@@ -6,6 +6,7 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { CartDrawer } from "./Cart/CartDrawer";
 import UserDropdown from './Nav/UserDropdown';
+import { AboutDropdown } from "./Nav/AboutDropdown";
 
 // Componente Navigation extraído para mejor organización
 const Navigation = ({ links, onMobileClick = null }) => {
@@ -56,9 +57,9 @@ const Header = () => {
 
   const navLinks = [
     { name: "Inicio", href: "/" },
-    { name: "Accesorios", href: "/categoria/accesorios" },
-    { name: "Limpieza", href: "/categoria/limpieza" },
-    { name: "Neumáticos", href: "/categoria/neumaticos" },
+    { name: "Vacuno", href: "/categoria/vacuno" },
+    { name: "Ave", href: "/categoria/ave" },
+    { name: "Aceites", href: "/categoria/aceites" },
   ];
 
   // Componente para el menú móvil
@@ -74,6 +75,7 @@ const Header = () => {
         </div>
         <div className="flex flex-col space-y-4">
           <Navigation links={navLinks} onMobileClick={() => setIsMenuOpen(false)} />
+          <AboutDropdown /> {/* Add this line */}
         </div>
         <div className="border-t border-slate-800 pt-4">
           {user ? (
@@ -117,7 +119,7 @@ const Header = () => {
                 to="/"
                 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent hover:from-blue-300 hover:to-indigo-300 transition-all duration-300"
               >
-                LynCry
+                Cohesa
               </Link>
             </div>
 
@@ -126,6 +128,7 @@ const Header = () => {
               {!isSearchExpanded ? (
                 <div className="flex space-x-8">
                   <Navigation links={navLinks} />
+                  <AboutDropdown /> {/* Add this line */}
                 </div>
               ) : (
                 <div className="w-full max-w-xl px-4">

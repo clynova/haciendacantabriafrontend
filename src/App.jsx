@@ -32,6 +32,7 @@ import { CheckoutLayout } from "./layouts/MainLayout/CheckoutLayout";
 import { Confirmation } from './pages/payment/Confirmation';
 import { PaymentFailure } from './pages/payment/PaymentFailure';
 import { MyOrderDetails } from "./pages/Perfil/MyOrderDetails";
+import { About } from "./pages/About";
 
 const App = () => {
   return (
@@ -85,7 +86,7 @@ const App = () => {
                     <Route path="confirmation/success" element={<Confirmation />} />
                     <Route path="confirmation/failure" element={<PaymentFailure />} />
                   </Route>
-                  <Route path="/about" element={<div>About</div>} />
+                  <Route path="/about" element={<About/>} />
                   <Route path="/contact" element={<div>Contact</div>} />
                   <Route path="*" element={<NotFound />} />
                   <Route path="/product/:_id" element={<ProductDetails />} />
