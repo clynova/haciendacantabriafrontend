@@ -40,6 +40,7 @@ import { AdminOrders } from './pages/admin/AdminOrders';
 import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminCategories } from './pages/admin/AdminCategories';
 import { About } from "./pages/About";
+import { AdminLayout } from "./layouts/MainLayout/AdminLayout";
 
 const App = () => {
   return (
@@ -85,7 +86,7 @@ const App = () => {
                       <MainLayout />
                     </AdminRoute>
                   }>
-                    <Route element={<ProfileLayout />}>
+                    <Route element={<AdminLayout />}>
                       <Route index element={<AdminDashboard />} />
                       <Route path="products" element={<AdminProducts />} />
                       <Route path="orders" element={<AdminOrders />} />
