@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { HiUser, HiShoppingBag, HiCog, HiLogout, HiShoppingCart } from 'react-icons/hi';
+import { HiUser, HiShoppingBag, HiCog, HiLogout, HiShoppingCart, HiTemplate } from 'react-icons/hi';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -24,11 +24,23 @@ const UserDropdown = () => {
     }
   };
   
-  const menuItems = [
+  const baseMenuItems = [
     { icon: <HiUser className="w-5 h-5" />, label: 'Mi Perfil', to: '/profile' },
     { icon: <HiShoppingCart className="w-5 h-5" />, label: 'Carrito', to: '/checkout' },
     { icon: <HiShoppingBag className="w-5 h-5" />, label: 'Mis Compras', to: '/profile/orders' },
     { icon: <HiCog className="w-5 h-5" />, label: 'Configuración', to: '/profile/settings' },
+  ];
+
+  // Añadir elemento de administración si el usuario es admin
+  const menuItems = [
+    ...baseMenuItems,
+    ...(user.roles?.includes('admin') ? [
+      { 
+        icon: <HiTemplate className="w-5 h-5" />, 
+        label: 'Panel Admin', 
+        to: '/admin' 
+      }
+    ] : []),
     { icon: <HiLogout className="w-5 h-5" />, label: 'Cerrar Sesión', onClick: handleLogout },
   ];
 
