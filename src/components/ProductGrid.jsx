@@ -44,7 +44,7 @@ const ProductGrid = () => {
   };
 
   const handleAddToCart = (product) => {
-    if (product.stock === 0) {
+    if (product.inventario.stockUnidades === 0) {
       toast.error('Producto sin stock disponible');
       return;
     }
@@ -74,12 +74,12 @@ const ProductGrid = () => {
           <Link 
             to={`/product/${product._id}`}
             className="block relative overflow-hidden cursor-pointer"
-            aria-label={`Ver detalles de ${product.name}`}
+            aria-label={`Ver detalles de ${product.nombre}`}
           >
             <div className="relative overflow-hidden">
               <img
-                src={product.images[0]}
-                alt={product.name}
+                src={product.multimedia.imagenes[0]?.url}
+                alt={product.nombre}
                 className="w-full h-64 object-cover transform group-hover:scale-110 
                          transition-all duration-500 ease-in-out"
                 onError={handleImageError}
@@ -87,7 +87,7 @@ const ProductGrid = () => {
               />
               <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 
                            transition-opacity duration-300"></div>
-              {product.stock === 0 && (
+              {product.inventario.stockUnidades === 0 && (
                 <div className="absolute bottom-4 left-4 bg-red-500 text-white px-3 py-1 
                              rounded-full text-sm transform transition-transform duration-300 
                              group-hover:scale-105">
@@ -101,7 +101,7 @@ const ProductGrid = () => {
             <button
               onClick={() => handleAddToWishlist(product._id)}
               disabled={loadingStates[product._id]}
-              aria-label={`${likedProducts[product._id] ? 'Eliminar de' : 'Agregar a'} favoritos ${product.name}`}
+              aria-label={`${likedProducts[product._id] ? 'Eliminar de' : 'Agregar a'} favoritos ${product.nombre}`}
               className="bg-white/90 p-2.5 rounded-full hover:bg-white active:scale-95
                        transition-all duration-200 transform hover:scale-105
                        disabled:opacity-50 disabled:cursor-not-allowed
@@ -125,11 +125,11 @@ const ProductGrid = () => {
             >
               <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white
                            group-hover/link:text-blue-600 dark:group-hover/link:text-blue-400 
-                           transition-colors duration-200">{product.name}</h3>
+                           transition-colors duration-200">{product.nombre}</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4 
                          group-hover/link:text-gray-900 dark:group-hover/link:text-gray-200 
                          transition-colors duration-200">
-                {cortarTexto(product.description, 20)}
+                {cortarTexto(product.descripcion.corta, 20)}
               </p>
             </Link>
             
@@ -138,18 +138,18 @@ const ProductGrid = () => {
                 <span className="text-2xl font-bold text-gray-900 dark:text-white 
                              group-hover:text-blue-600 dark:group-hover:text-blue-400 
                              transition-colors duration-200">
-                  {formatCurrency(product.price)}
+                  {formatCurrency(product.precioFinal)}
                 </span>
-                {product.stock > 0 && (
+                {product.inventario.stockUnidades > 0 && (
                   <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-                    Stock: {product.stock}
+                    Stock: {product.inventario.stockUnidades}
                   </span>
                 )}
               </div>
               <button
                 onClick={() => handleAddToCart(product)}
-                disabled={product.stock === 0}
-                aria-label={`Agregar ${product.name} al carrito`}
+                disabled={product.inventario.stockUnidades === 0}
+                aria-label={`Agregar ${product.nombre} al carrito`}
                 className="bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium
                          hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600
                          transform transition-all duration-200 hover:scale-105
@@ -157,7 +157,7 @@ const ProductGrid = () => {
                          hover:shadow-md disabled:hover:scale-100 
                          focus:outline-none focus:ring-2 focus:ring-blue-500 
                          focus:ring-offset-2 dark:focus:ring-offset-gray-800 bg-indigo-600  focus:ring-indigo-500 ">
-                {product.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
+                {product.inventario.stockUnidades === 0 ? 'Agotado' : 'Agregar al carrito'}
               </button>
             </div>
           </div>
