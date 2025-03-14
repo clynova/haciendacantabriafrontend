@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getCart } from '../../services/paymentService';
 import { getProductById } from '../../services/productService';
-import { getProductsByTags } from '../../services/tagsService';
 import { FiTrash2, FiShoppingBag, FiArrowRight, FiLock } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import CartSummary from '../../components/Cart/CartSummary';
@@ -28,7 +27,7 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
                     />
                 </div>
                 <div>
-                    <Link to={`/producto/${item._id}`} className="font-medium text-lg text-gray-800 hover:text-blue-600 transition-colors">
+                    <Link to={`/product/${item._id}`} className="font-medium text-lg text-gray-800 hover:text-blue-600 transition-colors">
                         {item.nombre}
                     </Link>
                     <p className="text-blue-600 font-bold">{formatCurrency(item.precioFinal)}</p>
@@ -73,75 +72,6 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
     );
 };
 
-// Componente para productos recomendados
-const RecommendedProducts = () => {
-    const [recommendedProducts, setRecommendedProducts] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchRecommendedProducts = async () => {
-            try {
-                const response = await getProductsByTags('oferta', false);
-                if (response?.success && response.products) {
-                    setRecommendedProducts(response.products);
-                }
-            } catch (error) {
-                console.error('Error al cargar productos recomendados:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchRecommendedProducts();
-    }, []);
-
-    if (isLoading) {
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-md mt-8">
-                <h2 className="text-xl font-bold mb-4">Recomendados para ti</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Array(4).fill(0).map((_, index) => (
-                        <div key={index} className="animate-pulse">
-                            <div className="bg-gray-200 h-40 rounded-md mb-2"></div>
-                            <div className="h-4 bg-gray-200 rounded w-3/4 mb-1"></div>
-                            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
-    if (recommendedProducts.length === 0) {
-        return null;
-    }
-
-    return (
-        <div className="bg-white p-6 rounded-lg shadow-md mt-8">
-            <h2 className="text-xl font-bold mb-4">Recomendados para ti</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {recommendedProducts.map((product) => (
-                    <Link
-                        to={`/producto/${product._id}`}
-                        key={product._id}
-                        className="group border rounded-lg p-4 hover:shadow-md transition-all"
-                    >
-                        <div className="relative aspect-square overflow-hidden rounded-md mb-2">
-                            <img
-                                src={getImageUrl(product.multimedia.imagenes[0].url)}
-                                alt={product.nombre}
-                                className="h-full w-full object-cover transition-transform group-hover:scale-110"
-                            />
-                        </div>
-                        <h3 className="font-medium text-gray-800 truncate">{product.nombre}</h3>
-                        <p className="text-blue-600 font-bold">{formatCurrency(product.precioFinal)}</p>
-                    </Link>
-                ))}
-            </div>
-        </div>
-    );
-};
-
 const CarroDeCompras = () => {
     const { cartItems, removeFromCart, updateQuantity, validateCartStock } = useCart();
     const { token, isAuthenticated } = useAuth();
@@ -153,67 +83,75 @@ const CarroDeCompras = () => {
     useEffect(() => {
         const refreshCartFromServer = async () => {
             if (isAuthenticated && token && !isRefreshing) {
-                // Verificamos si ya se realizó una recarga reciente para evitar duplicaciones con F5
                 const lastRefreshTime = localStorage.getItem('lastCartRefresh');
                 const now = Date.now();
 
-                // Si se ha refrescado en los últimos 3 segundos, omitimos esta actualización
                 if (lastRefreshTime && (now - parseInt(lastRefreshTime)) < 3000) {
                     console.log('Recarga reciente detectada, omitiendo actualización');
                     return;
                 }
 
-                // Marcamos el inicio de la actualización
                 setIsRefreshing(true);
                 localStorage.setItem('lastCartRefresh', now.toString());
 
                 try {
-                    // Obtenemos el carrito actualizado del servidor
                     const serverCartResponse = await getCart(token);
 
-                    if (serverCartResponse?.cart?.products && serverCartResponse.cart.products.length > 0) {
-                        // Cargar los detalles completos de cada producto
-                        const serverCartItems = [];
+                    if (!serverCartResponse?.cart?.products?.length) {
+                        setIsRefreshing(false);
+                        return;
+                    }
 
-                        for (const item of serverCartResponse.cart.products) {
-                            try {
-                                // Obtener detalles del producto
-                                const productDetails = await getProductById(item.productId);
+                    const serverCartItems = [];
 
-                                if (productDetails && productDetails.product) {
-                                    const product = productDetails.product;
-
-                                    // Asegurar que el producto tiene todos los datos necesarios
-                                    if (!product.name || !product.images || product.price === undefined) {
-                                        console.warn(`Producto ${item.productId} con datos incompletos:`, product);
-                                        continue;
-                                    }
-
-                                    // Crear un objeto de carrito completo con todas las propiedades necesarias
-                                    serverCartItems.push({
-                                        _id: item.productId,
-                                        name: product.name,
-                                        price: product.price,
-                                        images: Array.isArray(product.images) ? product.images : ['placeholder.png'],
-                                        quantity: item.quantity,
-                                        stock: product.stock || 1,
-                                        ...product
-                                    });
-                                }
-                            } catch (error) {
-                                console.error(`Error al obtener detalles del producto ${item.productId}:`, error);
+                    for (const item of serverCartResponse.cart.products) {
+                        try {
+                            // Verificar si tenemos el ID del producto, ya sea como string o como objeto
+                            const productId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+                            
+                            if (!productId) {
+                                console.warn('Item sin productId encontrado en el carrito');
+                                continue;
                             }
-                        }
 
-                        if (serverCartItems.length > 0) {
-                            // Modificado: En lugar de setCartItems, guardamos los productos en el estado local
-                            setLocalCartItems(serverCartItems);
-                            localStorage.setItem('cart', JSON.stringify(serverCartItems));
+                            const productResponse = await getProductById(productId);
+                            
+                            if (!productResponse.success || !productResponse.product) {
+                                console.warn(`No se pudo obtener el producto ${productId}: ${productResponse.msg}`);
+                                continue;
+                            }
+
+                            const product = productResponse.product;
+
+                            if (!product.nombre || !product.multimedia?.imagenes || !product.precioFinal) {
+                                console.warn(`Producto ${productId} con datos incompletos:`, product);
+                                continue;
+                            }
+
+                            serverCartItems.push({
+                                _id: productId,
+                                nombre: product.nombre,
+                                precioFinal: product.precioFinal,
+                                precioTransferencia: product.precioTransferencia,
+                                multimedia: product.multimedia,
+                                quantity: item.quantity || 1,
+                                inventario: product.inventario || { stockUnidades: 0 },
+                                ...product
+                            });
+                        } catch (error) {
+                            console.error(`Error al obtener detalles del producto ${item.productId}:`, error);
+                            toast.error(`No se pudo cargar un producto del carrito`);
                         }
+                    }
+
+                    if (serverCartItems.length > 0) {
+                        setLocalCartItems(serverCartItems);
+                        localStorage.setItem('cart', JSON.stringify(serverCartItems));
+                    } else if (serverCartResponse.cart.products.length > 0) {
+                        toast.error('Hubo problemas al cargar algunos productos del carrito');
                     }
                 } catch (error) {
                     console.error('Error al obtener el carrito del servidor:', error);
-                    // Solo mostramos un error si no es un 400 (que suele indicar "carrito vacío")
                     if (error?.response?.status !== 400) {
                         toast.error('Error al cargar el carrito');
                     }
@@ -234,7 +172,7 @@ const CarroDeCompras = () => {
     }, [localCartItems]);
 
     const calculateTotal = () => {
-        return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+        return cartItems.reduce((total, item) => total + (item.precioFinal * item.quantity), 0);
     };
 
     const handleContinue = () => {
@@ -322,8 +260,6 @@ const CarroDeCompras = () => {
                     </div>
                 </div>
             )}
-
-            {cartItems.length > 0 && <RecommendedProducts />}
         </div>
     );
 }
