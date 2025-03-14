@@ -99,19 +99,22 @@ const MyOrderDetails = () => {
                             <div key={item.product._id} className="flex justify-between items-center border-b dark:border-gray-600/50 pb-2">
                                 <div className="flex items-center space-x-4">
                                     <img 
-                                        src={getImageUrl(item.product.images[0])} 
-                                        alt={item.product.name}
+                                        src={getImageUrl(item.product.multimedia.imagenes[0])} 
+                                        alt={item.product.nombre}
                                         className="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
                                     />
                                     <div>
-                                        <p className="font-medium text-gray-900 dark:text-white">{item.product.name}</p>
+                                        <p className="font-medium text-gray-900 dark:text-white">{item.product.nombre}</p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
                                             Cantidad: {item.quantity}
+                                        </p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            Precio unitario: {formatCurrency(item.product.precioFinal)}
                                         </p>
                                     </div>
                                 </div>
                                 <p className="font-medium text-gray-900 dark:text-white">
-                                    {formatCurrency(item.price * item.quantity)}
+                                    {formatCurrency(item.product.precioFinal * item.quantity)}
                                 </p>
                             </div>
                         ))}

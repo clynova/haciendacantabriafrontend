@@ -13,61 +13,55 @@ import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables'
 
 // Componente para el producto en el carrito
 const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
+    console.log('*'.repeat(500), item)
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-white rounded-lg shadow-sm mb-4 border border-gray-100 hover:shadow-md transition-all"
         >
             <div className="flex items-center space-x-4 w-full md:w-auto mb-4 md:mb-0">
                 <div className="relative h-24 w-24 overflow-hidden rounded-md">
-                    <img 
-                        src={getImageUrl(item.images?.[0])} 
-                        alt={item.name} 
+                    <img
+                        src={getImageUrl(item.multimedia.imagenes[0].url)}
+                        alt={item.nombre}
                         className="h-full w-full object-cover transition-transform hover:scale-110"
                     />
                 </div>
                 <div>
                     <Link to={`/producto/${item._id}`} className="font-medium text-lg text-gray-800 hover:text-blue-600 transition-colors">
-                        {item.name}
+                        {item.nombre}
                     </Link>
-                    <p className="text-blue-600 font-bold">{formatCurrency(item.price)}</p>
+                    <p className="text-blue-600 font-bold">{formatCurrency(item.precioFinal)}</p>
                     <p className="text-sm text-gray-500">
-                        Stock disponible: {getValidStock(item.stock)}
+                        Stock disponible: {item.inventario.stockUnidades}
                     </p>
                 </div>
             </div>
-            
-            <div className="flex items-center space-x-6 w-full md:w-auto justify-between md:justify-end">
-                <div className="flex items-center">
-                    <button 
-                        onClick={() => updateQuantity(item._id, Math.max(1, item.quantity - 1))}
+
+            <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-2">
+                    <button
+                        onClick={() => updateQuantity(item._id, item.quantity - 1)}
                         className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100"
                         disabled={item.quantity <= 1}
                     >
                         -
                     </button>
-                    <input 
-                        type="number" 
-                        min="1" 
-                        max={getValidStock(item.stock)} 
-                        value={item.quantity} 
-                        onChange={(e) => updateQuantity(item._id, parseInt(e.target.value) || 1)}
-                        className="w-12 h-8 border-t border-b border-gray-300 text-center focus:outline-none"
-                    />
-                    <button 
-                        onClick={() => updateQuantity(item._id, Math.min(getValidStock(item.stock), item.quantity + 1))}
+                    <span className="w-12 text-center">{item.quantity}</span>
+                    <button
+                        onClick={() => updateQuantity(item._id, item.quantity + 1)}
                         className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-r-md bg-gray-50 hover:bg-gray-100"
-                        disabled={item.quantity >= getValidStock(item.stock)}
+                        disabled={item.quantity >= item.inventario.stockUnidades}
                     >
                         +
                     </button>
                 </div>
-                
+
                 <div className="text-right">
-                    <p className="font-bold">{formatCurrency(item.price * item.quantity)}</p>
+                    <p className="font-bold">{formatCurrency(item.precioFinal * item.quantity)}</p>
                 </div>
-                
+
                 <button
                     onClick={() => removeFromCart(item._id)}
                     className="ml-2 text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
@@ -128,14 +122,14 @@ const RecommendedProducts = () => {
             <h2 className="text-xl font-bold mb-4">Recomendados para ti</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {recommendedProducts.map((product) => (
-                    <Link 
-                        to={`/producto/${product._id}`} 
+                    <Link
+                        to={`/producto/${product._id}`}
                         key={product._id}
                         className="group border rounded-lg p-4 hover:shadow-md transition-all"
                     >
                         <div className="relative aspect-square overflow-hidden rounded-md mb-2">
-                            <img 
-                                src={getImageUrl(product.images?.[0])} 
+                            <img
+                                src={getImageUrl(product.images?.[0])}
                                 alt={product.name}
                                 className="h-full w-full object-cover transition-transform group-hover:scale-110"
                             />
@@ -163,39 +157,39 @@ const CarroDeCompras = () => {
                 // Verificamos si ya se realizó una recarga reciente para evitar duplicaciones con F5
                 const lastRefreshTime = localStorage.getItem('lastCartRefresh');
                 const now = Date.now();
-                
+
                 // Si se ha refrescado en los últimos 3 segundos, omitimos esta actualización
                 if (lastRefreshTime && (now - parseInt(lastRefreshTime)) < 3000) {
                     console.log('Recarga reciente detectada, omitiendo actualización');
                     return;
                 }
-                
+
                 // Marcamos el inicio de la actualización
                 setIsRefreshing(true);
                 localStorage.setItem('lastCartRefresh', now.toString());
-                
+
                 try {
                     // Obtenemos el carrito actualizado del servidor
                     const serverCartResponse = await getCart(token);
-                    
+
                     if (serverCartResponse?.cart?.products && serverCartResponse.cart.products.length > 0) {
                         // Cargar los detalles completos de cada producto
                         const serverCartItems = [];
-                        
+
                         for (const item of serverCartResponse.cart.products) {
                             try {
                                 // Obtener detalles del producto
                                 const productDetails = await getProductById(item.productId);
-                                
+
                                 if (productDetails && productDetails.product) {
                                     const product = productDetails.product;
-                                    
+
                                     // Asegurar que el producto tiene todos los datos necesarios
                                     if (!product.name || !product.images || product.price === undefined) {
                                         console.warn(`Producto ${item.productId} con datos incompletos:`, product);
                                         continue;
                                     }
-                                    
+
                                     // Crear un objeto de carrito completo con todas las propiedades necesarias
                                     serverCartItems.push({
                                         _id: item.productId,
@@ -211,7 +205,7 @@ const CarroDeCompras = () => {
                                 console.error(`Error al obtener detalles del producto ${item.productId}:`, error);
                             }
                         }
-                        
+
                         if (serverCartItems.length > 0) {
                             // Modificado: En lugar de setCartItems, guardamos los productos en el estado local
                             setLocalCartItems(serverCartItems);
@@ -229,7 +223,7 @@ const CarroDeCompras = () => {
                 }
             }
         };
-        
+
         refreshCartFromServer();
     }, [isAuthenticated, token]);
 
@@ -280,9 +274,9 @@ const CarroDeCompras = () => {
         <div className="max-w-7xl mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-2 text-white">Tu Carrito de Compras</h1>
             <p className="text-gray-500 mb-6">Revisa tus productos y procede al pago.</p>
-            
+
             <CheckoutProgress />
-            
+
             {cartItems.length === 0 ? (
                 <div className="bg-white p-8 rounded-lg shadow-md text-center">
                     <div className="text-gray-400 mb-4">
@@ -290,8 +284,8 @@ const CarroDeCompras = () => {
                     </div>
                     <h2 className="text-2xl font-bold mb-2">Tu carrito está vacío</h2>
                     <p className="text-gray-600 mb-6">Parece que aún no has añadido productos a tu carrito.</p>
-                    <Link 
-                        to="/" 
+                    <Link
+                        to="/"
                         className="inline-block bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors"
                     >
                         Continuar comprando
@@ -306,22 +300,22 @@ const CarroDeCompras = () => {
                                 Seguir comprando
                             </Link>
                         </div>
-                        
+
                         <div className="space-y-4">
                             {cartItems.map((item) => (
-                                <CartItem 
-                                    key={item._id} 
-                                    item={item} 
-                                    updateQuantity={updateQuantity} 
+                                <CartItem
+                                    key={item._id}
+                                    item={item}
+                                    updateQuantity={updateQuantity}
                                     removeFromCart={removeFromCart}
                                     getValidStock={getValidStock}
                                 />
                             ))}
                         </div>
                     </div>
-                    
+
                     <div className="lg:col-span-1">
-                        <CartSummary 
+                        <CartSummary
                             cartItems={cartItems}
                             onContinue={handleContinue}
                             buttonText="Continuar con el envío"
@@ -329,7 +323,7 @@ const CarroDeCompras = () => {
                     </div>
                 </div>
             )}
-            
+
             {cartItems.length > 0 && <RecommendedProducts />}
         </div>
     );

@@ -23,15 +23,15 @@ const CartItem = ({ item }) => {
   };
 
   return (
-    <div className="flex items-center py-4 border-b border-slate-700">
+    <div className="flex items-start p-4">
       <img
-        src={getImageUrl(item.images[0])}
-        alt={item.name}
+        src={getImageUrl(item.multimedia.imagenes[0].url)}
+        alt={item.nombre}
         className="w-16 h-16 object-cover rounded"
       />
       <div className="flex-1 ml-4">
-        <h3 className="text-sm font-medium text-slate-200">{item.name}</h3>
-        <p className="text-sm text-slate-400">{formatCurrency(item.price)}</p>
+        <h3 className="text-sm font-medium text-slate-200">{item.nombre}</h3>
+        <p className="text-sm text-slate-400">{formatCurrency(item.precioFinal)}</p>
         <div className="flex items-center mt-2">
           <button
             onClick={() => updateQuantity(item._id, item.quantity - 1)}
@@ -58,18 +58,25 @@ const CartItem = ({ item }) => {
     </div>
   );
 };
+
 CartItem.propTypes = {
   item: PropTypes.shape({
-    _id: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.number
-    ]).isRequired,
-    name: PropTypes.string.isRequired,
-    images: PropTypes.arrayOf(PropTypes.string).isRequired,
-    price: PropTypes.number.isRequired,
+    _id: PropTypes.string.isRequired,
+    nombre: PropTypes.string.isRequired,
+    precioFinal: PropTypes.number.isRequired,
     quantity: PropTypes.number.isRequired,
+    multimedia: PropTypes.shape({
+      imagenes: PropTypes.arrayOf(PropTypes.shape({
+        url: PropTypes.string,
+        textoAlternativo: PropTypes.string,
+        esPrincipal: PropTypes.bool,
+        _id: PropTypes.string,
+      })).isRequired,
+    }).isRequired,
+    inventario: PropTypes.shape({
+      stockUnidades: PropTypes.number.isRequired,
+    }).isRequired,
   }).isRequired,
 };
-
 
 export { CartItem };
