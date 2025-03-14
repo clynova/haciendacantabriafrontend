@@ -6,8 +6,8 @@ const ImageGallery = ({ images, selectedImage, setSelectedImage }) => {
         <div className="flex flex-col">
             <div className="relative">
                 <img
-                    src={getImageUrl(images[selectedImage])}
-                    alt="Producto seleccionado"
+                    src={getImageUrl(images[selectedImage].url)}
+                    alt={images[selectedImage].textoAlternativo}
                     className="w-full h-96 object-cover rounded-lg"
                 />
             </div>
@@ -20,8 +20,8 @@ const ImageGallery = ({ images, selectedImage, setSelectedImage }) => {
                             }`}
                     >
                         <img
-                            src={getImageUrl(img)}
-                            alt={`Vista ${idx + 1}`}
+                            src={getImageUrl(img.url)}
+                            alt={img.textoAlternativo}
                             className="w-full h-24 object-cover"
                         />
                     </button>
@@ -33,7 +33,12 @@ const ImageGallery = ({ images, selectedImage, setSelectedImage }) => {
 };
 
 ImageGallery.propTypes = {
-    images: PropTypes.arrayOf(PropTypes.string).isRequired,
+    images: PropTypes.arrayOf(PropTypes.shape({
+        url: PropTypes.string.isRequired,
+        textoAlternativo: PropTypes.string.isRequired,
+        esPrincipal: PropTypes.bool,
+        _id: PropTypes.string
+    })).isRequired,
     selectedImage: PropTypes.number.isRequired,
     setSelectedImage: PropTypes.func.isRequired,
 };

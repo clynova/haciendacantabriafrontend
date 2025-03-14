@@ -13,7 +13,6 @@ import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables'
 
 // Componente para el producto en el carrito
 const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
-    console.log('*'.repeat(500), item)
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
