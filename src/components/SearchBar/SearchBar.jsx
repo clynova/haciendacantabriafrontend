@@ -25,8 +25,8 @@ const SearchBar = ({ isExpanded, onToggle }) => {
     // Solo ejecutar búsqueda cuando el término ha sido "debounced"
     if (debouncedSearchTerm.length >= 2) {
       const filtered = products.filter(product =>
-        product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || 
-        (product.description && product.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
+        product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || 
+        (product.descripcion?.completa && product.descripcion.completa.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
       );
       setResults(filtered);
     } else {
