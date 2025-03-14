@@ -32,6 +32,13 @@ import { CheckoutLayout } from "./layouts/MainLayout/CheckoutLayout";
 import { Confirmation } from './pages/payment/Confirmation';
 import { PaymentFailure } from './pages/payment/PaymentFailure';
 import { MyOrderDetails } from "./pages/Perfil/MyOrderDetails";
+
+import { AdminRoute } from './components/AdminRoute';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminProducts } from './pages/admin/AdminProducts';
+import { AdminOrders } from './pages/admin/AdminOrders';
+import { AdminUsers } from './pages/admin/AdminUsers';
+import { AdminCategories } from './pages/admin/AdminCategories';
 import { About } from "./pages/About";
 
 const App = () => {
@@ -71,6 +78,19 @@ const App = () => {
                       <Route path="wishlist" element={<MyWishlist />} />
                       <Route path="addresses" element={<MyAddresses />} />
                       <Route path="settings" element={<MyConfiguration />} />
+                    </Route>
+                  </Route>
+                  <Route path="/admin" element={
+                    <AdminRoute>
+                      <MainLayout />
+                    </AdminRoute>
+                  }>
+                    <Route element={<ProfileLayout />}>
+                      <Route index element={<AdminDashboard />} />
+                      <Route path="products" element={<AdminProducts />} />
+                      <Route path="orders" element={<AdminOrders />} />
+                      <Route path="users" element={<AdminUsers />} />
+                      <Route path="categories" element={<AdminCategories />} />
                     </Route>
                   </Route>
                   <Route path="/checkout" element={

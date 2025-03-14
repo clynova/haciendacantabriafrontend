@@ -52,7 +52,6 @@ const Register = () => {
         if (!/[A-Z]/.test(value)) return 'La contraseña debe incluir al menos una mayúscula';
         if (!/[a-z]/.test(value)) return 'La contraseña debe incluir al menos una minúscula';
         if (!/[0-9]/.test(value)) return 'La contraseña debe incluir al menos un número';
-        if (!/[!@#$%^&*]/.test(value)) return 'La contraseña debe incluir al menos un carácter especial (!@#$%^&*)';
         return '';
     };
     const validateRepPassword = (value) => {
@@ -103,6 +102,8 @@ const Register = () => {
 
     const handleRegister = async (e) => {
         e.preventDefault();
+        console.log('Iniciando registro...'); // Log para depuración
+
         // Validación de campos
         const fields = ['firstName', 'lastName', 'email', 'password', 'repPassword'];
         const touchedFields = {};
@@ -113,6 +114,8 @@ const Register = () => {
         });
         setTouched(touchedFields);
         if (!isValid) return;
+
+        console.log(touchedFields)
 
         setIsLoading(true);
         try {
