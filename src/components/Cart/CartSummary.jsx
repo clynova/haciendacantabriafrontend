@@ -29,16 +29,14 @@ const CartSummary = ({
     const { calculateSubtotal } = useCart();
     
     const subtotal = calculateSubtotal ? calculateSubtotal() : 
-        cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+        cartItems.reduce((total, item) => total + (item.precioFinal * item.quantity), 0);
     
     // Cálculo de envío - Ahora maneja tanto shippingMethod como shippingInfo
     let shippingCost = 0;
     
     if (shippingMethod?.base_cost) {
-        // Si recibimos un método de envío específico (desde FormaEnvio)
         shippingCost = parseFloat(shippingMethod.base_cost);
     } else if (shippingInfo?.baseCost) {
-        // Si recibimos la información completa de envío (desde SistemaDePago)
         shippingCost = parseFloat(shippingInfo.baseCost);
     }
     
@@ -74,13 +72,13 @@ const CartSummary = ({
                         {cartItems.map((item) => (
                             <div key={item._id} className="flex items-start py-2 border-b">
                                 <div className="h-12 w-12 rounded-md overflow-hidden mr-3 flex-shrink-0">
-                                    <img src={getImageUrl(item.images?.[0])} alt={item.name} className="h-full w-full object-cover" />
+                                    <img src={getImageUrl(item.multimedia.imagenes[0].url)} alt={item.nombre} className="h-full w-full object-cover" />
                                 </div>
                                 <div className="flex-grow">
-                                    <p className="text-sm font-medium truncate">{item.name}</p>
+                                    <p className="text-sm font-medium truncate">{item.nombre}</p>
                                     <div className="flex justify-between text-sm text-gray-500">
-                                        <span>{item.quantity} x {formatCurrency(item.price)}</span>
-                                        <span>{formatCurrency(item.price * item.quantity)}</span>
+                                        <span>{item.quantity} x {formatCurrency(item.precioFinal)}</span>
+                                        <span>{formatCurrency(item.precioFinal * item.quantity)}</span>
                                     </div>
                                 </div>
                             </div>

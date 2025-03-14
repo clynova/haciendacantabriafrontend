@@ -7,19 +7,25 @@ import { Link } from 'react-router-dom';
 const isValidCartItem = (item) => {
   return item && 
          item._id !== undefined && 
-         item.name !== undefined && 
-         item.price !== undefined && 
+         item.nombre !== undefined && 
+         item.precioFinal !== undefined && 
          item.quantity !== undefined &&
-         Array.isArray(item.images);
+         item.multimedia?.imagenes &&
+         Array.isArray(item.multimedia.imagenes) &&
+         item.inventario?.stockUnidades !== undefined;
 };
 
 const CartDrawer = () => {
-  const { cartItems, cartTotal, isCartOpen, setIsCartOpen } = useCart();
-  
-  // Filtrar los elementos del carrito que tienen todas las propiedades requeridas
+  const { cartItems, isCartOpen, setIsCartOpen } = useCart();
   const validCartItems = cartItems.filter(isValidCartItem);
   
   if (!isCartOpen) return null;
+
+  // Calcular el total usando precioFinal
+  const cartTotal = validCartItems.reduce(
+    (total, item) => total + (item.precioFinal * item.quantity),
+    0
+  );
   
   return (
     <>
@@ -58,7 +64,10 @@ const CartDrawer = () => {
               <div className="flex justify-between mb-4">
                 <span className="text-slate-200">Total:</span>
                 <span className="text-slate-200 font-medium">
-                  ${cartTotal.toFixed(2)}
+                  {new Intl.NumberFormat('es-CL', {
+                    style: 'currency',
+                    currency: 'CLP'
+                  }).format(cartTotal)}
                 </span>
               </div>
               <Link
