@@ -128,13 +128,13 @@ const RecommendedProducts = () => {
                     >
                         <div className="relative aspect-square overflow-hidden rounded-md mb-2">
                             <img
-                                src={getImageUrl(product.images?.[0])}
-                                alt={product.name}
+                                src={getImageUrl(product.multimedia.imagenes[0].url)}
+                                alt={product.nombre}
                                 className="h-full w-full object-cover transition-transform group-hover:scale-110"
                             />
                         </div>
-                        <h3 className="font-medium text-gray-800 truncate">{product.name}</h3>
-                        <p className="text-blue-600 font-bold">{formatCurrency(product.price)}</p>
+                        <h3 className="font-medium text-gray-800 truncate">{product.nombre}</h3>
+                        <p className="text-blue-600 font-bold">{formatCurrency(product.precioFinal)}</p>
                     </Link>
                 ))}
             </div>

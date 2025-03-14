@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import PropTypes from 'prop-types';
 import { HiOutlineInformationCircle } from "react-icons/hi";
+import { getImageUrl } from '../../utils/funcionesReutilizables';
 
 // Usando parámetros predeterminados de JavaScript en lugar de defaultProps
 const SearchResults = ({ results, isLoading = false, onClose }) => {
@@ -35,19 +36,19 @@ const SearchResults = ({ results, isLoading = false, onClose }) => {
                         onClick={onClose}
                     >
                         <img                        
-                            src={product.images?.[0] || '/images/placeholder.png'} 
-                            alt={product.name}
+                            src={getImageUrl(product.multimedia.imagenes[0].url)}
+                            alt={product.nombre}
                             className="w-12 h-12 object-cover rounded"
                             onError={(e) => {
                                 e.target.src = "/images/placeholder.png";
                             }}
                         />
                         <div className="ml-4">
-                            <p className="text-white font-medium">{product.name}</p>
-                            <p className="text-slate-400">${product.price.toLocaleString('es-AR')}</p>
-                            {product.discount > 0 && (
+                            <p className="text-white font-medium">{product.nombre}</p>
+                            <p className="text-slate-400">${product.precioFinal.toLocaleString('es-AR')}</p>
+                            {product.precios?.descuentos?.promocion?.activa && (
                                 <div className="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full inline-block mt-1">
-                                    {product.discount}% OFF
+                                    {product.precios.descuentos.promocion.porcentaje}% OFF
                                 </div>
                             )}
                         </div>
@@ -65,17 +66,28 @@ SearchResults.propTypes = {
                 PropTypes.string,
                 PropTypes.number
             ]).isRequired,
-            images: PropTypes.arrayOf(PropTypes.string),
-            name: PropTypes.string.isRequired,
-            price: PropTypes.number.isRequired,
-            discount: PropTypes.number,
-            description: PropTypes.string
+            multimedia: PropTypes.shape({
+                imagenes: PropTypes.arrayOf(
+                    PropTypes.shape({
+                        url: PropTypes.string.isRequired,
+                        textoAlternativo: PropTypes.string
+                    })
+                ).isRequired
+            }).isRequired,
+            nombre: PropTypes.string.isRequired,
+            precioFinal: PropTypes.number.isRequired,
+            precios: PropTypes.shape({
+                descuentos: PropTypes.shape({
+                    promocion: PropTypes.shape({
+                        porcentaje: PropTypes.number,
+                        activa: PropTypes.bool
+                    })
+                })
+            })
         })
     ).isRequired,
     isLoading: PropTypes.bool,
     onClose: PropTypes.func.isRequired,
 };
-
-// Eliminamos la línea SearchResults.defaultProps
 
 export { SearchResults };

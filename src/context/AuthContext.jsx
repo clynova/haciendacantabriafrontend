@@ -100,18 +100,19 @@ export const AuthProvider = ({ children }) => {
                   const product = productDetails.product;
                   
                   // Verificar que los datos esenciales estén presentes
-                  if (!product.name || !product.images || !product.price) {
+                  if (!product.nombre || !product.multimedia || !product.precioFinal) {
                     console.warn(`Producto ${item.productId} con datos incompletos:`, product);
                     continue; // Saltamos este producto si falta alguna propiedad esencial
                   }
                   
                   cartItemsWithDetails.push({
                     _id: item.productId,
-                    name: product.name,
-                    price: product.price,
-                    images: product.images || ['placeholder.png'], // Usar imagen placeholder si no hay imágenes
+                    nombre: product.nombre,
+                    precioFinal: product.precioFinal,
+                    precioTransferencia: product.precioTransferencia,
+                    multimedia: product.multimedia,
                     quantity: item.quantity,
-                    stock: product.stock || 0,
+                    inventario: product.inventario,
                     // Añadir cualquier otra propiedad necesaria
                     ...product
                   });

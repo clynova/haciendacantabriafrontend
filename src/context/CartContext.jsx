@@ -187,7 +187,7 @@ export const CartProvider = ({ children }) => {
     try {
       const existingItem = cartItems.find(item => item._id === product._id);
       const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
-      
+
       if (!validateStock(product, newQuantity)) {
         return;
       }
@@ -218,7 +218,7 @@ export const CartProvider = ({ children }) => {
           
           // Buscar si el producto ya existe en el carrito del servidor
           const existingServerItem = serverCart?.cart?.products?.find(item => 
-            item.productId._id === product._id
+            item.productId?._id === product._id || item.productId === product._id
           );
           
           // Si el producto ya existe en el servidor, primero lo eliminamos para evitar duplicados
@@ -231,18 +231,26 @@ export const CartProvider = ({ children }) => {
           }
           
           // Agregar el producto con la nueva cantidad
-          await addToCartAPI({
+          const response = await addToCartAPI({
             productId: product._id,
             quantity: newQuantity
           }, token);
+
+          if (!response.success) {
+            throw new Error(response.msg || 'Error al agregar al carrito');
+          }
           
         } catch (error) {
+          // Revert local state if API call fails
+          setCartItems(curr => curr.filter(item => item._id !== product._id));
           console.error("Error al sincronizar con el servidor:", error);
-          toast.error('Error al sincronizar con el servidor');
+          toast.error(error.msg || 'Error al sincronizar con el servidor');
+          return;
         }
       }
       
       setIsCartOpen(true);
+      toast.success('Producto agregado al carrito');
     } catch (error) {
       toast.error('Error al agregar al carrito');
       console.error('Error in addToCart:', error);
