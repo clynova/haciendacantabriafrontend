@@ -85,13 +85,27 @@ const updateUser = async (userId, userData, token) => {
 
 const createUser = async (userData, token) => {
     try {
-        const response = await api.post('/api/user/registrar', userData, {
-            headers: {
-                Authorization: `Bearer ${token}`
+        const response = await api.post('/api/user/registrar', 
+            {
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                email: userData.email.toLowerCase(),
+                password: userData.password,
+                repPassword: userData.repPassword,
+                roles: userData.roles,
+                confirmado: true,
+                addresses: []
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
             }
-        });
+        );
         return response.data;
     } catch (error) {
+        console.error('Error creating user:', error.response?.data);
         throw error.response?.data || {
             success: false,
             msg: 'Error al crear el usuario'

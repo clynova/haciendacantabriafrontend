@@ -14,35 +14,69 @@ const AdminUserCreate = () => {
         lastName: '',
         email: '',
         password: '',
-        roles: ['customer'], // Now an array
-        confirmado: true, // Added confirmed status
-        addresses: [] // Added empty addresses array
+        repPassword: '', // Changed from passwordConfirm to repPassword
+        roles: ['customer'],
+        confirmado: true,
+        addresses: []
     });
 
     // Password validation
     const [passwordValidation, setPasswordValidation] = useState({
         isValid: false,
-        message: ''
+        errors: {
+            password: '',
+            repPassword: ''
+        }
     });
 
-    // Validate password on change
-    const validatePassword = (password) => {
-        if (password.length < 6) {
-            return {
-                isValid: false,
-                message: 'La contraseña debe tener al menos 6 caracteres'
-            };
-        }
-        return {
-            isValid: true,
-            message: ''
-        };
+    // Add validation functions from Register component
+    const validatePassword = (value) => {
+        if (!value) return 'La contraseña es requerida';
+        if (value.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+        if (!/[A-Z]/.test(value)) return 'La contraseña debe incluir al menos una mayúscula';
+        if (!/[a-z]/.test(value)) return 'La contraseña debe incluir al menos una minúscula';
+        if (!/[0-9]/.test(value)) return 'La contraseña debe incluir al menos un número';
+        if (!/[!@#$%^&*]/.test(value)) return 'La contraseña debe incluir al menos un carácter especial (!@#$%^&*)';
+        return '';
     };
 
+    const validateRepPassword = (password, repPassword) => {
+        if (!repPassword) return 'La confirmación de contraseña es requerida';
+        if (repPassword !== password) return 'Las contraseñas no coinciden';
+        if (repPassword.length < 8) return 'La confirmación de contraseña debe tener al menos 8 caracteres';
+        if (!/[!@#$%^&*]/.test(repPassword)) return 'La confirmación de contraseña debe incluir al menos un carácter especial (!@#$%^&*)';
+        return '';
+    };
+
+    // Update password change handlers
     const handlePasswordChange = (e) => {
         const password = e.target.value;
+        const passwordError = validatePassword(password);
+        const repPasswordError = validateRepPassword(password, formData.repPassword);
+
         setFormData({ ...formData, password });
-        setPasswordValidation(validatePassword(password));
+        setPasswordValidation({
+            isValid: !passwordError && !repPasswordError,
+            errors: {
+                password: passwordError,
+                repPassword: repPasswordError
+            }
+        });
+    };
+
+    const handleConfirmPasswordChange = (e) => {
+        const repPassword = e.target.value; // Changed variable name
+        const passwordError = validatePassword(formData.password);
+        const repPasswordError = validateRepPassword(formData.password, repPassword);
+
+        setFormData({ ...formData, repPassword }); // Update state key
+        setPasswordValidation({
+            isValid: !passwordError && !repPasswordError,
+            errors: {
+                password: passwordError,
+                repPassword: repPasswordError
+            }
+        });
     };
 
     const handleRoleChange = (e) => {
@@ -52,34 +86,67 @@ const AdminUserCreate = () => {
         });
     };
 
+    // Update the handleSubmit function
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!passwordValidation.isValid) {
-            toast.error('Por favor, corrija los errores del formulario');
+        // Create an array to collect all validation errors
+        const errors = [];
+
+        // Check for empty required fields
+        if (!formData.firstName) errors.push('El nombre es requerido');
+        if (!formData.lastName) errors.push('El apellido es requerido');
+        if (!formData.email) errors.push('El correo electrónico es requerido');
+
+        // Check password validation
+        const passwordError = validatePassword(formData.password);
+        const repPasswordError = validateRepPassword(formData.password, formData.repPassword);
+
+        if (passwordError) errors.push(passwordError);
+        if (repPasswordError) errors.push(repPasswordError);
+
+        // If there are any errors, show them and stop
+        if (errors.length > 0) {
+            errors.forEach(error => toast.error(error));
             return;
         }
 
         setLoading(true);
 
         try {
-            const response = await createUser({
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email.toLowerCase(),
+            const userData = {
+                firstName: formData.firstName.trim(),
+                lastName: formData.lastName.trim(),
+                email: formData.email.toLowerCase().trim(),
                 password: formData.password,
+                repPassword: formData.repPassword,
                 roles: formData.roles,
                 confirmado: true
-            }, token);
+            };
+
+            const response = await createUser(userData, token);
 
             if (response.success) {
                 toast.success('Usuario creado exitosamente');
                 navigate('/admin/users');
             } else {
-                toast.error(response.msg || 'Error al crear el usuario');
+                // If the API returns validation errors, show them
+                if (response.errors && Array.isArray(response.errors)) {
+                    response.errors.forEach(error => {
+                        toast.error(error.msg);
+                    });
+                } else {
+                    toast.error(response.msg || 'Error al crear el usuario');
+                }
             }
         } catch (error) {
-            toast.error(error.msg || 'Error al crear el usuario');
+            if (error.errors && Array.isArray(error.errors)) {
+                error.errors.forEach(err => {
+                    toast.error(err.msg);
+                });
+            } else {
+                toast.error(error.msg || 'Error al crear el usuario');
+            }
         } finally {
             setLoading(false);
         }
@@ -177,35 +244,60 @@ const AdminUserCreate = () => {
                                             value={formData.password}
                                             onChange={handlePasswordChange}
                                             className={`w-full px-3 py-2 bg-slate-700/50 border rounded-lg text-slate-200 focus:ring-1 ${
-                                                passwordValidation.message 
+                                                passwordValidation.errors.password
                                                     ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
                                                     : 'border-slate-600 focus:border-blue-500 focus:ring-blue-500'
                                             }`}
                                             required
                                         />
-                                        {passwordValidation.message && (
+                                        {passwordValidation.errors.password && (
                                             <div className="mt-1 text-sm text-red-400 flex items-center gap-1">
                                                 <HiExclamationCircle className="h-4 w-4" />
-                                                {passwordValidation.message}
+                                                {passwordValidation.errors.password}
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
-                                        <HiShieldCheck className="h-4 w-4 text-blue-400" />
-                                        Rol del usuario
+                                    <label className="text-sm font-medium text-slate-400">
+                                        Confirmar Contraseña
                                     </label>
-                                    <select
-                                        value={formData.roles[0]}
-                                        onChange={handleRoleChange}
-                                        className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    >
-                                        <option value="customer">Cliente</option>
-                                        <option value="admin">Administrador</option>
-                                    </select>
+                                    <div className="relative">
+                                        <input
+                                            type="password"
+                                            value={formData.repPassword}
+                                            onChange={handleConfirmPasswordChange}
+                                            className={`w-full px-3 py-2 bg-slate-700/50 border rounded-lg text-slate-200 focus:ring-1 ${
+                                                passwordValidation.errors.repPassword
+                                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                                                    : 'border-slate-600 focus:border-blue-500 focus:ring-blue-500'
+                                            }`}
+                                            required
+                                        />
+                                        {passwordValidation.errors.repPassword && (
+                                            <div className="mt-1 text-sm text-red-400 flex items-center gap-1">
+                                                <HiExclamationCircle className="h-4 w-4" />
+                                                {passwordValidation.errors.repPassword}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
+                                    <HiShieldCheck className="h-4 w-4 text-blue-400" />
+                                    Rol del usuario
+                                </label>
+                                <select
+                                    value={formData.roles[0]}
+                                    onChange={handleRoleChange}
+                                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                >
+                                    <option value="customer">Cliente</option>
+                                    <option value="admin">Administrador</option>
+                                </select>
                             </div>
                         </div>
 
@@ -213,7 +305,12 @@ const AdminUserCreate = () => {
                         <div className="flex justify-end pt-6 border-t border-slate-700">
                             <button
                                 type="submit"
-                                disabled={loading || !passwordValidation.isValid}
+                                disabled={loading || 
+                                    passwordValidation.errors.password || 
+                                    passwordValidation.errors.repPassword ||
+                                    !formData.firstName ||
+                                    !formData.lastName ||
+                                    !formData.email}
                                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             >
                                 {loading ? (
