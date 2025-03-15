@@ -48,4 +48,55 @@ const getAllUsers = async (token) => {
     }
 };
 
-export { getDashboardStats, deleteUser, getAllUsers };
+const getUserById = async (userId, token) => {
+    try {
+        const response = await api.post('/api/user/perfil', 
+            { userId }, // Enviar userId en el body
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al obtener los detalles del usuario'
+        };
+    }
+};
+
+const updateUser = async (userId, userData, token) => {
+    try {
+        const response = await api.put(`/api/user/perfil/${userId}`, userData, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al actualizar el usuario'
+        };
+    }
+};
+
+const createUser = async (userData, token) => {
+    try {
+        const response = await api.post('/api/user/registrar', userData, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al crear el usuario'
+        };
+    }
+};
+
+export { getDashboardStats, deleteUser, getAllUsers, getUserById, updateUser, createUser };

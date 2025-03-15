@@ -63,7 +63,12 @@ const AdminUsers = () => {
         const matchesSearch =
             user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesRole = selectedRole === 'all' || user.roles?.includes(selectedRole);
+        
+        const matchesRole = selectedRole === 'all' || 
+            (Array.isArray(user.roles) 
+                ? user.roles.includes(selectedRole)
+                : user.roles === selectedRole);
+        
         return matchesSearch && matchesRole;
     }) || [];
 
@@ -142,11 +147,12 @@ const AdminUsers = () => {
                                             {`${user.firstName} ${user.lastName}` || '-'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.roles === 'admin'
-                                                ? 'bg-purple-500/20 text-purple-400'
-                                                : 'bg-blue-500/20 text-blue-400'
-                                                }`}>
-                                                {user.roles }
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                user.role === 'admin' // Changed from user.roles to user.role
+                                                    ? 'bg-purple-500/20 text-purple-400'
+                                                    : 'bg-blue-500/20 text-blue-400'
+                                            }`}>
+                                                {user.roles}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
