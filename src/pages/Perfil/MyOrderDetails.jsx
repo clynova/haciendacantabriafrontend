@@ -99,7 +99,7 @@ const MyOrderDetails = () => {
                             <div key={item.product._id} className="flex justify-between items-center border-b dark:border-gray-600/50 pb-2">
                                 <div className="flex items-center space-x-4">
                                     <img 
-                                        src={getImageUrl(item.product.multimedia.imagenes[0])} 
+                                        src={getImageUrl(item.product.multimedia?.imagenes[0]?.url)}
                                         alt={item.product.nombre}
                                         className="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
                                     />
