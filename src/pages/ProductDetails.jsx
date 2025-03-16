@@ -187,7 +187,7 @@ const ProductDetails = () => {
                     <h4 className="font-medium text-gray-900 dark:text-white mb-2">Consejos:</h4>
                     <ul className="list-disc pl-5 space-y-1">
                       {product.coccion.consejos.map((consejo, index) => (
-                        <li key={index}>{consejo}</li>
+                        <li className='text-white' key={index}>{consejo}</li>
                       ))}
                     </ul>
                   </div>

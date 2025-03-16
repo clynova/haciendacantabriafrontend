@@ -95,7 +95,7 @@ const MyWishlist = () => {
                         >
                             <Link to={`/product/${product._id}`}>
                                 <img 
-                                    src={getImageUrl(product.multimedia.imagenes[0])}
+                                    src={getImageUrl(product.multimedia?.imagenes?.[0]?.url)}
                                     alt={product.nombre}
                                     className="w-full h-48 object-cover"
                                     loading="lazy"
