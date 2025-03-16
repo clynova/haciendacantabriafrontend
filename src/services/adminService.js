@@ -113,4 +113,131 @@ const createUser = async (userData, token) => {
     }
 };
 
+export const getAllProducts = async (token, filters = {}) => {
+    try {
+        // Convert filters object to query string
+        const queryParams = new URLSearchParams();
+        
+        // Add any filters that are provided
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value) queryParams.append(key, value);
+        });
+
+        const queryString = queryParams.toString();
+        const url = `/api/product${queryString ? `?${queryString}` : ''}`;
+
+        const response = await api.get(url, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching products:', error.response?.data);
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al obtener los productos'
+        };
+    }
+};
+
+export const deleteProduct = async (productId, token) => {
+    try {
+        const response = await api.delete(`/api/product/${productId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al eliminar el producto'
+        };
+    }
+};
+
+export const getProductById = async (productId, token) => {
+    try {
+        const response = await api.get(`/api/product/${productId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al obtener el producto'
+        };
+    }
+};
+
+export const createProduct = async (productData, token) => {
+    try {
+        console.log('Creating product with data:', productData);
+        
+        const response = await api.post('/api/product', productData, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error creating product:', error);
+        throw {
+            success: false,
+            msg: error.response?.data?.msg || 'Error al crear el producto',
+            error: error.response?.data || error
+        };
+    }
+};
+
+// Add this new function for image uploads
+export const uploadProductImages = async (productId, imageFiles, token) => {
+    try {
+        const formData = new FormData();
+        imageFiles.forEach(file => {
+            formData.append('images', file);
+        });
+
+        const response = await api.post(`/api/product/${productId}/images`, formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error uploading images:', error);
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al subir las imágenes'
+        };
+    }
+};
+
+// Update the updateProduct function
+export const updateProduct = async (productId, productData, token) => {
+    try {
+        const response = await api.put(`/api/product/${productId}`, productData, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error updating product:', error);
+        throw {
+            success: false,
+            msg: error.response?.data?.msg || 'Error al actualizar el producto',
+            error: error.response?.data || error
+        };
+    }
+};
+
 export { getDashboardStats, deleteUser, getAllUsers, getUserById, updateUser, createUser };
