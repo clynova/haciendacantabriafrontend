@@ -73,7 +73,7 @@ const App = () => {
                     <Route path="forgot-password" element={<ForgotPassword />} />
                     <Route path="password-confirmada" element={<PasswordResetSuccess />} />
                     <Route path="verification-pending" element={<VerificationPending />} />
-                    <Route path="verification-sucess" element={<VerificationSuccess />} />
+                    <Route path="verification-success" element={<VerificationSuccess />} />
                   </Route>
                   <Route path="/profile" element={
                     <ProtectedRoute>
