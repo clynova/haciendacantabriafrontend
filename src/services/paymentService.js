@@ -30,25 +30,24 @@ const getCart = async (token) => {
 // Add a product to the cart
 const addToCart = async (productData, token) => {
   try {
-    // Validate productId before making the request
     if (!productData.productId) {
       return {
         success: false,
         msg: 'ID de producto inválido'
       };
     }
-
     const response = await api.post("/api/cart", productData, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data;
   } catch (error) {
+    console.log(error)
     if (error.response?.data) {
-      return error.response.data;
+      return error.response.data.message  || error.response.data.msg || error.response.data;
     }
     return {
       success: false,
-      msg: error.message || 'Error al agregar al carrito'
+      msg: error.response.data.message  || error.response.data.msg || error.response.data
     };
   }
 };

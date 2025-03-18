@@ -49,7 +49,6 @@ const ProductGrid = () => {
       return;
     }
     addToCart(product);
-    toast.success('Producto agregado al carrito');
   };
 
   if (loading) return <LoadingSpinner />;

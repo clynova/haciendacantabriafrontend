@@ -5,18 +5,23 @@ import { Link } from 'react-router-dom';
 
 // Función auxiliar para validar que un item del carrito tiene todas las propiedades requeridas
 const isValidCartItem = (item) => {
+  // Verificación más flexible para multimedia.imagenes
+  const hasValidImages = item && 
+    item.multimedia && 
+    (Array.isArray(item.multimedia.imagenes) || // Para el formato normal
+    (typeof item.multimedia.imagenes === 'object' && item.multimedia.imagenes !== null)); // Para otro formato posible
+  
   return item && 
          item._id !== undefined && 
          item.nombre !== undefined && 
          item.precioFinal !== undefined && 
          item.quantity !== undefined &&
-         item.multimedia?.imagenes &&
-         Array.isArray(item.multimedia.imagenes) &&
-         item.inventario?.stockUnidades !== undefined;
+         hasValidImages &&
+         item.inventario !== undefined;
 };
 
 const CartDrawer = () => {
-  const { cartItems, isCartOpen, setIsCartOpen } = useCart();
+  const { cartItems, isCartOpen, setIsCartOpen, isLoading } = useCart();
   const validCartItems = cartItems.filter(isValidCartItem);
   
   if (!isCartOpen) return null;
@@ -51,7 +56,9 @@ const CartDrawer = () => {
 
           {/* Cart Items */}
           <div className="flex-1 overflow-y-auto p-4">
-            {validCartItems.length === 0 ? (
+            {isLoading ? (
+              <p className="text-slate-400 text-center">Cargando tu carrito...</p>
+            ) : validCartItems.length === 0 ? (
               <p className="text-slate-400 text-center">Tu carrito está vacío</p>
             ) : (
               validCartItems.map(item => <CartItem key={item._id} item={item} />)

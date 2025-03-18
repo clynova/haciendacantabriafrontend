@@ -5,6 +5,32 @@ import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables'
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 
+// Función auxiliar para obtener la URL de la imagen de forma segura
+const getImageSrc = (multimedia) => {
+  try {
+    // Si multimedia.imagenes es un array y tiene elementos
+    if (Array.isArray(multimedia.imagenes) && multimedia.imagenes.length > 0) {
+      // Si el primer elemento es un objeto con URL
+      if (multimedia.imagenes[0]?.url) {
+        return getImageUrl(multimedia.imagenes[0].url);
+      }
+      // Si el primer elemento es una URL directa
+      if (typeof multimedia.imagenes[0] === 'string') {
+        return getImageUrl(multimedia.imagenes[0]);
+      }
+    }
+    // Si multimedia.imagenes es un objeto (no array) con una URL
+    if (!Array.isArray(multimedia.imagenes) && multimedia.imagenes?.url) {
+      return getImageUrl(multimedia.imagenes.url);
+    }
+  } catch (error) {
+    console.error('Error al obtener imagen del producto:', error);
+  }
+  
+  // Imagen por defecto si no se encuentra ninguna
+  return '/images/placeholder.png';
+};
+
 const CartItem = ({ item }) => {
   const { updateQuantity, removeFromCart } = useCart();
   const [isRemoving, setIsRemoving] = useState(false);
@@ -13,7 +39,6 @@ const CartItem = ({ item }) => {
     try {
       setIsRemoving(true);
       await removeFromCart(item._id);
-      // No necesitamos toast aquí ya que removeFromCart ya lo maneja internamente
     } catch (error) {
       toast.error('Error al eliminar el producto');
       console.error('Error al eliminar el producto:', error);
@@ -22,12 +47,17 @@ const CartItem = ({ item }) => {
     }
   };
 
+  // Verificar si el inventario tiene stockUnidades, usar un valor predeterminado si no
+  const stockUnidades = item.inventario?.stockUnidades !== undefined ? 
+    item.inventario.stockUnidades : 10;
+
   return (
     <div className="flex items-start p-4">
       <img
-        src={getImageUrl(item.multimedia.imagenes[0].url)}
+        src={getImageSrc(item.multimedia)}
         alt={item.nombre}
         className="w-16 h-16 object-cover rounded"
+        onError={(e) => { e.target.src = '/images/placeholder.png'; }}
       />
       <div className="flex-1 ml-4">
         <h3 className="text-sm font-medium text-slate-200">{item.nombre}</h3>
@@ -36,6 +66,7 @@ const CartItem = ({ item }) => {
           <button
             onClick={() => updateQuantity(item._id, item.quantity - 1)}
             className="p-1 text-slate-400 hover:text-slate-200"
+            disabled={isRemoving}
           >
             <HiMinus className="h-4 w-4" />
           </button>
@@ -43,6 +74,7 @@ const CartItem = ({ item }) => {
           <button
             onClick={() => updateQuantity(item._id, item.quantity + 1)}
             className="p-1 text-slate-400 hover:text-slate-200"
+            disabled={isRemoving || item.quantity >= stockUnidades}
           >
             <HiPlus className="h-4 w-4" />
           </button>
@@ -65,17 +97,8 @@ CartItem.propTypes = {
     nombre: PropTypes.string.isRequired,
     precioFinal: PropTypes.number.isRequired,
     quantity: PropTypes.number.isRequired,
-    multimedia: PropTypes.shape({
-      imagenes: PropTypes.arrayOf(PropTypes.shape({
-        url: PropTypes.string,
-        textoAlternativo: PropTypes.string,
-        esPrincipal: PropTypes.bool,
-        _id: PropTypes.string,
-      })).isRequired,
-    }).isRequired,
-    inventario: PropTypes.shape({
-      stockUnidades: PropTypes.number.isRequired,
-    }).isRequired,
+    multimedia: PropTypes.object.isRequired,
+    inventario: PropTypes.object,
   }).isRequired,
 };
 
