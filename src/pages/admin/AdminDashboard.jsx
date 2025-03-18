@@ -204,36 +204,64 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                     
-                    {/* Gráfica de ventas mensuales */}
+                    {/* Ventas mensuales - Convertido a tabla */}
                     {salesData.monthlySales.length > 0 && (
                         <div className="mb-8">
                             <h3 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-4">
                                 Ventas Mensuales
                             </h3>
-                            <div className="h-64 relative">
-                                <div className="flex items-end justify-center h-56 gap-2">
-                                    {salesData.monthlySales.map((month, index) => {
-                                        // Calcular la altura de la barra basada en el total del mes
-                                        const maxTotal = Math.max(...salesData.monthlySales.map(m => m.total));
-                                        const barHeight = (month.total / maxTotal) * 100;
-                                        
-                                        return (
-                                            <div key={index} className="flex flex-col items-center" style={{ width: `${100 / salesData.monthlySales.length}%`, maxWidth: '80px' }}>
-                                                <div 
-                                                    className="w-full bg-indigo-600 rounded-t-md transition-all duration-300 hover:bg-indigo-500 relative"
-                                                    style={{ height: `${barHeight}%`, minWidth: '30px' }}
-                                                >
-                                                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                                    <thead className="bg-gray-100 dark:bg-gray-700">
+                                        <tr>
+                                            <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Mes
+                                            </th>
+                                            <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Año
+                                            </th>
+                                            <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Ventas
+                                            </th>
+                                            <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Porcentaje
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {salesData.monthlySales.map((month, index) => {
+                                            const maxTotal = Math.max(...salesData.monthlySales.map(m => m.total));
+                                            const percentage = (month.total / maxTotal) * 100;
+                                            
+                                            return (
+                                                <tr key={index}>
+                                                    <td className="py-3 px-4 text-sm text-gray-800 dark:text-gray-200">
+                                                        {getMonthName(month.month)}
+                                                    </td>
+                                                    <td className="py-3 px-4 text-sm text-gray-800 dark:text-gray-200">
+                                                        {month.year}
+                                                    </td>
+                                                    <td className="py-3 px-4 text-sm text-gray-800 dark:text-gray-200">
                                                         {formatCurrencyBoletas(month.total)}
-                                                    </span>
-                                                </div>
-                                                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-1 text-center whitespace-nowrap">
-                                                    {getMonthName(month.month)} {month.year}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <div className="flex items-center">
+                                                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mr-2">
+                                                                <div 
+                                                                    className="bg-indigo-600 dark:bg-indigo-500 h-2.5 rounded-full" 
+                                                                    style={{ width: `${percentage}%` }}
+                                                                />
+                                                            </div>
+                                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                                {percentage.toFixed(1)}%
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     )}

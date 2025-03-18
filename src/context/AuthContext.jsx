@@ -60,7 +60,6 @@ function AuthProvider({ children }) {
         setLoading(false);
       }
     };
-
     validateToken();
   }, [token]);
 
@@ -68,8 +67,6 @@ function AuthProvider({ children }) {
     try {
       const response = await api.post(`${import.meta.env.VITE_API_URL}/api/user/autenticar`, credentials);
       const { token, user } = response.data;
-      
-      console.log('Login successful:', response);
 
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { HiMail } from 'react-icons/hi';
 import { validarToken, reenviarToken } from '../../services/authService';
 import { toast } from 'react-hot-toast';
@@ -8,21 +8,36 @@ import TokenInput from '../../components/Auth/TokenInput';
 const VerificationPending = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { email, message } = location.state || {};
-    const [token, setToken] = useState('');
+    const [searchParams] = useSearchParams();
+    const urlEmail = searchParams.get('email');
+    const urlToken = searchParams.get('token');
+    
+    // Use URL params if available, otherwise use location state
+    const { email: stateEmail, message: stateMessage } = location.state || {};
+    const email = urlEmail || stateEmail || '';
+    const message = stateMessage || 'Te hemos enviado un código de verificación a tu correo electrónico.';
+    
+    const [token, setToken] = useState(urlToken || '');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Protección contra acceso directo
+    // Protección contra acceso directo sin parámetros
     useEffect(() => {
         if (!email) {
             navigate('/auth');
             toast.error('Acceso no válido a la página de verificación');
         }
     }, [email, navigate]);
+
+    // Verificación automática si llega con token en la URL
+    useEffect(() => {
+        if (urlToken && urlToken.length === 6 && urlEmail && !isSubmitting && !success) {
+            handleVerifyToken();
+        }
+    }, []);
 
     // Manejo del contador para reenvío
     useEffect(() => {
@@ -50,6 +65,7 @@ const VerificationPending = () => {
         try {
             if (!token || token.length !== 6) {
                 setError('Por favor, ingresa el código completo.');
+                setIsSubmitting(false);
                 return;
             }
 
@@ -105,6 +121,7 @@ const VerificationPending = () => {
                     <TokenInput 
                         length={6} 
                         onChange={setToken}
+                        initialValue={urlToken || ''}
                     />
                 </div>
 
