@@ -46,7 +46,8 @@ export const CartProvider = ({ children }) => {
           }
 
           // Obtenemos el carrito local
-          const localCart = JSON.parse(localStorage.getItem('cart')) || [];
+          const storedCart = localStorage.getItem('cart');
+          const localCart = storedCart ? JSON.parse(storedCart) : [];
           
           // Verificamos si ya hay una sincronización en progreso (para evitar múltiples en recargas)
           const lastSyncTime = localStorage.getItem('lastCartSync');
@@ -93,7 +94,7 @@ export const CartProvider = ({ children }) => {
       } else if (!isAuthenticated) {
         const savedCart = localStorage.getItem('cart');
         if (savedCart && cartItems.length === 0) {
-          setCartItems(JSON.parse(savedCart));
+          setCartItems(savedCart ? JSON.parse(savedCart) : []);
         }
       }
     };

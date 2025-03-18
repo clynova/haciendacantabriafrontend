@@ -18,7 +18,20 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
+  // Enhanced fix: Ensure robust handling of invalid or undefined JSON
+  const getParsedUser = () => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) return null;
+    try {
+      return JSON.parse(storedUser);
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error);
+      localStorage.removeItem('user'); // Clear invalid data
+      return null;
+    }
+  };
+
+  const [user, setUser] = useState(getParsedUser());
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -53,13 +66,16 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post(`${import.meta.env.VITE_API_URL}/api/user/autenticar`, credentials);
       const { token, user } = response.data;
       
+      console.log('Login successful:', response);
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setToken(token);
       setUser(user);
       
-      // Get local cart
-      const localCart = JSON.parse(localStorage.getItem('cart')) || [];
+      // Get local cart - Add safe parsing with null check
+      const storedCart = localStorage.getItem('cart');
+      const localCart = storedCart ? JSON.parse(storedCart) : [];
       
       try {
         let serverCartResponse;

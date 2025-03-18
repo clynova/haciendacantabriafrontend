@@ -15,15 +15,15 @@ const SearchBar = ({ isExpanded, onToggle }) => {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   
   useEffect(() => {
-    // Solo cargar productos una vez
-    if (products.length === 0) {
+    // Ensure products is defined before accessing its length
+    if (products && products.length === 0) {
       fetchProducts();
     }
-  }, [fetchProducts, products.length]);
-  
+  }, [fetchProducts, products]);
+
   useEffect(() => {
-    // Solo ejecutar búsqueda cuando el término ha sido "debounced"
-    if (debouncedSearchTerm.length >= 2) {
+    // Ensure products is defined before filtering
+    if (debouncedSearchTerm.length >= 2 && products) {
       const filtered = products.filter(product =>
         product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || 
         (product.descripcion?.completa && product.descripcion.completa.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
