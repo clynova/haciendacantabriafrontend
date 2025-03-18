@@ -29,7 +29,7 @@ const OrderItem = ({ order, formatDate, getStatusBadgeColor }) => {
                             {totalProducts} producto{totalProducts !== 1 ? 's' : ''}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Envío: {order.shipping.carrier.name} - {order.shipping.method}
+                            Envío: {order?.shipping?.carrier?.name} - {order.shipping.method}
                         </p>
                     </div>
                 </div>

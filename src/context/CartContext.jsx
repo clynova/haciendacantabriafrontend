@@ -46,7 +46,8 @@ export const CartProvider = ({ children }) => {
           }
 
           // Obtenemos el carrito local
-          const localCart = JSON.parse(localStorage.getItem('cart')) || [];
+          const storedCart = localStorage.getItem('cart');
+          const localCart = storedCart ? JSON.parse(storedCart) : [];
           
           // Verificamos si ya hay una sincronización en progreso (para evitar múltiples en recargas)
           const lastSyncTime = localStorage.getItem('lastCartSync');
@@ -93,54 +94,44 @@ export const CartProvider = ({ children }) => {
       } else if (!isAuthenticated) {
         const savedCart = localStorage.getItem('cart');
         if (savedCart && cartItems.length === 0) {
-          setCartItems(JSON.parse(savedCart));
+          setCartItems(savedCart ? JSON.parse(savedCart) : []);
         }
       }
     };
 
     // Función auxiliar para cargar el carrito del servidor
     const loadServerCart = async (serverCartResponse) => {
-      // Cargar los detalles completos de cada producto
       const serverCartItems = [];
       
       for (const item of serverCartResponse.cart.products) {
         try {
-          // Obtener detalles del producto
-          const productDetails = await getProductById(item.productId);
+          // La información del producto ya viene en la respuesta
+          const product = item.productId;
           
-          if (productDetails && productDetails.product) {
-            const product = productDetails.product;
-            
-            // Asegurar que el producto tiene todos los datos necesarios
-            if (!product.name || !product.images || product.price === undefined) {
-              console.warn(`Producto ${item.productId} con datos incompletos:`, product);
-              try {
-                await removeFromCartAPI(item.productId, token);
-                console.log(`Producto defectuoso ${item.productId} eliminado del carrito`);
-              } catch (removeError) {
-                console.error(`Error al eliminar producto defectuoso ${item.productId}:`, removeError);
-              }
-              continue; 
-            }
-            
-            // Crear objeto de carrito completo
+          if (product) {
+            // Crear objeto de carrito completo con la nueva estructura
             serverCartItems.push({
-              _id: item.productId,
-              name: product.name,
-              price: product.price,
-              images: Array.isArray(product.images) ? product.images : ['placeholder.png'],
+              _id: product._id,
+              nombre: product.nombre,
+              precioFinal: product.precioFinal,
+              precioTransferencia: product.precioTransferencia,
+              multimedia: {
+                imagenes: product.multimedia.imagenes.map(img => img.url)
+              },
               quantity: item.quantity,
-              stock: product.stock || 1,
+              inventario: {
+                stockUnidades: 10 // Por defecto mientras se implementa el stock real
+              },
               ...product
             });
           }
         } catch (error) {
-          console.error(`Error al obtener detalles del producto ${item.productId}:`, error);
+          console.error(`Error al procesar el producto ${item.productId}:`, error);
           try {
-            await removeFromCartAPI(item.productId, token);
-            console.log(`Producto problemático ${item.productId} eliminado del carrito`);
+            await removeFromCartAPI(item.productId._id, token);
+            console.log(`Producto problemático ${item.productId._id} eliminado del carrito`);
           } catch (removeError) {
-            console.error(`Error al eliminar producto problemático ${item.productId}:`, removeError);
+            console.error(`Error al eliminar producto problemático ${item.productId._id}:`, removeError);
           }
         }
       }
@@ -148,15 +139,8 @@ export const CartProvider = ({ children }) => {
       if (serverCartItems.length > 0) {
         setCartItems(serverCartItems);
         localStorage.setItem('cart', JSON.stringify(serverCartItems));
-        
-        if (serverCartItems.length < serverCartResponse.cart.products.length) {
-          toast.success('Se ha limpiado tu carrito de productos no disponibles');
-        } else {
-          toast.success('Se ha cargado tu carrito guardado');
-        }
+        toast.success('Se ha cargado tu carrito guardado');
       } else if (serverCartResponse.cart.products.length > 0) {
-        // Si no pudimos cargar ningún producto pero había productos en el carrito
-        // Limpiamos el carrito del servidor ya que los productos son inválidos
         await clearCartAPI(token);
         toast.error('Hubo un problema con los productos en tu carrito y ha sido limpiado');
       }
@@ -193,8 +177,8 @@ export const CartProvider = ({ children }) => {
   }, [paymentInfo]);
 
   const validateStock = (product, requestedQuantity) => {
-    if (requestedQuantity > product.stock) {
-      toast.error(`Solo hay ${product.stock} unidades disponibles de ${product.name}`);
+    if (requestedQuantity > product.inventario.stockUnidades) {
+      toast.error(`Solo hay ${product.inventario.stockUnidades} unidades disponibles de ${product.nombre}`);
       return false;
     }
     return true;
@@ -204,7 +188,7 @@ export const CartProvider = ({ children }) => {
     try {
       const existingItem = cartItems.find(item => item._id === product._id);
       const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
-      
+
       if (!validateStock(product, newQuantity)) {
         return;
       }
@@ -230,46 +214,44 @@ export const CartProvider = ({ children }) => {
             serverCart = await getCart(token);
           } catch (error) {
             console.log("No se pudo obtener el carrito del servidor:", error);
-            // Si hay error al obtener el carrito, asumimos que no existe y continuamos con la adición
             serverCart = { cart: { products: [] } };
           }
           
           // Buscar si el producto ya existe en el carrito del servidor
           const existingServerItem = serverCart?.cart?.products?.find(item => 
-            item.productId === product._id
+            item.productId?._id === product._id || item.productId === product._id
           );
           
           // Si el producto ya existe en el servidor, primero lo eliminamos para evitar duplicados
           if (existingServerItem) {
             try {
               await removeFromCartAPI(product._id, token);
-            } catch (removeError) {
-              console.error("Error al eliminar producto existente:", removeError);
-              // Continuamos con la adición aunque haya error al eliminar
+            } catch (error) {
+              console.error("Error al eliminar producto existente:", error);
             }
           }
           
-          // Ahora agregamos el producto con la cantidad actualizada
-          await addToCartAPI({ 
-            productId: product._id, 
-            quantity: newQuantity 
+          // Agregar el producto con la nueva cantidad
+          const response = await addToCartAPI({
+            productId: product._id,
+            quantity: newQuantity
           }, token);
+
+          if (!response.success) {
+            throw new Error(response.msg || 'Error al agregar al carrito');
+          }
+          
         } catch (error) {
           // Revert local state if API call fails
-          setCartItems(curr => {
-            if (existingItem) {
-              return curr.map(item =>
-                item._id === product._id
-                  ? { ...item, quantity: existingItem.quantity }
-                  : item
-              );
-            }
-            return curr.filter(item => item._id !== product._id);
-          });
-          toast.error('Error al agregar al carrito');
-          console.error('Error adding to cart:', error);
+          setCartItems(curr => curr.filter(item => item._id !== product._id));
+          console.error("Error al sincronizar con el servidor:", error);
+          toast.error(error.msg || 'Error al sincronizar con el servidor');
+          return;
         }
       }
+      
+      setIsCartOpen(true);
+      toast.success('Producto agregado al carrito');
     } catch (error) {
       toast.error('Error al agregar al carrito');
       console.error('Error in addToCart:', error);
@@ -334,13 +316,12 @@ export const CartProvider = ({ children }) => {
             serverCart = await getCart(token);
           } catch (error) {
             console.log("No se pudo obtener el carrito del servidor:", error);
-            // Si hay error al obtener el carrito, asumimos que no existe y continuamos con la actualización
             serverCart = { cart: { products: [] } };
           }
           
           // Buscar si el producto ya existe en el carrito del servidor
           const existingServerItem = serverCart?.cart?.products?.find(item => 
-            item.productId === productId
+            item.productId._id === productId
           );
           
           // Si el producto ya existe en el servidor, primero lo eliminamos para evitar duplicados
@@ -348,14 +329,13 @@ export const CartProvider = ({ children }) => {
             try {
               await removeFromCartAPI(productId, token);
             } catch (removeError) {
-              // Si ocurre un error al eliminar, lo registramos pero continuamos
               console.error("Error al eliminar producto existente durante actualización:", removeError);
             }
           }
           
           // Ahora agregamos el producto con la cantidad actualizada
           await addToCartAPI({ 
-            productId: productId, 
+            productId: productId,
             quantity: quantity 
           }, token);
         } catch (error) {
@@ -412,7 +392,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const cartTotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total, item) => total + item.precioFinal * item.quantity,
     0
   );
 
@@ -430,8 +410,8 @@ export const CartProvider = ({ children }) => {
   const validateCartStock = () => {
     let isValid = true;
     cartItems.forEach(item => {
-      if (item.quantity > item.stock) {
-        toast.error(`No hay suficiente stock de ${item.name}. Stock disponible: ${item.stock}`);
+      if (item.quantity > item.inventario.stockUnidades) {
+        toast.error(`No hay suficiente stock de ${item.nombre}. Stock disponible: ${item.inventario.stockUnidades}`);
         isValid = false;
       }
     });
@@ -440,7 +420,7 @@ export const CartProvider = ({ children }) => {
 
   // Funciones de cálculo compartidas para el resumen de orden
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => total + (item.precioFinal * item.quantity), 0);
   };
   
   const calculateTax = (subtotal) => {
@@ -448,7 +428,10 @@ export const CartProvider = ({ children }) => {
   };
   
   const calculateTotalWeight = () => {
-    return cartItems.reduce((total, item) => total + (item.weight || 0) * item.quantity, 0);
+    return cartItems.reduce((total, item) => {
+      const peso = item.opcionesPeso?.pesoPromedio || 0;
+      return total + (peso * item.quantity);
+    }, 0);
   };
   
   const calculateShippingCost = () => {

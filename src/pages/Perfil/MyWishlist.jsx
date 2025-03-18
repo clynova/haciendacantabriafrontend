@@ -95,8 +95,8 @@ const MyWishlist = () => {
                         >
                             <Link to={`/product/${product._id}`}>
                                 <img 
-                                    src={getImageUrl(product.images?.[0])}
-                                    alt={product.name}
+                                    src={getImageUrl(product.multimedia?.imagenes?.[0]?.url)}
+                                    alt={product.nombre}
                                     className="w-full h-48 object-cover"
                                     loading="lazy"
                                     onError={(e) => {
@@ -108,40 +108,36 @@ const MyWishlist = () => {
                             <div className="p-4">
                                 <Link to={`/product/${product._id}`}>
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                                        {product.name}
+                                        {product.nombre}
                                     </h3>
                                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-2 line-clamp-2">
-                                        {product.description}
+                                        {product.descripcion.corta}
                                     </p>
                                 </Link>
                                 <div className="flex justify-between items-center mb-4">
                                     <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                        {formatCurrency(product.price)}
+                                        {formatCurrency(product.precioFinal)}
                                     </span>
                                     <span className={`text-sm ${
-                                        product.stock > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                                        product.inventario.stockUnidades > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                                     }`}>
-                                        {product.stock > 0 ? `${product.stock} disponibles` : 'Agotado'}
+                                        {product.inventario.stockUnidades > 0 ? `${product.inventario.stockUnidades} disponibles` : 'Agotado'}
                                     </span>
                                 </div>
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => handleAddToCart(product)}
-                                        disabled={product.stock === 0}
-                                        className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold 
-                                                 hover:bg-indigo-700 transition-colors duration-200 flex items-center 
-                                                 justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                        aria-label="Agregar al carrito"
+                                        disabled={product.inventario.stockUnidades === 0}
+                                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 
+                                                 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <HiShoppingCart className="w-5 h-5" />
-                                        <span>Agregar al carrito</span>
+                                        {product.inventario.stockUnidades === 0 ? 'Agotado' : 'Agregar al carrito'}
                                     </button>
                                     <button
                                         onClick={() => handleRemoveFromWishlist(product._id)}
-                                        className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 
-                                                 dark:hover:text-red-300 rounded-lg border border-red-600 
-                                                 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
-                                        aria-label="Eliminar de la lista de deseos"
+                                        className="p-2 text-gray-600 hover:text-red-600 rounded-lg hover:bg-gray-100 
+                                                 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-gray-700 
+                                                 transition-colors"
                                     >
                                         <HiOutlineTrash className="w-5 h-5" />
                                     </button>

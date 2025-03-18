@@ -49,8 +49,9 @@ const ProductCard = ({ product }) => {
             >
                 <div className="relative aspect-square">
                     <img
-                        src={imageError || !product.images?.[0] ? fallbackImage : product.images[0]}
-                        alt={product.name}
+                        src={imageError ? fallbackImage : 
+                            (product.multimedia?.imagenes?.[0]?.url || fallbackImage)}
+                        alt={product.nombre}
                         className="w-full h-full object-cover transition-transform duration-300
                                  group-hover:scale-105"
                         loading="lazy"
@@ -88,27 +89,27 @@ const ProductCard = ({ product }) => {
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white 
                                      mb-2 hover:text-blue-500 dark:hover:text-blue-400 
                                      transition-colors duration-200 line-clamp-2">
-                            {product.name}
+                            {product.nombre}
                         </h3>
                     </Link>
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-xl font-bold text-gray-900 dark:text-white">
-                            {formatCurrency(product.price)}
+                            {formatCurrency(product.precioFinal)}
                         </span>
-                        {product.oldPrice && (
+                        {product.precios?.base && product.precioFinal < product.precios.base && (
                             <span className="text-sm text-gray-500 line-through">
-                                {formatCurrency(product.oldPrice)}
+                                {formatCurrency(product.precios.base)}
                             </span>
                         )}
                     </div>
                     <button
                         onClick={handleAddToCart}
-                        disabled={!product.stock}
+                        disabled={!product.inventario.stockUnidades}
                         className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium
                                  hover:bg-blue-700 transition-colors duration-200 
                                  disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                        {product.stock ? 'Agregar al carrito' : 'Agotado'}
+                        {product.inventario.stockUnidades ? 'Agregar al carrito' : 'Agotado'}
                     </button>
                 </div>
             </div>
@@ -119,11 +120,22 @@ const ProductCard = ({ product }) => {
 ProductCard.propTypes = {
     product: PropTypes.shape({
         _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-        name: PropTypes.string.isRequired,
-        price: PropTypes.number.isRequired,
-        oldPrice: PropTypes.number,
-        stock: PropTypes.number,
-        images: PropTypes.arrayOf(PropTypes.string),
+        nombre: PropTypes.string.isRequired,
+        precioFinal: PropTypes.number.isRequired,
+        precios: PropTypes.shape({
+            base: PropTypes.number,
+        }),
+        inventario: PropTypes.shape({
+            stockUnidades: PropTypes.number.isRequired,
+        }).isRequired,
+        multimedia: PropTypes.shape({
+            imagenes: PropTypes.arrayOf(PropTypes.shape({
+                url: PropTypes.string,
+                textoAlternativo: PropTypes.string,
+                esPrincipal: PropTypes.bool,
+                _id: PropTypes.string,
+            })).isRequired,
+        }).isRequired,
     }).isRequired,
 };
 
