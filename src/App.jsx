@@ -40,6 +40,9 @@ import { AdminOrders } from './pages/admin/AdminOrders';
 import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminCategories } from './pages/admin/AdminCategories';
 import { About } from "./pages/About";
+import { Faq } from "./pages/Faq";
+import { Policies } from './pages/Policies';
+import { Terms } from './pages/Terms';
 
 const App = () => {
   return (
@@ -108,6 +111,9 @@ const App = () => {
                   </Route>
                   <Route path="/about" element={<About/>} />
                   <Route path="/contact" element={<div>Contact</div>} />
+                  <Route path="/faq" element={<Faq />}/>
+                  <Route path="/policies" element={<Policies /> } />
+                  <Route path="/terms" element={<Terms />}/>
                   <Route path="*" element={<NotFound />} />
                   <Route path="/product/:_id" element={<ProductDetails />} />
                 </Routes>

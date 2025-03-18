@@ -75,7 +75,7 @@ const AboutDropdown = () => {
             Nosotros
           </Link>
           <Link
-            to="FAQ"
+            to="/faq"
             className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-blue-400"
             onClick={() => setIsOpen(false)}
           >
