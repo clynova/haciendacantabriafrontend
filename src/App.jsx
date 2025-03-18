@@ -43,6 +43,9 @@ import { About } from "./pages/About";
 import { AdminLayout } from "./layouts/MainLayout/AdminLayout";
 import { AdminUserDetails } from "./pages/admin/AdminUserDetails";
 import { AdminUserCreate } from "./pages/admin/AdminUserCreate";
+import { AdminProductCreate } from "./pages/admin/AdminProductCreate";
+import { AdminProductDetails } from "./pages/admin/AdminProductDetails";
+import { AdminProductEdit } from "./pages/admin/AdminProductEdit";
 
 const App = () => {
   return (
@@ -86,7 +89,12 @@ const App = () => {
                   <Route path="/admin" element={<AdminRoute><MainLayout /></AdminRoute>}>
                     <Route element={<AdminLayout />}>
                       <Route index element={<AdminDashboard />} />
-                      <Route path="products" element={<AdminProducts />} />
+                      <Route path="products">
+                        <Route index element={<AdminProducts />} />
+                        <Route path="create" element={<AdminProductCreate />} /> {/* Changed from "new" to "create" for consistency */}
+                        <Route path=":productId/edit" element={<AdminProductEdit />} />
+                        <Route path=":productId" element={<AdminProductDetails />} />
+                      </Route>
                       <Route path="orders" element={<AdminOrders />} />
                       <Route path="users">
                         <Route index element={<AdminUsers />} />
