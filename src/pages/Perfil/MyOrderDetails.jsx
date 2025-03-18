@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getOrderById } from '../../services/userService';
 import { useAuth } from '../../context/AuthContext';
-import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables';
+import { getImageUrl, formatCurrencyBoletas } from '../../utils/funcionesReutilizables';
 
 const MyOrderDetails = () => {
     const { orderId } = useParams();
@@ -109,12 +109,12 @@ const MyOrderDetails = () => {
                                             Cantidad: {item.quantity}
                                         </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            Precio unitario: {formatCurrency(item.product.precioFinal)}
+                                            Precio unitario: {formatCurrencyBoletas(item.product.precioFinal)}
                                         </p>
                                     </div>
                                 </div>
                                 <p className="font-medium text-gray-900 dark:text-white">
-                                    {formatCurrency(item.product.precioFinal * item.quantity)}
+                                    {formatCurrencyBoletas(item.product.precioFinal * item.quantity)}
                                 </p>
                             </div>
                         ))}
@@ -144,7 +144,7 @@ const MyOrderDetails = () => {
                             <h3 className="text-sm font-medium mb-2 text-gray-800 dark:text-gray-200">Método de Envío</h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {order.shipping.carrier.name} - {order.shipping.method}<br />
-                                Costo de envío: {formatCurrency(order.shipping.cost)}
+                                Costo de envío: {formatCurrencyBoletas(order.shipping.cost)}
                             </p>
                             {order.shipping.trackingNumber && (
                                 <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -172,19 +172,19 @@ const MyOrderDetails = () => {
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-700 dark:text-gray-300">Subtotal:</span>
-                                    <span className="text-gray-900 dark:text-white">{formatCurrency(order.subtotal)}</span>
+                                    <span className="text-gray-900 dark:text-white">{formatCurrencyBoletas(order.subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-700 dark:text-gray-300">Costo de envío:</span>
-                                    <span className="text-gray-900 dark:text-white">{formatCurrency(order.shipping.cost)}</span>
+                                    <span className="text-gray-900 dark:text-white">{formatCurrencyBoletas(order.shipping.cost)}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
                                     <span>Comisión {order.payment.provider} ({order.payment.commissionPercentage}%):</span>
-                                    <span>{formatCurrency(order.payment.commissionAmount)}</span>
+                                    <span>{formatCurrencyBoletas(order.payment.commissionAmount)}</span>
                                 </div>
                                 <div className="flex justify-between items-center font-bold text-lg pt-2 border-t dark:border-gray-600/50">
                                     <span className="text-gray-900 dark:text-white">Total con comisión:</span>
-                                    <span className="text-gray-900 dark:text-white">{formatCurrency(order.payment.amount)}</span>
+                                    <span className="text-gray-900 dark:text-white">{formatCurrencyBoletas(order.payment.amount)}</span>
                                 </div>
                             </div>
                         </div>
