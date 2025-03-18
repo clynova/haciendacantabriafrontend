@@ -16,6 +16,40 @@ const getDashboardStats = async (token) => {
     }
 };
 
+// /api/util/top-tags
+const getTopTags = async (token) => {
+    try {
+        const response = await api.get('api/util/top-tags', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al obtener las etiquetas más populares'
+        };
+    }
+};
+
+const getTotalSales = async (token) => {
+    try {
+        const response = await api.get('api/util/total-sales', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al obtener las ventas totales'
+        };
+    }
+};
+
+
 const deleteUser = async (userId, token) => {
     try {
         const response = await api.delete(`/api/user/delete-account/${userId}`, {
@@ -240,4 +274,30 @@ export const updateProduct = async (productId, productData, token) => {
     }
 };
 
-export { getDashboardStats, deleteUser, getAllUsers, getUserById, updateUser, createUser };
+const getPaymentMethodById = async (methodId, token) => {
+    try {
+        const response = await api.get(`/api/payment-methods/${methodId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al obtener el método de pago'
+        };
+    }
+};
+
+export { 
+    getDashboardStats, 
+    getTotalSales, 
+    getTopTags, 
+    getPaymentMethodById,
+    deleteUser, 
+    getAllUsers, 
+    getUserById, 
+    updateUser, 
+    createUser 
+};

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { FiBox, FiUsers, FiList, FiTag } from 'react-icons/fi';
+import { FiBox, FiUsers, FiList, FiTag, FiDollarSign } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getDashboardStats } from '../../services/adminService';
+import { getDashboardStats, getTopTags, getTotalSales, getPaymentMethodById } from '../../services/adminService';
+import { formatCurrencyBoletas } from '../../utils/funcionesReutilizables';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState({
@@ -12,19 +13,57 @@ const AdminDashboard = () => {
         totalTags: 0,
         uniqueTags: []
     });
+    const [topTags, setTopTags] = useState([]);
+    const [salesData, setSalesData] = useState({
+        totalSales: 0,
+        totalOrders: 0,
+        avgOrderValue: 0,
+        paymentMethods: [],
+        monthlySales: []
+    });
+    const [paymentMethodsData, setPaymentMethodsData] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { token } = useAuth();
 
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
                 setError(null);
+                
+                // Obtener estadísticas generales
                 const response = await getDashboardStats(token);
-                console.log(response)
                 if (response.success) {
                     setStats(response.data);
+                }
+                
+                // Obtener los top tags
+                const topTagsResponse = await getTopTags(token);
+                if (topTagsResponse.success) {
+                    setTopTags(topTagsResponse.data);
+                }
+                
+                // Obtener estadísticas de ventas
+                const salesResponse = await getTotalSales(token);
+                if (salesResponse.success) {
+                    setSalesData(salesResponse.data);
+                    
+                    // Obtener los detalles de los métodos de pago
+                    const methodsData = {};
+                    const methodsPromises = salesResponse.data.paymentMethods.map(async method => {
+                        try {
+                            const methodResponse = await getPaymentMethodById(method.metodo, token);
+                            if (methodResponse.success) {
+                                methodsData[method.metodo] = methodResponse.data;
+                            }
+                        } catch (err) {
+                            console.error(`Error obteniendo el método de pago ${method.metodo}:`, err);
+                        }
+                    });
+                    
+                    await Promise.all(methodsPromises);
+                    setPaymentMethodsData(methodsData);
                 }
             } catch (err) {
                 setError(err.msg || 'Error al cargar las estadísticas');
@@ -33,7 +72,7 @@ const AdminDashboard = () => {
             }
         };
 
-        fetchStats();
+        fetchData();
     }, [token]);
 
     const statsCards = [
@@ -66,6 +105,13 @@ const AdminDashboard = () => {
             bgColor: 'bg-orange-500',
         },
     ];
+
+    // Función para obtener el nombre del mes
+    const getMonthName = (monthNumber) => {
+        const date = new Date();
+        date.setMonth(monthNumber - 1);
+        return date.toLocaleString('es-ES', { month: 'long' });
+    };
 
     if (loading) {
         return (
@@ -116,6 +162,142 @@ const AdminDashboard = () => {
                 ))}
             </div>
 
+            {/* Sección de estadísticas de ventas */}
+            <div className="grid grid-cols-1 gap-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                        Estadísticas de Ventas
+                    </h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        {/* Total de ventas */}
+                        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg p-4 text-white shadow-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium opacity-80">Total de Ventas</p>
+                                    <p className="text-2xl font-bold mt-1">{formatCurrencyBoletas(salesData.totalSales)}</p>
+                                </div>
+                                <FiDollarSign className="w-10 h-10 opacity-80" />
+                            </div>
+                        </div>
+                        
+                        {/* Total de órdenes */}
+                        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white shadow-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium opacity-80">Total de Pedidos</p>
+                                    <p className="text-2xl font-bold mt-1">{salesData.totalOrders}</p>
+                                </div>
+                                <FiList className="w-10 h-10 opacity-80" />
+                            </div>
+                        </div>
+                        
+                        {/* Valor promedio de orden */}
+                        <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg p-4 text-white shadow-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium opacity-80">Valor Promedio por Pedido</p>
+                                    <p className="text-2xl font-bold mt-1">{formatCurrencyBoletas(salesData.avgOrderValue)}</p>
+                                </div>
+                                <FiDollarSign className="w-10 h-10 opacity-80" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Gráfica de ventas mensuales */}
+                    {salesData.monthlySales.length > 0 && (
+                        <div className="mb-8">
+                            <h3 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                                Ventas Mensuales
+                            </h3>
+                            <div className="h-64 relative">
+                                <div className="flex items-end justify-center h-56 gap-2">
+                                    {salesData.monthlySales.map((month, index) => {
+                                        // Calcular la altura de la barra basada en el total del mes
+                                        const maxTotal = Math.max(...salesData.monthlySales.map(m => m.total));
+                                        const barHeight = (month.total / maxTotal) * 100;
+                                        
+                                        return (
+                                            <div key={index} className="flex flex-col items-center" style={{ width: `${100 / salesData.monthlySales.length}%`, maxWidth: '80px' }}>
+                                                <div 
+                                                    className="w-full bg-indigo-600 rounded-t-md transition-all duration-300 hover:bg-indigo-500 relative"
+                                                    style={{ height: `${barHeight}%`, minWidth: '30px' }}
+                                                >
+                                                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                                                        {formatCurrencyBoletas(month.total)}
+                                                    </span>
+                                                </div>
+                                                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-1 text-center whitespace-nowrap">
+                                                    {getMonthName(month.month)} {month.year}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Métodos de pago */}
+                    {salesData.paymentMethods.length > 0 && (
+                        <div>
+                            <h3 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                                Métodos de Pago
+                            </h3>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                                    <thead className="bg-gray-100 dark:bg-gray-700">
+                                        <tr>
+                                            <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Método
+                                            </th>
+                                            <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Monto
+                                            </th>
+                                            <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                Porcentaje
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {salesData.paymentMethods.map((method, index) => {
+                                            const percentage = (method.monto / salesData.totalSales) * 100;
+                                            const methodName = paymentMethodsData[method.metodo]?.name || method.metodo;
+                                            
+                                            return (
+                                                <tr key={index}>
+                                                    <td className="py-3 px-4 text-sm text-gray-800 dark:text-gray-200">
+                                                        <div className="flex items-center">
+                                                            {methodName}
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3 px-4 text-sm text-gray-800 dark:text-gray-200">
+                                                        {formatCurrencyBoletas(method.monto)}
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <div className="flex items-center">
+                                                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mr-2">
+                                                                <div 
+                                                                    className="bg-indigo-600 dark:bg-indigo-500 h-2.5 rounded-full" 
+                                                                    style={{ width: `${percentage}%` }}
+                                                                />
+                                                            </div>
+                                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                                {percentage.toFixed(1)}%
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -131,6 +313,36 @@ const AdminDashboard = () => {
                             </span>
                         ))}
                     </div>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        Top 5 Etiquetas Más Utilizadas
+                    </h2>
+                    {topTags.length > 0 ? (
+                        <div className="space-y-4">
+                            {topTags.map((tag) => (
+                                <div key={tag.nombre} className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                                        {tag.nombre}
+                                    </span>
+                                    <div className="flex items-center">
+                                        <div className="w-36 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mr-2">
+                                            <div 
+                                                className="bg-indigo-600 dark:bg-indigo-500 h-2.5 rounded-full" 
+                                                style={{ width: `${(tag.frecuencia / Math.max(...topTags.map(t => t.frecuencia))) * 100}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            {tag.frecuencia}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 dark:text-gray-400">No hay datos disponibles</p>
+                    )}
                 </div>
             </div>
         </div>

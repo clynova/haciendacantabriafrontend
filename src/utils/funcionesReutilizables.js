@@ -24,9 +24,18 @@ const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-CL', {
         style: 'currency',
         currency: 'CLP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 2
     }).format(amount);
 };
 
-export { cortarTexto, formateoNombre, getImageUrl, formatCurrency }
+const formatCurrencyBoletas = (amount) => {
+    return new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 2
+    }).format(amount);
+};
+
+export { cortarTexto, formateoNombre, getImageUrl, formatCurrency, formatCurrencyBoletas };

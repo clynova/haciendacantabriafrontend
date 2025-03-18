@@ -9,4 +9,13 @@ const getPaymentMethods = async () => {
     }
 }
 
-export { getPaymentMethods };
+const getPaymentMethodsById = async (_id) => {
+    try {
+        const response = await api.get(`/api/payment-methods/${_id}`);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error;
+    }
+}
+
+export { getPaymentMethods, getPaymentMethodsById };
