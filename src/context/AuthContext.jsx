@@ -7,8 +7,10 @@ import { getProductById } from '../services/productService';
 import LoadingOverlay from '../components/Loading/LoadingOverlay';
 import { toast } from 'react-hot-toast';
 
-export const AuthContext = createContext();
+// Crear el contexto
+const AuthContext = createContext();
 
+// Hook personalizado para usar el contexto
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -17,7 +19,8 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
+// Componente provider
+function AuthProvider({ children }) {
   // Enhanced fix: Ensure robust handling of invalid or undefined JSON
   const getParsedUser = () => {
     const storedUser = localStorage.getItem('user');
@@ -99,6 +102,8 @@ export const AuthProvider = ({ children }) => {
           
           // En cualquier caso, sincronizamos el carrito local con el servidor
           await syncCart(localCart, token);
+          
+          // No necesitamos cargar de nuevo el carrito aquí ya que estamos enviando el carrito local al servidor
         } else {
           // Si el carrito local está vacío, cargamos el carrito del servidor
           serverCartResponse = await getCart(token);
@@ -108,30 +113,43 @@ export const AuthProvider = ({ children }) => {
             const cartItemsWithDetails = [];
             for (const item of serverCartResponse.cart.products) {
               try {
+                // Verificar el formato del productId (puede ser un string o un objeto)
+                const productId = typeof item.productId === 'object' ? 
+                  item.productId._id : item.productId;
+                
+                if (!productId) {
+                  console.warn('Item sin productId encontrado en el carrito');
+                  continue;
+                }
+                
                 // Obtener detalles del producto
-                const productDetails = await getProductById(item.productId);
+                const productDetails = await getProductById(productId);
                 
                 if (productDetails && productDetails.product) {
                   // Asegurar que tenemos todas las propiedades requeridas
                   const product = productDetails.product;
                   
                   // Verificar que los datos esenciales estén presentes
-                  if (!product.nombre || !product.multimedia || !product.precioFinal) {
-                    console.warn(`Producto ${item.productId} con datos incompletos:`, product);
+                  if (!product.nombre || !product.precioFinal) {
+                    console.warn(`Producto ${productId} con datos incompletos:`, product);
                     continue; // Saltamos este producto si falta alguna propiedad esencial
                   }
-                  
-                  cartItemsWithDetails.push({
-                    _id: item.productId,
+
+                  // Crear un objeto de producto completo para el carrito
+                  const cartItem = {
+                    _id: productId,
                     nombre: product.nombre,
                     precioFinal: product.precioFinal,
-                    precioTransferencia: product.precioTransferencia,
-                    multimedia: product.multimedia,
-                    quantity: item.quantity,
-                    inventario: product.inventario,
-                    // Añadir cualquier otra propiedad necesaria
+                    precioTransferencia: product.precioTransferencia || 0,
+                    quantity: item.quantity || 1,
+                    // Asegurarnos que multimedia e inventario siempre tengan un valor válido
+                    multimedia: product.multimedia || { imagenes: [] },
+                    inventario: product.inventario || { stockUnidades: 10 },
+                    // Añadir cualquier otra propiedad disponible
                     ...product
-                  });
+                  };
+                  
+                  cartItemsWithDetails.push(cartItem);
                 }
               } catch (error) {
                 console.error(`Error al obtener detalles del producto ${item.productId}:`, error);
@@ -141,6 +159,8 @@ export const AuthProvider = ({ children }) => {
             // Guardar en localStorage solo si tenemos productos válidos
             if (cartItemsWithDetails.length > 0) {
               localStorage.setItem('cart', JSON.stringify(cartItemsWithDetails));
+              // Forzar un evento para notificar al CartContext del cambio
+              window.dispatchEvent(new Event('storage'));
               toast.success('Se ha recuperado tu carrito de compras');
             }
           }
@@ -206,8 +226,11 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
 AuthProvider.propTypes = {
   children: PropTypes.node.isRequired
 };
+
+// Exportar context y provider
+export { AuthContext, AuthProvider };

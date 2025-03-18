@@ -35,8 +35,8 @@ const ProductCard = ({ product }) => {
     };
 
     const handleAddToCart = () => {
+        // Ya no mostramos el toast aquí, la función addToCart se encarga de mostrarlo
         addToCart(product);
-        toast.success('Producto agregado al carrito');
     };
 
     return (

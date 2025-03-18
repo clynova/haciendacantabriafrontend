@@ -45,7 +45,6 @@ const MyWishlist = () => {
 
     const handleAddToCart = (product) => {
         addToCart(product);
-        toast.success("Producto añadido al carrito");
     };
 
     if (loading) {
