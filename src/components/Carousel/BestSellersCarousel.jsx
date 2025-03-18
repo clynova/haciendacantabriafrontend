@@ -94,8 +94,8 @@ const BestSellersCarousel = () => {
     );
   }
 
-  // Tomamos los primeros 8 productos como más vendidos (esto debería venir del backend)
-  const bestSellers = products.slice(0, 8);
+  // Ensure products is defined before calling slice
+  const bestSellers = products ? products.slice(0, 8) : [];
 
   if (bestSellers.length === 0) {
     return (
