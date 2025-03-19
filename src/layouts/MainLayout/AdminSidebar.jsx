@@ -9,6 +9,7 @@ const AdminSidebar = () => {
     { to: '/admin/users', icon: FiUsers, label: 'Usuarios' },
     { to: '/admin/categories', icon: FiTag, label: 'Categorías' },
     { to: '/admin/payment-methods', icon: FiCreditCard , label: 'Métodos de pago' },
+    { to: '/admin/shipping-methods', icon: FiBox, label: 'Métodos de envío' },
   ];
 
   return (
