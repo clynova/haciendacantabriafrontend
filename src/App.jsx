@@ -49,6 +49,7 @@ import { AdminUserCreate } from "./pages/admin/AdminUserCreate";
 import { AdminProductCreate } from "./pages/admin/AdminProductCreate";
 import { AdminProductDetails } from "./pages/admin/AdminProductDetails";
 import { AdminProductEdit } from "./pages/admin/AdminProductEdit";
+import { AdminMetodosDePago } from "./pages/admin/AdminMetodosDePago";
 
 const App = () => {
   return (
@@ -99,6 +100,7 @@ const App = () => {
                         <Route path=":productId" element={<AdminProductDetails />} />
                       </Route>
                       <Route path="orders" element={<AdminOrders />} />
+                      <Route path="payment-methods" element={<AdminMetodosDePago />} />
                       <Route path="users">
                         <Route index element={<AdminUsers />} />
                         <Route path="new" element={<AdminUserCreate />} />

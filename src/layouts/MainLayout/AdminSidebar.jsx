@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { FiHome, FiBox, FiList, FiUsers, FiTag } from 'react-icons/fi';
+import { FiHome, FiBox, FiList, FiUsers, FiTag, FiCreditCard  } from 'react-icons/fi';
 
 const AdminSidebar = () => {
   const menuItems = [
@@ -8,6 +8,7 @@ const AdminSidebar = () => {
     { to: '/admin/orders', icon: FiList, label: 'Pedidos' },
     { to: '/admin/users', icon: FiUsers, label: 'Usuarios' },
     { to: '/admin/categories', icon: FiTag, label: 'Categorías' },
+    { to: '/admin/payment-methods', icon: FiCreditCard , label: 'Métodos de pago' },
   ];
 
   return (
