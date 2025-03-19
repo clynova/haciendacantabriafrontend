@@ -195,48 +195,28 @@ export const createProduct = async (productData, token) => {
     }
 };
 
-// Add this new function for image uploads
-export const uploadProductImages = async (productId, imageFiles, token) => {
-    try {
-        const formData = new FormData();
-        imageFiles.forEach(file => {
-            formData.append('images', file);
-        });
-
-        const response = await api.post(`/api/product/${productId}/images`, formData, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'multipart/form-data'
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error uploading images:', error);
-        throw error.response?.data || {
-            success: false,
-            msg: 'Error al subir las imágenes'
-        };
-    }
-};
-
 // Update the updateProduct function
-export const updateProduct = async (productId, productData, token) => {
+export const updateProduct = async (productId, data, token) => {
     try {
-        const response = await api.put(`/api/product/${productId}`, productData, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+        const response = await api.put(
+            `/api/product/${productId}`, 
+            data,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
             }
-        });
+        );
+
+        if (!response.data.success) {
+            throw new Error(response.data.msg || 'Error al actualizar el producto');
+        }
 
         return response.data;
     } catch (error) {
-        console.error('Error updating product:', error);
-        throw {
-            success: false,
-            msg: error.response?.data?.msg || 'Error al actualizar el producto',
-            error: error.response?.data || error
-        };
+        console.error('Update error:', error);
+        throw error.response?.data || error;
     }
 };
 
