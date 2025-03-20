@@ -128,6 +128,11 @@ const ShippingMethodSelect = ({ shippingMethods, selectedCarrier, selectedMethod
                                                     Tiempo estimado de entrega: {method.delivery_time}
                                                 </div>
                                                 <div className="text-blue-600 font-medium mt-1">
+                                                    {method.free_shipping_threshold && (
+                                                        <div className="text-sm text-green-600">
+                                                            Envío gratis en compras mayores a {formatCurrency(method.free_shipping_threshold)}
+                                                        </div>
+                                                    )}
                                                     {formatCurrency(method.base_cost)}
                                                 </div>
                                             </label>
@@ -326,6 +331,7 @@ const FormaEnvio = () => {
             deliveryTime: method?.delivery_time,
             baseCost: method?.base_cost,
             extraCostPerKg: method?.extra_cost_per_kg,
+            free_shipping_threshold: method?.free_shipping_threshold,
             address: selectedAddress,
             recipientInfo: recipientInfo
         });

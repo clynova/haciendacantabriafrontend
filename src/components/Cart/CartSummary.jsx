@@ -31,13 +31,26 @@ const CartSummary = ({
     const subtotal = calculateSubtotal ? calculateSubtotal() : 
         cartItems.reduce((total, item) => total + (item.precioFinal * item.quantity), 0);
     
-    // Cálculo de envío - Ahora maneja tanto shippingMethod como shippingInfo
+    // Cálculo de envío con lógica de envío gratuito
     let shippingCost = 0;
+    let isShippingFree = false;
     
     if (shippingMethod?.base_cost) {
-        shippingCost = parseFloat(shippingMethod.base_cost);
+        // Verificar si aplica envío gratuito
+        if (shippingMethod.free_shipping_threshold && subtotal >= shippingMethod.free_shipping_threshold) {
+            shippingCost = 0;
+            isShippingFree = true;
+        } else {
+            shippingCost = parseFloat(shippingMethod.base_cost);
+        }
     } else if (shippingInfo?.baseCost) {
-        shippingCost = parseFloat(shippingInfo.baseCost);
+        // Verificar si aplica envío gratuito usando la información de shippingInfo
+        if (shippingInfo.free_shipping_threshold && subtotal >= shippingInfo.free_shipping_threshold) {
+            shippingCost = 0;
+            isShippingFree = true;
+        } else {
+            shippingCost = parseFloat(shippingInfo.baseCost);
+        }
     }
     
     // Cálculo de comisión de pago
@@ -96,8 +109,10 @@ const CartSummary = ({
                 <div className="flex justify-between">
                     <span className="text-gray-500">Envío</span>
                     <span>
-                        {shippingCost === 0 
-                            ? 'Se calcula en el siguiente paso' 
+                        {shippingCost === 0 && !shippingMethod && !shippingInfo
+                            ? 'Se calcula en el siguiente paso'
+                            : isShippingFree
+                            ? 'Gratis'
                             : formatCurrency(shippingCost)
                         }
                     </span>
