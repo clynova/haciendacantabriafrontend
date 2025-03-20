@@ -3,6 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getAddresses, addAddress, deleteAddress, updateAddress } from "../../services/userService";
 import { toast } from "react-hot-toast";
 import { HiPlus, HiTrash, HiPencil, HiCheck } from "react-icons/hi";
+import { regionesComunas } from "../../data/regiones-comunas";
 
 const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
     const [formData, setFormData] = useState({
@@ -14,9 +15,24 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
         reference: initialData?.reference || "",
         isDefault: initialData?.isDefault || false
     });
+
+    const [selectedRegion, setSelectedRegion] = useState("");
     const [addressSuggestions, setAddressSuggestions] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
+
+    // Efecto para inicializar la región si hay datos iniciales
+    useEffect(() => {
+        if (initialData?.state) {
+            // Buscar la región que contiene la comuna (state) inicial
+            const region = Object.entries(regionesComunas).find(([_, data]) => 
+                data.comunas.includes(initialData.state)
+            );
+            if (region) {
+                setSelectedRegion(region[0]);
+            }
+        }
+    }, [initialData]);
 
     // Función para buscar direcciones usando OpenStreetMap
     const searchAddresses = async (query) => {
@@ -27,8 +43,8 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
 
         setIsSearching(true);
         try {
-            // Agregar "Chile" a la búsqueda si no está presente
-            const searchQuery = query.toLowerCase().includes('chile') ? query : `${query}, Chile`;
+            // Construir la consulta incluyendo la comuna y región seleccionadas
+            const searchQuery = `${query}, ${formData.state}, ${selectedRegion}, Chile`;
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=cl&limit=5&addressdetails=1&accept-language=es`,
                 {
@@ -45,44 +61,24 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
             
             const results = await response.json();
             
-            // Procesar y estructurar mejor los resultados
             const formattedResults = results.map(result => {
-                // Extraer información específica de la dirección
                 const addr = result.address;
-                
-                // Construir la calle con número si está disponible
                 const street = [
                     addr?.road || addr?.pedestrian || addr?.street || addr?.path || addr?.footway,
                     addr?.house_number
                 ].filter(Boolean).join(' ');
 
-                // Identificar la comuna (generalmente en city_district o suburb)
-                const commune = addr?.city_district || addr?.suburb || addr?.municipality || addr?.county || '';
-
-                
-                // Identificar la ciudad
-                const city = addr?.city || addr?.town || addr?.municipality || commune;
-
-                
-                // Identificar la región
-                const region = addr?.state || '';
-
-                // Construir nombre para mostrar
-                const display_name = `${street}, ${commune}, ${city}${region ? `, ${region}` : ''}`;
-               
-
                 return {
-                    display_name,
+                    display_name: `${street}, ${formData.state}, ${selectedRegion}`,
                     structured: {
                         street,
-                        commune,
-                        city,
-                        region,
+                        commune: formData.state,
+                        city: formData.state,
+                        region: selectedRegion,
                         postal_code: addr?.postcode || ''
-                    },
-                    original: result
+                    }
                 };
-            }).filter(result => result.structured.street && result.structured.commune); // Solo mostrar resultados con calle y comuna
+            }).filter(result => result.structured.street);
 
             setAddressSuggestions(formattedResults);
         } catch (error) {
@@ -93,6 +89,27 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
         }
     };
 
+    // Función para manejar el cambio de región
+    const handleRegionChange = (e) => {
+        const region = e.target.value;
+        setSelectedRegion(region);
+        setFormData(prev => ({
+            ...prev,
+            state: '', // Limpiar la comuna al cambiar de región
+            city: region // La ciudad será la región
+        }));
+    };
+
+    // Función para manejar el cambio de comuna
+    const handleCommuneChange = (e) => {
+        const commune = e.target.value;
+        setFormData(prev => ({
+            ...prev,
+            state: commune,
+            city: selectedRegion
+        }));
+    };
+
     // Función para manejar la selección de una dirección sugerida
     const handleAddressSelection = (address) => {
         try {
@@ -101,8 +118,8 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
             setFormData(prev => ({
                 ...prev,
                 street: structured.street.trim(),
-                city: structured.region.trim(),
-                state: structured.commune.trim(), // Usando la comuna en el campo state
+                city: structured.city.trim(),
+                state: structured.commune.trim(),
                 zipCode: structured.postal_code || '',
                 country: "Chile"
             }));
@@ -118,11 +135,13 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
     // Efecto para debounce de la búsqueda
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            searchAddresses(searchQuery);
+            if (searchQuery && formData.state) { // Solo buscar si hay comuna seleccionada
+                searchAddresses(searchQuery);
+            }
         }, 500);
 
         return () => clearTimeout(timeoutId);
-    }, [searchQuery]);
+    }, [searchQuery, formData.state]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -132,16 +151,59 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
     return (
         <form onSubmit={handleSubmit} className="space-y-4 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Selector de Región */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Región
+                    </label>
+                    <select
+                        value={selectedRegion}
+                        onChange={handleRegionChange}
+                        required
+                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    >
+                        <option value="">Selecciona una región</option>
+                        {Object.keys(regionesComunas).map(region => (
+                            <option key={region} value={region}>
+                                {region}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Selector de Comuna */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Comuna
+                    </label>
+                    <select
+                        value={formData.state}
+                        onChange={handleCommuneChange}
+                        required
+                        disabled={!selectedRegion}
+                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    >
+                        <option value="">Selecciona una comuna</option>
+                        {selectedRegion && regionesComunas[selectedRegion].comunas.map(comuna => (
+                            <option key={comuna} value={comuna}>
+                                {comuna}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Campo de búsqueda de calle (solo habilitado si hay comuna seleccionada) */}
                 <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Buscar dirección
+                        Buscar calle
                     </label>
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        disabled={!formData.state}
                         className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        placeholder="Comienza a escribir para buscar una dirección..."
+                        placeholder={formData.state ? "Comienza a escribir para buscar una calle..." : "Selecciona una comuna primero"}
                     />
                     {isSearching && (
                         <div className="mt-2 text-sm text-gray-500">Buscando...</div>
@@ -152,7 +214,7 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
                                 <div
                                     key={index}
                                     onClick={() => handleAddressSelection(suggestion)}
-                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-white"
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
                                 >
                                     {suggestion.display_name}
                                 </div>
@@ -161,9 +223,10 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
                     )}
                 </div>
 
-                <div>
+                {/* Campo de calle */}
+                <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Calle
+                        Calle y número
                     </label>
                     <input
                         type="text"
@@ -174,32 +237,7 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
                     />
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Ciudad
-                    </label>
-                    <input
-                        type="text"
-                        required
-                        value={formData.city}
-                        onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Estado/Provincia
-                    </label>
-                    <input
-                        type="text"
-                        required
-                        value={formData.state}
-                        onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                </div>
-
+                {/* País (deshabilitado) */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         País
@@ -213,6 +251,7 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
                     />
                 </div>
 
+                {/* Código Postal */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Código Postal
@@ -225,7 +264,9 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
                         className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     />
                 </div>
-                <div>
+
+                {/* Referencia */}
+                <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Referencia
                     </label>
@@ -234,9 +275,12 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
                         value={formData.reference}
                         onChange={(e) => setFormData(prev => ({ ...prev, reference: e.target.value }))}
                         className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        placeholder="Ej: Casa color azul, cerca del supermercado..."
                     />
                 </div>
             </div>
+
+            {/* Checkbox dirección predeterminada */}
             <div className="flex items-center gap-2">
                 <input
                     type="checkbox"
@@ -249,6 +293,8 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
                     Establecer como dirección predeterminada
                 </label>
             </div>
+
+            {/* Botones */}
             <div className="flex justify-end gap-4 mt-4">
                 {onCancel && (
                     <button
