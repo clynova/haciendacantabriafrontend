@@ -238,6 +238,7 @@ const FormaEnvio = () => {
     });
     const { token } = useAuth();
     const { cartItems, saveShippingInfo } = useCart();
+    const [isValparaisoRegion, setIsValparaisoRegion] = useState(true);
 
     const fetchAddresses = async () => {
         try {
@@ -248,6 +249,8 @@ const FormaEnvio = () => {
                 const defaultAddress = addressResponse.data.addresses?.find(addr => addr.isDefault);
                 if (defaultAddress) {
                     setSelectedAddressId(defaultAddress._id);
+                    // Verificar la región al cargar la dirección predeterminada
+                    setIsValparaisoRegion(defaultAddress.state === 'Valparaíso' || defaultAddress.city === 'Valparaíso');
                 }
             }
         } catch (error) {
@@ -281,6 +284,20 @@ const FormaEnvio = () => {
 
         fetchData();
     }, [token]);
+
+    // Función para verificar si la dirección está en la región de Valparaíso
+    const checkIsValparaisoRegion = (addressId) => {
+        const selectedAddress = addresses.find(addr => addr._id === addressId);
+        // Verificar exactamente si la región o ciudad es Valparaíso
+        return selectedAddress?.state === 'Valparaíso' || selectedAddress?.city === 'Valparaíso';
+    };
+
+    // Actualizar la función que maneja la selección de dirección
+    const handleAddressSelect = (addressId) => {
+        setSelectedAddressId(addressId);
+        const isValparaiso = checkIsValparaisoRegion(addressId);
+        setIsValparaisoRegion(isValparaiso);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -558,7 +575,7 @@ const FormaEnvio = () => {
                                                 key={address._id}
                                                 address={address}
                                                 selected={selectedAddressId === address._id}
-                                                onSelect={setSelectedAddressId}
+                                                onSelect={handleAddressSelect}
                                                 onEdit={handleEditAddress}
                                                 onDelete={handleDeleteAddress}
                                             />
@@ -592,12 +609,22 @@ const FormaEnvio = () => {
                                 >
                                     <FiArrowLeft className="mr-2" /> Volver al carrito
                                 </Link>
-                                <button
-                                    type="submit"
-                                    className="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 flex items-center"
-                                >
-                                    Continuar al pago <FiArrowRight className="ml-2" />
-                                </button>
+                                {isValparaisoRegion ? (
+                                    <button
+                                        type="submit"
+                                        className="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 flex items-center"
+                                        disabled={!selectedAddressId || !selectedMethod}
+                                    >
+                                        Continuar al pago <FiArrowRight className="ml-2" />
+                                    </button>
+                                ) : (
+                                    <Link
+                                        to="/checkout/cotizacion"
+                                        className="bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 flex items-center"
+                                    >
+                                        Solicitar cotización <FiArrowRight className="ml-2" />
+                                    </Link>
+                                )}
                             </div>
                         </form>
                     </div>
