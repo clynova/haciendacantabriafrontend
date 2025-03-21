@@ -323,7 +323,7 @@ const FormaEnvio = () => {
         const carrier = shippingMethods.find(c => c._id === selectedCarrier);
         const method = carrier?.methods.find(m => m._id === selectedMethod);
 
-        saveShippingInfo({
+        const shippingData = {
             carrierId: selectedCarrier,
             carrierName: carrier?.name,
             methodId: selectedMethod,
@@ -334,10 +334,16 @@ const FormaEnvio = () => {
             free_shipping_threshold: method?.free_shipping_threshold,
             address: selectedAddress,
             recipientInfo: recipientInfo
-        });
+        };
 
-        // Navegar a la página de pago
-        window.location.href = '/checkout/pago';
+        saveShippingInfo(shippingData);
+
+        // Redirigir según la región
+        if (selectedAddress.state === 'Valparaíso' || selectedAddress.city === 'Valparaíso') {
+            window.location.href = '/checkout/pago';
+        } else {
+            window.location.href = '/checkout/cotizacion';
+        }
     };
 
     const handleAddressSubmit = async (addressData) => {
@@ -615,22 +621,16 @@ const FormaEnvio = () => {
                                 >
                                     <FiArrowLeft className="mr-2" /> Volver al carrito
                                 </Link>
-                                {isValparaisoRegion ? (
-                                    <button
-                                        type="submit"
-                                        className="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 flex items-center"
-                                        disabled={!selectedAddressId || !selectedMethod}
-                                    >
-                                        Continuar al pago <FiArrowRight className="ml-2" />
-                                    </button>
-                                ) : (
-                                    <Link
-                                        to="/checkout/cotizacion"
-                                        className="bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 flex items-center"
-                                    >
-                                        Solicitar cotización <FiArrowRight className="ml-2" />
-                                    </Link>
-                                )}
+                                <button
+                                    type="submit"
+                                    className={`${isValparaisoRegion 
+                                        ? 'bg-blue-500 hover:bg-blue-600' 
+                                        : 'bg-green-500 hover:bg-green-600'} 
+                                        text-white py-3 px-6 rounded-lg flex items-center`}
+                                    disabled={!selectedAddressId || !selectedMethod}
+                                >
+                                    {isValparaisoRegion ? 'Continuar al pago' : 'Solicitar cotización'} <FiArrowRight className="ml-2" />
+                                </button>
                             </div>
                         </form>
                     </div>
