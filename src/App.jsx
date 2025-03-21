@@ -49,6 +49,7 @@ import { AdminUserCreate } from "./pages/admin/AdminUserCreate";
 import { AdminProductCreate } from "./pages/admin/AdminProductCreate";
 import { AdminProductDetails } from "./pages/admin/AdminProductDetails";
 import { AdminProductEdit } from "./pages/admin/AdminProductEdit";
+import { Contact } from "./pages/Contact";
 
 const App = () => {
   return (
@@ -121,7 +122,7 @@ const App = () => {
                     <Route path="confirmation/failure" element={<PaymentFailure />} />
                   </Route>
                   <Route path="/about" element={<About/>} />
-                  <Route path="/contact" element={<div>Contact</div>} />
+                  <Route path="/contact" element={<Contact/>} />
                   <Route path="/faq" element={<Faq />}/>
                   <Route path="/policies" element={<Policies /> } />
                   <Route path="/terms" element={<Terms />}/>
