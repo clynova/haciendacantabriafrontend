@@ -52,6 +52,7 @@ import { AdminProductEdit } from "./pages/admin/AdminProductEdit";
 import { AdminMetodosDePago } from "./pages/admin/AdminMetodosDePago";
 import { AdminMetodosDeEnvio } from "./pages/admin/AdminMetodosDeEnvio";
 import { SolicitudDeCotizacion } from "./pages/payment/SolicitudDeCotizacion";  
+import { ConfirmacionCotizacion } from "./pages/payment/ConfirmacionCotizacion";
 
 const App = () => {
   return (
@@ -125,6 +126,7 @@ const App = () => {
                     </Route>
                     <Route path="confirmation/success" element={<Confirmation />} />
                     <Route path="confirmation/failure" element={<PaymentFailure />} />
+                    <Route path="confirmation/cotizacion" element={<ConfirmacionCotizacion />} />
                   </Route>
                   <Route path="/about" element={<About/>} />
                   <Route path="/contact" element={<div>Contact</div>} />
