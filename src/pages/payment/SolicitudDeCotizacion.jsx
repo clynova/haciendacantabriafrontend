@@ -13,7 +13,7 @@ import { s } from 'framer-motion/client';
 const SolicitudDeCotizacion = () => {
     const navigate = useNavigate();
     const { token } = useAuth();
-    const { cartItems, shippingInfo } = useCart();
+    const { cartItems, shippingInfo, clearCart } = useCart();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validityDays, setValidityDays] = useState(7);
 
@@ -51,6 +51,7 @@ const SolicitudDeCotizacion = () => {
             const response = await createQuotation(quotationData, token);
 
             if (response.success) {
+                await clearCart(); // Limpiar el carrito después de crear la cotización
                 toast.success("Cotización creada exitosamente");
                 // Aquí podrías redirigir a una página de confirmación o al historial de cotizaciones
                 navigate('/perfil/cotizaciones');
