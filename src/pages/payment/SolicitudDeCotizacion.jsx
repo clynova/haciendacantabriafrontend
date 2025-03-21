@@ -1,3 +1,5 @@
+import { createQuotation } from '../../services/quotationService';
+
 const SolicitudDeCotizacion = () => {
     return (
         <div>
