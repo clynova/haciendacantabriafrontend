@@ -7,8 +7,6 @@ import { HiCheckCircle, HiInformationCircle } from 'react-icons/hi';
 import { FiArrowLeft } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import CartSummary from '../../components/Cart/CartSummary';
-import { formatCurrency } from '../../utils/funcionesReutilizables';
-import { s } from 'framer-motion/client';
 
 const SolicitudDeCotizacion = () => {
     const navigate = useNavigate();
@@ -54,7 +52,7 @@ const SolicitudDeCotizacion = () => {
                 await clearCart(); // Limpiar el carrito después de crear la cotización
                 toast.success("Cotización creada exitosamente");
                 // Aquí podrías redirigir a una página de confirmación o al historial de cotizaciones
-                navigate('/perfil/cotizaciones');
+                navigate('/checkout/confirmation/cotizacion');
             } else {
                 throw new Error(response.msg || "Error al crear la cotización");
             }
