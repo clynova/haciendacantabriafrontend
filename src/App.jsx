@@ -53,6 +53,7 @@ import { AdminMetodosDePago } from "./pages/admin/AdminMetodosDePago";
 import { AdminMetodosDeEnvio } from "./pages/admin/AdminMetodosDeEnvio";
 import { SolicitudDeCotizacion } from "./pages/payment/SolicitudDeCotizacion";  
 import { ConfirmacionCotizacion } from "./pages/payment/ConfirmacionCotizacion";
+import { AdminCotizaciones } from "./pages/admin/AdminCotizaciones";
 
 const App = () => {
   return (
@@ -110,6 +111,7 @@ const App = () => {
                         <Route path="new" element={<AdminUserCreate />} />
                         <Route path=":userId" element={<AdminUserDetails />} />
                       </Route>
+                      <Route path="quotations" element={<AdminCotizaciones />} />
                       <Route path="categories" element={<AdminCategories />} />
                     </Route>
                   </Route>
