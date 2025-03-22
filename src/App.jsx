@@ -32,7 +32,7 @@ import { CheckoutLayout } from "./layouts/MainLayout/CheckoutLayout";
 import { Confirmation } from './pages/payment/Confirmation';
 import { PaymentFailure } from './pages/payment/PaymentFailure';
 import { MyOrderDetails } from "./pages/Perfil/MyOrderDetails";
-
+import { MyQuotations } from "./pages/Perfil/MyQuotations";
 import { AdminRoute } from './components/AdminRoute';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminProducts } from './pages/admin/AdminProducts';
@@ -93,6 +93,7 @@ const App = () => {
                       <Route path="wishlist" element={<MyWishlist />} />
                       <Route path="addresses" element={<MyAddresses />} />
                       <Route path="settings" element={<MyConfiguration />} />
+                      <Route path="quotations" element={<MyQuotations />} />
                     </Route>
                   </Route>
                   <Route path="/admin" element={<AdminRoute><MainLayout /></AdminRoute>}>
