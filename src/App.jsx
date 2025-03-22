@@ -54,6 +54,7 @@ import { AdminMetodosDeEnvio } from "./pages/admin/AdminMetodosDeEnvio";
 import { SolicitudDeCotizacion } from "./pages/payment/SolicitudDeCotizacion";  
 import { ConfirmacionCotizacion } from "./pages/payment/ConfirmacionCotizacion";
 import { AdminCotizaciones } from "./pages/admin/AdminCotizaciones";
+import { AdminQuotationDetails } from "./pages/admin/AdminQuotationDetails";
 
 const App = () => {
   return (
@@ -111,7 +112,10 @@ const App = () => {
                         <Route path="new" element={<AdminUserCreate />} />
                         <Route path=":userId" element={<AdminUserDetails />} />
                       </Route>
-                      <Route path="quotations" element={<AdminCotizaciones />} />
+                      <Route path="quotations">
+                        <Route index element={<AdminCotizaciones />} />
+                        <Route path=":quotationId" element={<AdminQuotationDetails />} />
+                      </Route>
                       <Route path="categories" element={<AdminCategories />} />
                     </Route>
                   </Route>
