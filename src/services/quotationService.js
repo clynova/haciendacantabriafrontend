@@ -15,14 +15,9 @@ export const createQuotation = async (quotationData, token) => {
     }
 };
 
-/**
- * Get a list of quotations for the current user
- * @param {string} token - Authentication token
- * @returns {Promise<Object>} List of quotations
- */
 export const getQuotations = async (token) => {
     try {
-        const response = await api.get('/api/quotations', {
+        const response = await api.get('/api/quotations/user', {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -34,12 +29,6 @@ export const getQuotations = async (token) => {
     }
 };
 
-/**
- * Get a specific quotation by ID
- * @param {string} quotationId - The ID of the quotation to fetch
- * @param {string} token - Authentication token
- * @returns {Promise<Object>} The quotation data
- */
 export const getQuotationById = async (quotationId, token) => {
     try {
         const response = await api.get(`/api/quotations/${quotationId}`, {
@@ -54,22 +43,30 @@ export const getQuotationById = async (quotationId, token) => {
     }
 };
 
-/**
- * Cancel a quotation
- * @param {string} quotationId - The ID of the quotation to cancel
- * @param {string} token - Authentication token
- * @returns {Promise<Object>} The cancelled quotation data
- */
-export const cancelQuotation = async (quotationId, token) => {
+export const getAllQuotations = async (token) => {
     try {
-        const response = await api.patch(`/api/quotations/${quotationId}/cancel`, {}, {
+        const response = await api.get('/api/quotations/all', {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         });
         return response.data;
     } catch (error) {
-        console.error('Error cancelling quotation:', error);
+        console.error('Error fetching all quotations:', error);
+        throw error.response?.data || error;
+    }
+}
+
+export const updateQuotation = async (_id, updatedData, token) => {
+    try {
+        const response = await api.put(`/api/quotations/${_id}`, updatedData, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating quotation:', error);
         throw error.response?.data || error;
     }
 };
