@@ -39,59 +39,72 @@ const ProductCard = ({ product }) => {
         addToCart(product);
     };
 
+    const navigateToProduct = (e) => {
+        // Don't navigate if clicking on buttons
+        if (e.target.closest('button')) {
+            return;
+        }
+        window.location.href = `/product/${product._id}`;
+    };
+
     return (
         <div className="px-2">
             <div 
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl 
-                          transition-all duration-300 overflow-hidden"
+                className="group relative bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl 
+                          transition-all duration-300 overflow-hidden hover:cursor-pointer"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
+                onClick={navigateToProduct}
             >
-                <div className="relative aspect-square">
+                {/* Product Image with enhanced zoom */}
+                <div className="relative aspect-square overflow-hidden">
                     <img
                         src={imageError ? fallbackImage : 
                             (product.multimedia?.imagenes?.[0]?.url || fallbackImage)}
                         alt={product.nombre}
-                        className="w-full h-full object-cover transition-transform duration-300
-                                 group-hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-500
+                                 group-hover:scale-110"
                         loading="lazy"
                         onError={handleImageError}
                     />
+                    
+                    {/* Favorite Button - Always visible and above zoom */}
                     <button
-                        onClick={handleLikeClick}
-                        className="absolute top-3 right-3 p-2 rounded-full bg-white/80 
-                                 hover:bg-white dark:bg-gray-800/80 dark:hover:bg-gray-800 
-                                 transition-colors duration-200 group"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleLikeClick();
+                        }}
+                        className="absolute top-3 right-3 p-2 rounded-full bg-white/90 shadow-md
+                                 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 
+                                 transition-colors duration-200 z-30"
                         aria-label={isLiked ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
                     >
                         {isLiked ? (
                             <HiHeart className="w-5 h-5 text-red-500" />
                         ) : (
                             <HiOutlineHeart className="w-5 h-5 text-gray-600 dark:text-gray-300 
-                                                     group-hover:text-red-500" />
+                                                     hover:text-red-500" />
                         )}
                     </button>
-                    {isHovered && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center 
-                                      justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                            <Link
-                                to={`/product/${product._id}`}
-                                className="bg-white text-gray-900 px-6 py-2 rounded-full font-medium
-                                         hover:bg-gray-100 transition-colors duration-200"
-                            >
-                                Ver detalles
-                            </Link>
-                        </div>
-                    )}
+
+                    {/* Hover Overlay */}
+                    <div className={`absolute inset-0 bg-black/40 flex items-center 
+                                   justify-center transition-opacity duration-300 z-20
+                                   ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                        <span className="bg-white text-gray-900 px-6 py-2 rounded-full font-medium
+                                     hover:bg-gray-100 transition-colors duration-200">
+                            Ver detalles
+                        </span>
+                    </div>
                 </div>
+
+                {/* Product Info - Static section */}
                 <div className="p-4">
-                    <Link to={`/product/${product._id}`}>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white 
-                                     mb-2 hover:text-blue-500 dark:hover:text-blue-400 
-                                     transition-colors duration-200 line-clamp-2">
-                            {product.nombre}
-                        </h3>
-                    </Link>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white 
+                                 mb-2 transition-colors duration-200 line-clamp-2
+                                 hover:text-blue-500">
+                        {product.nombre}
+                    </h3>
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-xl font-bold text-gray-900 dark:text-white">
                             {formatCurrency(product.precioFinal)}
@@ -103,11 +116,15 @@ const ProductCard = ({ product }) => {
                         )}
                     </div>
                     <button
-                        onClick={handleAddToCart}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart();
+                        }}
                         disabled={!product.inventario.stockUnidades}
                         className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium
                                  hover:bg-blue-700 transition-colors duration-200 
-                                 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                 disabled:bg-gray-400 disabled:cursor-not-allowed
+                                 hover:shadow-lg z-10"
                     >
                         {product.inventario.stockUnidades ? 'Agregar al carrito' : 'Agotado'}
                     </button>

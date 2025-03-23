@@ -30,4 +30,21 @@ const getProductById = async (_Id) => {
     }
 }
 
-export { getProductById }
+export const searchProducts = async (filters = {}) => {
+    try {
+        const queryParams = new URLSearchParams();
+        
+        // Add filters to query params if they exist
+        if (filters.categoria) {
+            queryParams.append('categoria', filters.categoria);
+        }
+
+        const response = await api.get(`/api/product?${queryParams.toString()}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error in searchProducts:', error);
+        throw error.response?.data || error;
+    }
+};
+
+export { getProductById };

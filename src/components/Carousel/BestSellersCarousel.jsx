@@ -109,7 +109,7 @@ const BestSellersCarousel = () => {
     <div className="relative px-8 pb-8">
       <Slider {...settings}>
         {bestSellers.map(product => (
-          <div key={product._id} className="px-3">
+          <div key={product._id} className="">
             <ProductCard product={product} />
           </div>
         ))}

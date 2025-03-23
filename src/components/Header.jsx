@@ -57,9 +57,9 @@ const Header = () => {
 
   const navLinks = [
     { name: "Inicio", href: "/" },
-    { name: "Vacuno", href: "/categoria/vacuno" },
-    { name: "Ave", href: "/categoria/ave" },
-    { name: "Aceites", href: "/categoria/aceites" },
+    { name: "Carnes", href: "/categoria/carne" },
+    { name: "Condimentos", href: "/categoria/condimento" },
+    { name: "Aceites", href: "/categoria/aceite" },
   ];
 
   // Componente para el menú móvil

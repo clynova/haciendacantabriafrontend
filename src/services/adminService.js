@@ -290,6 +290,191 @@ const getPaymentMethodById = async (methodId, token) => {
     }
 };
 
+// Get all orders with optional status filter
+const getAllOrders = async (token, status = '') => {
+    try {
+        const url = status ? `/api/order?status=${status}` : '/api/order';
+        const response = await api.get(url, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al obtener los pedidos'
+        };
+    }
+};
+
+// Get order by ID
+export const getOrderById = async (orderId, token) => {
+    console.log('getOrderById called with:', { orderId, token });
+    try {
+        const response = await api.get(`/api/order/${orderId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        console.log('API response:', response);
+        return response.data;
+    } catch (error) {
+        console.error('getOrderById error:', error.response || error);
+        throw {
+            success: false,
+            msg: error.response?.data?.msg || 'Error al obtener la orden'
+        };
+    }
+};
+
+// Update order status
+const updateOrderStatus = async (orderId, status, token) => {
+    try {
+        console.log('Updating order status:', { orderId, status, token });
+        
+        const response = await api.put(
+            `/api/order/${orderId}/status`,
+            { status: status.toUpperCase() }, // Ensure status is uppercase
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        
+        console.log('Update status response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Update status error:', error.response?.data || error);
+        throw {
+            success: false,
+            msg: error.response?.data?.msg || 'Error al actualizar el estado del pedido'
+        };
+    }
+};
+
+// Delete/Cancel order
+export const deleteOrder = async (orderId, token) => {
+    try {
+        console.log('Attempting to delete order:', { orderId, hasToken: !!token });
+        
+        const response = await api.delete(`/api/order/${orderId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        console.log('Delete order response:', response.data);
+        return {
+            success: true,
+            msg: 'Pedido cancelado correctamente'
+        };
+    } catch (error) {
+        console.error('Delete order error:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            message: error.message
+        });
+        throw {
+            success: false,
+            msg: error.response?.data?.message || 'Error al cancelar el pedido'
+        };
+    }
+};
+
+// Update order details
+const updateOrder = async (orderId, orderData, token) => {
+    try {
+        const response = await api.put(`/api/order/${orderId}`, 
+            orderData,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al actualizar el pedido'
+        };
+    }
+};
+
+const updateOrderShipping = async (orderId, shippingData, token) => {
+    try {
+        const response = await api.put(`/api/order/${orderId}/shipping`,
+            shippingData,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al actualizar la información de envío'
+        };
+    }
+};
+
+export const createOrder = async (orderData, token) => {
+    try {
+        const response = await api.post('/api/order', orderData, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al crear el pedido'
+        };
+    }
+};
+
+export const getCustomerAddresses = async (token) => {
+    try {
+        const response = await api.get('/api/addresses', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { success: false, msg: 'Error al obtener las direcciones' };
+    }
+};
+
+export const getPaymentMethods = async (token) => {
+    try {
+        const response = await api.get('/api/payment-methods', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { success: false, msg: 'Error al obtener los métodos de pago' };
+    }
+};
+
+export const getShippingMethods = async (token) => {
+    try {
+        const response = await api.get('/api/shipping-methods', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { success: false, msg: 'Error al obtener los métodos de envío' };
+    }
+};
+
 export { 
     getDashboardStats, 
     getTotalSales, 
@@ -299,5 +484,9 @@ export {
     getAllUsers, 
     getUserById, 
     updateUser, 
-    createUser 
+    createUser,
+    getAllOrders,
+    updateOrderStatus,
+    updateOrder,
+    updateOrderShipping
 };
