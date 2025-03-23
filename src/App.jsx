@@ -55,6 +55,9 @@ import { SolicitudDeCotizacion } from "./pages/payment/SolicitudDeCotizacion";
 import { ConfirmacionCotizacion } from "./pages/payment/ConfirmacionCotizacion";
 import { AdminCotizaciones } from "./pages/admin/AdminCotizaciones";
 import { AdminQuotationDetails } from "./pages/admin/AdminQuotationDetails";
+import { MyQuotationsDetails } from "./pages/Perfil/MyQuotationsDetails";
+import { QuotationsCheckout } from "./pages/payment/QuotationsCheckout";
+
 
 const App = () => {
   return (
@@ -94,6 +97,8 @@ const App = () => {
                       <Route path="addresses" element={<MyAddresses />} />
                       <Route path="settings" element={<MyConfiguration />} />
                       <Route path="quotations" element={<MyQuotations />} />
+                      <Route path="quotations/:quotationId" element={<MyQuotationsDetails />} />
+                      <Route path="quotations/checkout" element={<QuotationsCheckout />} />
                     </Route>
                   </Route>
                   <Route path="/admin" element={<AdminRoute><MainLayout /></AdminRoute>}>
