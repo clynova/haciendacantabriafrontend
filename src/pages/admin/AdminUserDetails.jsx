@@ -35,6 +35,37 @@ const AdminUserDetails = () => {
         }
     };
 
+    const renderAddresses = (user) => {
+        if (!user.addresses || user.addresses.length === 0) {
+            return (
+                <p className="text-slate-400 italic">No hay direcciones registradas</p>
+            );
+        }
+
+        return user.addresses.map((address, addressIndex) => {
+            const addressDetails = [
+                { label: 'Calle y número', value: address.street || address.streetAddress },
+                { label: 'Ciudad', value: address.city },
+                { label: 'Región', value: address.region || address.state },
+                { label: 'País', value: address.country },
+                { label: 'Código Postal', value: address.zipCode || address.postalCode }
+            ];
+
+            return (
+                <div key={addressIndex} className="space-y-2 border-b border-slate-600 last:border-0 pb-4 last:pb-0">
+                    {addressDetails.map((detail, index) => (
+                        detail.value && (
+                            <div key={index} className="grid grid-cols-2 gap-2">
+                                <span className="text-slate-400">{detail.label}:</span>
+                                <span className="text-slate-200">{detail.value}</span>
+                            </div>
+                        )
+                    ))}
+                </div>
+            );
+        });
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -91,6 +122,7 @@ const AdminUserDetails = () => {
                                 <h1 className="text-3xl font-bold text-white mb-2">
                                     {`${user.firstName || ''} ${user.lastName || ''}`}
                                 </h1>
+                                <p className="text-slate-400 text-sm">ID: {user._id}</p>
                             </div>
                         </div>
                     </div>
@@ -119,6 +151,13 @@ const AdminUserDetails = () => {
                                         {user.email}
                                     </p>
                                 </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-400">Estado de cuenta</label>
+                                    <p className="text-slate-200 bg-slate-700/50 p-2 rounded-lg">
+                                        {user.confirmado ? 'Confirmada' : 'Pendiente de confirmación'}
+                                    </p>
+                                </div>
                             </div>
 
                             <div className="space-y-6">
@@ -130,11 +169,11 @@ const AdminUserDetails = () => {
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
                                         <HiLocationMarker className="h-4 w-4 text-blue-400" />
-                                        Dirección
+                                        Direcciones
                                     </label>
-                                    <p className="text-slate-200 bg-slate-700/50 p-2 rounded-lg">
-                                        {user.address || 'No especificada'}
-                                    </p>
+                                    <div className="bg-slate-700/50 p-4 rounded-lg">
+                                        {renderAddresses(user)}
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2">

@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { HiArrowLeft, HiPencil } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import { getProductById } from '../../services/adminService';
+import { ImageGallery } from '../../components/admin/products/sections/ImageGallery';
 
 const AdminProductDetails = () => {
     const { productId } = useParams();
@@ -297,56 +298,64 @@ const AdminProductDetails = () => {
                     </div>
 
                     {/* Main Content */}
-                    <div className="p-6 space-y-6">
-                        <div className="grid grid-cols-1 gap-6">
-                            {/* Product Images section goes here (the code above) */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Basic Information and Pricing Information sections remain as they are */}
-                                {/* Basic Information */}
-                                <div className="space-y-4">
-                                    <h2 className="text-lg font-semibold text-slate-200">Información Básica</h2>
-                                    <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">Código:</span> {product.codigo}
-                                        </p>
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">SKU:</span> {product.sku}
-                                        </p>
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">Categoría:</span> {product.categoria}
-                                        </p>
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">Tipo:</span> {product.tipoProducto}
-                                        </p>
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">Destacado:</span> {product.destacado ? 'Sí' : 'No'}
-                                        </p>
-                                    </div>
-                                </div>
+                    <div className="p-6 space-y-8">
+                        {/* Product Images - Updated Section */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Imágenes del Producto</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg">
+                                <ImageGallery 
+                                    images={product.multimedia?.imagenes || []} 
+                                    productName={product.nombre}
+                                />
+                            </div>
+                        </div>
 
-                                {/* Pricing Information */}
-                                <div className="space-y-4">
-                                    <h2 className="text-lg font-semibold text-slate-200">Precios</h2>
-                                    <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                        {/* Basic Info Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Basic Information */}
+                            <div className="space-y-4">
+                                <h2 className="text-lg font-semibold text-slate-200">Información Básica</h2>
+                                <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Código:</span> {product.codigo}
+                                    </p>
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">SKU:</span> {product.sku}
+                                    </p>
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Categoría:</span> {product.categoria}
+                                    </p>
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Tipo:</span> {product.tipoProducto}
+                                    </p>
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Destacado:</span> {product.destacado ? 'Sí' : 'No'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Pricing Information */}
+                            <div className="space-y-4">
+                                <h2 className="text-lg font-semibold text-slate-200">Precios</h2>
+                                <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Precio Base:</span> ${product.precios?.base?.toFixed(2)}
+                                    </p>
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Descuento Regular:</span> {product.precios?.descuentos?.regular}%
+                                    </p>
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Descuento Transferencia:</span> {product.precios?.descuentos?.transferencia}%
+                                    </p>
+                                    <div className="mt-4 pt-4 border-t border-slate-600">
                                         <p className="text-slate-300">
-                                            <span className="text-slate-400">Precio Base:</span> ${product.precios?.base?.toFixed(2)}
+                                            <span className="text-slate-400">Promoción:</span> {product.precios?.promocion?.activa ? 'Activa' : 'Inactiva'}
                                         </p>
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">Descuento Regular:</span> {product.precios?.descuentos?.regular}%
-                                        </p>
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">Descuento Transferencia:</span> {product.precios?.descuentos?.transferencia}%
-                                        </p>
-                                        <div className="mt-4 pt-4 border-t border-slate-600">
+                                        {product.precios?.promocion?.activa && (
                                             <p className="text-slate-300">
-                                                <span className="text-slate-400">Promoción:</span> {product.precios?.promocion?.activa ? 'Activa' : 'Inactiva'}
+                                                <span className="text-slate-400">Porcentaje Promoción:</span> {product.precios?.promocion?.porcentaje}%
                                             </p>
-                                            {product.precios?.promocion?.activa && (
-                                                <p className="text-slate-300">
-                                                    <span className="text-slate-400">Porcentaje Promoción:</span> {product.precios?.promocion?.porcentaje}%
-                                                </p>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -374,55 +383,6 @@ const AdminProductDetails = () => {
                             {renderProductTypeSpecificInfo()}
                         </div>
 
-                        {/* Product Images */}
-                        <div className="col-span-1 md:col-span-2 space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Imágenes del Producto</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg">
-                                {product.multimedia?.imagenes?.length > 0 ? (
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        {product.multimedia.imagenes.map((imagen, index) => (
-                                            <div key={index} className="relative group aspect-square">
-                                                <img
-                                                    src={imagen.url}
-                                                    alt={`${product.nombre} - Imagen ${index + 1}`}
-                                                    className="w-full h-full object-cover rounded-lg"
-                                                />
-                                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity duration-200 rounded-lg">
-                                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                        <a 
-                                                            href={imagen.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="p-2 bg-white rounded-full hover:bg-gray-100"
-                                                        >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                            </svg>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                {index === 0 && (
-                                                    <div className="absolute top-2 left-2">
-                                                        <span className="px-2 py-1 text-xs font-semibold bg-blue-500 text-white rounded-full">
-                                                            Principal
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8">
-                                        <svg className="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <p className="mt-2 text-sm text-slate-400">No hay imágenes disponibles</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
                         {/* Description */}
                         <div className="space-y-4">
                             <h2 className="text-lg font-semibold text-slate-200">Descripción</h2>
@@ -435,6 +395,34 @@ const AdminProductDetails = () => {
                                     <span className="text-slate-400 block mb-1">Descripción Completa:</span>
                                     {product.descripcion?.completa || 'No especificada'}
                                 </p>
+                            </div>
+                        </div>
+
+                        {/* SEO Information - Added Section */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">SEO</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400 block mb-1">Meta Título:</span>
+                                    {product.seo?.metaTitulo || 'No especificado'}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400 block mb-1">Meta Descripción:</span>
+                                    {product.seo?.metaDescripcion || 'No especificada'}
+                                </p>
+                                <div>
+                                    <span className="text-slate-400 block mb-2">Palabras Clave:</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {product.seo?.palabrasClave?.map((palabra, index) => (
+                                            <span 
+                                                key={index}
+                                                className="px-3 py-1 bg-slate-600 text-slate-200 rounded-full text-sm"
+                                            >
+                                                {palabra}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
