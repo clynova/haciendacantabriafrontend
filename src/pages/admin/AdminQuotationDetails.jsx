@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getQuotationById, updateQuotation } from '../../services/quotationService';
-import { HiArrowLeft, HiCheckCircle, HiXCircle, HiExternalLink } from 'react-icons/hi';
+import { HiArrowLeft, HiCheckCircle, HiXCircle, HiExternalLink, HiClipboardCheck  } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../../utils/funcionesReutilizables';
 
@@ -102,6 +102,15 @@ const AdminQuotationDetails = () => {
                         </button>
                     </div>
                 )}
+                {quotation.status === 'finalized' && quotation.orderId && (
+                    <button
+                        onClick={() => navigate(`/admin/orders/${quotation.orderId}`)}
+                        className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    >
+                        <HiClipboardCheck  className="h-5 w-5 mr-2" />
+                        Ver orden relacionada
+                    </button>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -121,10 +130,12 @@ const AdminQuotationDetails = () => {
                             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                                 quotation.status === 'approved' ? 'bg-green-100 text-green-800' :
                                 quotation.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                quotation.status === 'finalized' ? 'bg-blue-100 text-blue-800' :
                                 'bg-yellow-100 text-yellow-800'
                             }`}>
                                 {quotation.status === 'approved' ? 'Aprobada' :
                                 quotation.status === 'rejected' ? 'Rechazada' :
+                                quotation.status === 'finalized' ? 'Finalizada' :
                                 'Pendiente'}
                             </span>
                         </div>
@@ -256,6 +267,22 @@ const AdminQuotationDetails = () => {
                             <div className="mt-6">
                                 <h3 className="text-sm font-medium text-red-400 mb-2">Motivo del Rechazo</h3>
                                 <p className="text-slate-300">{quotation.rejectionReason}</p>
+                            </div>
+                        )}
+
+                        {quotation.status === 'finalized' && quotation.orderId && (
+                            <div className="mt-6">
+                                <h3 className="text-sm font-medium text-blue-400 mb-2">Información de la Orden</h3>
+                                <p className="text-slate-300">
+                                    Esta cotización fue pagada y convertida en una orden.
+                                </p>
+                                <button
+                                    onClick={() => navigate(`/admin/orders/${quotation.orderId}`)}
+                                    className="mt-2 flex items-center text-blue-400 hover:text-blue-300"
+                                >
+                                    <HiExternalLink className="h-5 w-5 mr-1" />
+                                    Ver detalles de la orden #{quotation.orderId.slice(-6)}
+                                </button>
                             </div>
                         )}
                     </div>

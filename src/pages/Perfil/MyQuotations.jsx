@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getQuotations } from '../../services/quotationService';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../../utils/funcionesReutilizables';
-import { HiEye, HiCreditCard, HiExclamationCircle, HiCheckCircle, HiClock } from 'react-icons/hi';
+import { HiEye, HiCreditCard, HiExclamationCircle, HiCheckCircle, HiClock, HiClipboardCheck  } from 'react-icons/hi';
 
 const MyQuotations = () => {
     const [quotations, setQuotations] = useState([]);
@@ -59,6 +59,12 @@ const MyQuotations = () => {
                     icon: <HiExclamationCircle className="h-5 w-5" />,
                     label: 'Rechazada',
                     className: 'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-500'
+                };
+            case 'finalized':
+                return {
+                    icon: <HiClipboardCheck  className="h-5 w-5" />,
+                    label: 'Finalizada',
+                    className: 'bg-blue-100 text-blue-800 dark:bg-blue-800/20 dark:text-blue-500'
                 };
             default:
                 return {
@@ -120,6 +126,7 @@ const MyQuotations = () => {
                         <option value="pending">Pendientes</option>
                         <option value="approved">Aprobadas</option>
                         <option value="rejected">Rechazadas</option>
+                        <option value="finalized">Finalizadas</option>
                     </select>
                 </div>
             </div>
