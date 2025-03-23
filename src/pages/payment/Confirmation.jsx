@@ -31,7 +31,6 @@ const Confirmation = () => {
         const verifyOrder = async () => {
             try {
                 const response = await getPaymentStatus(orderId, token);
-                console.log(response)
                 if (response.success && response.order.status === 'paid') {
                     setOrderStatus('success');
                 } else {

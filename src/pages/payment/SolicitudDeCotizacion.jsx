@@ -35,8 +35,7 @@ const SolicitudDeCotizacion = () => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        try {
-            console.log(shippingInfo);
+        try {S
             const quotationData = {
                 shippingAddressId: shippingInfo.address._id,
                 shippingMethod: shippingInfo.carrierId,
