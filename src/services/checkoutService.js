@@ -2,7 +2,7 @@ import api from './api';
 
 export const createOrder = async (orderData, token) => {
   try {
-    const response = await api.post('/api/orders', orderData, {
+    const response = await api.post('/api/order', orderData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
