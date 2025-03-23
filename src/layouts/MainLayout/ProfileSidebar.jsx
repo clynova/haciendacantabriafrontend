@@ -15,6 +15,7 @@ const ProfileSidebar = () => {
     { to: '/profile/wishlist', icon: FaHeart, label: 'Lista de Deseos' },
     { to: '/profile/addresses', icon: FaAddressCard, label: 'Direcciones' },
     { to: '/profile/settings', icon: FaCog, label: 'Configuración' },
+    { to: '/profile/quotations', icon: FaCreditCard, label: 'Mis Cotizaciones' },
   ];
 
   return (

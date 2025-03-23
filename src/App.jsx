@@ -32,7 +32,7 @@ import { CheckoutLayout } from "./layouts/MainLayout/CheckoutLayout";
 import { Confirmation } from './pages/payment/Confirmation';
 import { PaymentFailure } from './pages/payment/PaymentFailure';
 import { MyOrderDetails } from "./pages/Perfil/MyOrderDetails";
-
+import { MyQuotations } from "./pages/Perfil/MyQuotations";
 import { AdminRoute } from './components/AdminRoute';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminProducts } from './pages/admin/AdminProducts';
@@ -55,6 +55,9 @@ import { SolicitudDeCotizacion } from "./pages/payment/SolicitudDeCotizacion";
 import { ConfirmacionCotizacion } from "./pages/payment/ConfirmacionCotizacion";
 import { AdminCotizaciones } from "./pages/admin/AdminCotizaciones";
 import { AdminQuotationDetails } from "./pages/admin/AdminQuotationDetails";
+import { MyQuotationsDetails } from "./pages/Perfil/MyQuotationsDetails";
+import { QuotationsCheckout } from "./pages/payment/QuotationsCheckout";
+
 
 const App = () => {
   return (
@@ -93,6 +96,8 @@ const App = () => {
                       <Route path="wishlist" element={<MyWishlist />} />
                       <Route path="addresses" element={<MyAddresses />} />
                       <Route path="settings" element={<MyConfiguration />} />
+                      <Route path="quotations" element={<MyQuotations />} />
+                      <Route path="quotations/:quotationId" element={<MyQuotationsDetails />} />
                     </Route>
                   </Route>
                   <Route path="/admin" element={<AdminRoute><MainLayout /></AdminRoute>}>
@@ -129,6 +134,7 @@ const App = () => {
                       <Route path="envio" element={<FormaEnvio />} />
                       <Route path="pago" element={<SistemaDePago />} />
                       <Route path="cotizacion" element={<SolicitudDeCotizacion />} />
+                      <Route path="quotation/:quotationId" element={<QuotationsCheckout />} />
                     </Route>
                     <Route path="confirmation/success" element={<Confirmation />} />
                     <Route path="confirmation/failure" element={<PaymentFailure />} />
