@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { HiSearch, HiPlus, HiPencil, HiTrash } from 'react-icons/hi';
+import { HiSearch, HiPlus, HiPencil, HiRefresh } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import { LoadingSpinner } from '../../components/Loading/LoadingSpinner';
 import { PaymentMethodForm } from '../../components/PaymentMethods/PaymentMethodForm';
@@ -57,24 +57,17 @@ const AdminMetodosDePago = () => {
             let response;
             if (editingMethod) {
                 response = await updatePaymentMethod(editingMethod._id, paymentMethodData, token);
-                if (response) { // Cambiado de response.success a response
-                    toast.success('Método de pago actualizado');
-                    setIsFormOpen(false);
-                    setEditingMethod(null);
-                    await fetchPaymentMethods();
-                } else {
-                    toast.error('Error al actualizar el método de pago');
-                }
             } else {
                 response = await createPaymentMethod(paymentMethodData, token);
-                if (response.success) {
-                    toast.success('Método de pago creado');
-                    setIsFormOpen(false);
-                    setEditingMethod(null);
-                    await fetchPaymentMethods();
-                } else {
-                    toast.error('Error al crear el método de pago');
-                }
+            }
+
+            if (response && response.success) {
+                toast.success(editingMethod ? 'Método de pago actualizado' : 'Método de pago creado');
+                setIsFormOpen(false);
+                setEditingMethod(null);
+                await fetchPaymentMethods(); // Recargar los métodos de pago
+            } else {
+                toast.error(editingMethod ? 'Error al actualizar el método de pago' : 'Error al crear el método de pago');
             }
         } catch (error) {
             console.error('Error:', error);
@@ -84,20 +77,21 @@ const AdminMetodosDePago = () => {
         }
     };
 
-    const handleDelete = async (methodId) => {
-        if (window.confirm('¿Está seguro de eliminar este método de pago?')) {
+    const handleToggleStatus = async (methodId, currentStatus) => {
+        const action = currentStatus ? 'desactivar' : 'activar';
+        if (window.confirm(`¿Está seguro de ${action} este método de pago?`)) {
             try {
                 setLoading(true);
-                const response = await deletePaymentMethod(methodId, token);
+                const response = await updatePaymentMethod(methodId, { active: !currentStatus }, token);
                 
-                if (response.success) {
-                    toast.success('Método de pago eliminado exitosamente');
+                if (response && response.success) {
+                    toast.success(`Método de pago ${action}do exitosamente`);
                     await fetchPaymentMethods();
                 } else {
-                    toast.error('Error al eliminar el método de pago');
+                    toast.error(`Error al ${action} el método de pago`);
                 }
             } catch (error) {
-                toast.error('Error al eliminar el método de pago');
+                toast.error(`Error al ${action} el método de pago`);
             } finally {
                 setLoading(false);
             }
@@ -240,11 +234,11 @@ const AdminMetodosDePago = () => {
                                                         <HiPencil className="h-5 w-5" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDelete(method._id)}
-                                                        className="text-red-400 hover:text-red-300"
-                                                        title="Eliminar"
+                                                        onClick={() => handleToggleStatus(method._id, method.active)}
+                                                        className={`${method.active ? 'text-green-400 hover:text-green-300' : 'text-red-400 hover:text-red-300'}`}
+                                                        title={method.active ? 'Desactivar' : 'Activar'}
                                                     >
-                                                        <HiTrash className="h-5 w-5" />
+                                                        <HiRefresh className="h-5 w-5" />
                                                     </button>
                                                 </div>
                                             </td>

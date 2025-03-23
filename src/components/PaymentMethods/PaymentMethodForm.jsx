@@ -54,15 +54,19 @@ const PaymentMethodForm = ({ initialData, onSubmit, onCancel }) => {
                     <label className="block text-sm font-medium text-slate-200">
                         Tipo *
                     </label>
-                    <input
-                        type="text"
+                    <select
                         value={formData.type}
                         onChange={(e) => setFormData({...formData, type: e.target.value})}
                         className="mt-1 block w-full rounded-lg border border-slate-600 bg-slate-700/50 
                                  text-slate-200 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         required
-                        placeholder="ej. card, transfer, cash"
-                    />
+                    >
+                        <option value="">Seleccione un tipo</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="webpay">Webpay</option>
+                        <option value="mercadopago">Mercadopago</option>
+                        <option value="flow">Flow</option>
+                    </select>
                 </div>
 
                 <div>
