@@ -6,7 +6,6 @@ const OrderItem = ({ order, formatDate, getStatusBadgeColor }) => {
     const navigate = useNavigate();
     
     // Verificar si products existe antes de usar reduce
-    console.log(order)
     const totalProducts = order.products 
         ? order.products.reduce((acc, item) => acc + item.quantity, 0) 
         : 0;

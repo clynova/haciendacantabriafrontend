@@ -153,8 +153,6 @@ const SistemaDePago = () => {
     const checkPaymentStatus = async (orderId) => {
         try {
             const response = await getPaymentStatus(orderId, token);
-            console.log(response);
-
             clearCart();
             if (response.paymentStatus === 'completed') {
                 navigate('/checkout/confirmation/success', {
