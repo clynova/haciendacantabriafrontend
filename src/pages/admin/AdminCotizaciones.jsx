@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getAllQuotations, updateQuotation } from "../../services/quotationService";
-import { HiSearch, HiEye, HiCheckCircle, HiXCircle, HiInformationCircle, HiCreditCard } from 'react-icons/hi';
+import { HiSearch, HiEye, HiCheckCircle, HiXCircle, HiInformationCircle, HiCreditCard, HiClipboardCheck  } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../../utils/funcionesReutilizables';
 
@@ -115,6 +115,7 @@ const AdminCotizaciones = () => {
                         <option value="pending">Pendientes</option>
                         <option value="approved">Aprobadas</option>
                         <option value="rejected">Rechazadas</option>
+                        <option value="finalized">Finalizadas</option>
                     </select>
                 </div>
 
@@ -168,9 +169,12 @@ const AdminCotizaciones = () => {
                                                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
                                                         ${quotation.status === 'approved' ? 'bg-green-100 text-green-800' : 
                                                         quotation.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+                                                        quotation.status === 'finalized' ? 'bg-blue-100 text-blue-800' :
                                                         'bg-yellow-100 text-yellow-800'}`}>
                                                         {quotation.status === 'approved' ? 'Aprobada' :
-                                                        quotation.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
+                                                        quotation.status === 'rejected' ? 'Rechazada' : 
+                                                        quotation.status === 'finalized' ? 'Finalizada' :
+                                                        'Pendiente'}
                                                     </span>
                                                     {quotation.status === 'approved' && !isValid && (
                                                         <span className="ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
@@ -223,6 +227,15 @@ const AdminCotizaciones = () => {
                                                                 title="Proceder al pago"
                                                             >
                                                                 <HiCreditCard className="h-5 w-5" />
+                                                            </button>
+                                                        )}
+                                                        {quotation.status === 'finalized' && quotation.orderId && (
+                                                            <button
+                                                                onClick={() => navigate(`/admin/orders/${quotation.orderId}`)}
+                                                                className="text-blue-400 hover:text-blue-300"
+                                                                title="Ver orden relacionada"
+                                                            >
+                                                                <HiClipboardCheck  className="h-5 w-5" />
                                                             </button>
                                                         )}
                                                         <button

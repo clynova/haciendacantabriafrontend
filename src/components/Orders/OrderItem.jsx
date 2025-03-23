@@ -4,9 +4,13 @@ import { formatCurrency } from '../../utils/funcionesReutilizables';
 
 const OrderItem = ({ order, formatDate, getStatusBadgeColor }) => {
     const navigate = useNavigate();
-
-    const totalProducts = order.products.reduce((acc, item) => acc + item.quantity, 0);
-
+    
+    // Verificar si products existe antes de usar reduce
+    console.log(order)
+    const totalProducts = order.products 
+        ? order.products.reduce((acc, item) => acc + item.quantity, 0) 
+        : 0;
+    
     return (
         <div 
             onClick={() => navigate(`/profile/orders/${order._id}`)}
@@ -28,16 +32,20 @@ const OrderItem = ({ order, formatDate, getStatusBadgeColor }) => {
                         <p className="text-sm text-gray-600 dark:text-gray-300">
                             {totalProducts} producto{totalProducts !== 1 ? 's' : ''}
                         </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Envío: {order?.shipping?.carrier?.name} - {order.shipping.method}
-                        </p>
+                        {order.shipping?.carrier && (
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                                Envío: {order.shipping.carrier.name} - {order.shipping.method}
+                            </p>
+                        )}
                     </div>
                 </div>
                 <div className="text-right">
                     <p className="font-bold text-lg text-gray-900 dark:text-white">{formatCurrency(order.total)}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {order.payment.provider}
-                    </p>
+                    {order.payment?.provider && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {order.payment.provider}
+                        </p>
+                    )}
                 </div>
             </div>
             <div className="px-4 pb-4 text-indigo-600 dark:text-indigo-400 text-sm hover:text-indigo-700 dark:hover:text-indigo-300 font-medium">
@@ -55,22 +63,22 @@ OrderItem.propTypes = {
         products: PropTypes.arrayOf(
             PropTypes.shape({
                 product: PropTypes.shape({
-                    name: PropTypes.string.isRequired,
+                    name: PropTypes.string,
                 }),
-                quantity: PropTypes.number.isRequired,
-                price: PropTypes.number.isRequired
+                quantity: PropTypes.number,
+                price: PropTypes.number
             })
-        ).isRequired,
+        ), // Removida la validación .isRequired
         total: PropTypes.number.isRequired,
         shipping: PropTypes.shape({
             carrier: PropTypes.shape({
-                name: PropTypes.string.isRequired
-            }).isRequired,
-            method: PropTypes.string.isRequired
-        }).isRequired,
+                name: PropTypes.string
+            }),
+            method: PropTypes.string
+        }), // Removida la validación .isRequired
         payment: PropTypes.shape({
-            provider: PropTypes.string.isRequired
-        }).isRequired
+            provider: PropTypes.string
+        }) // Removida la validación .isRequired
     }).isRequired,
     formatDate: PropTypes.func.isRequired,
     getStatusBadgeColor: PropTypes.func.isRequired

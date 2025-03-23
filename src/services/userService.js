@@ -16,7 +16,7 @@ const updateProfile = async (formData, token) => {
 
 const getOrders = async (token) => {
     try {
-        const response = await api.get("/api/order", {
+        const response = await api.get("/api/order/user", {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

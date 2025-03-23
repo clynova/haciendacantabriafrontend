@@ -2,7 +2,7 @@ import api from './api';
 
 export const createOrder = async (orderData, token) => {
   try {
-    const response = await api.post('/api/orders', orderData, {
+    const response = await api.post('/api/order', orderData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -16,10 +16,11 @@ export const createOrder = async (orderData, token) => {
 
 export const createOrderFromQuotation = async (quotationId, paymentMethodId, token) => {
   try {
-    const response = await api.post('/api/orders/from-quotation', 
+    console.log('Creating order from quotation:', { quotationId, paymentMethodId });
+    const response = await api.post('/api/order/from-quotation', 
       { 
         quotationId, 
-        paymentMethod: paymentMethodId 
+        paymentMethodId 
       }, 
       {
         headers: {

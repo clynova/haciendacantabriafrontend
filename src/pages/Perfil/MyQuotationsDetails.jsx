@@ -6,7 +6,8 @@ import { formatCurrency } from '../../utils/funcionesReutilizables';
 import { toast } from 'react-hot-toast';
 import { 
     HiArrowLeft, HiCreditCard, HiExclamationCircle, HiCheckCircle, 
-    HiClock, HiLocationMarker, HiInformationCircle, HiTruck, HiCalendar
+    HiClock, HiLocationMarker, HiInformationCircle, HiTruck, HiCalendar,
+    HiClipboardCheck 
 } from 'react-icons/hi';
 
 const MyQuotationsDetails = () => {
@@ -64,6 +65,13 @@ const MyQuotationsDetails = () => {
                     label: 'Rechazada',
                     className: 'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-500',
                     message: 'Esta cotización ha sido rechazada.'
+                };
+            case 'finalized':
+                return {
+                    icon: <HiClipboardCheck  className="h-5 w-5" />,
+                    label: 'Finalizada',
+                    className: 'bg-blue-100 text-blue-800 dark:bg-blue-800/20 dark:text-blue-500',
+                    message: 'Esta cotización ha sido pagada y finalizada.'
                 };
             default:
                 return {
@@ -163,17 +171,22 @@ const MyQuotationsDetails = () => {
             <div className={`p-4 ${
                 quotation.status === 'pending' ? 'bg-yellow-50 dark:bg-yellow-900/10' : 
                 quotation.status === 'approved' ? 'bg-green-50 dark:bg-green-900/10' : 
+                quotation.status === 'finalized' ? 'bg-blue-50 dark:bg-blue-900/10' : 
                 'bg-red-50 dark:bg-red-900/10'
             }`}>
                 <p className={`flex items-center gap-2 text-sm ${
                     quotation.status === 'pending' ? 'text-yellow-700 dark:text-yellow-400' : 
                     quotation.status === 'approved' ? 'text-green-700 dark:text-green-400' : 
+                    quotation.status === 'finalized' ? 'text-blue-700 dark:text-blue-400' : 
                     'text-red-700 dark:text-red-400'
                 }`}>
                     <HiInformationCircle className="h-5 w-5" />
                     {statusBadge.message}
                     {quotation.status === 'rejected' && quotation.rejectionReason && (
                         <> Motivo: {quotation.rejectionReason}</>
+                    )}
+                    {quotation.status === 'finalized' && quotation.orderId && (
+                        <> Orden relacionada: #{quotation.orderId.slice(-6)}</>
                     )}
                 </p>
             </div>
@@ -291,6 +304,16 @@ const MyQuotationsDetails = () => {
                                     <HiCreditCard className="mr-2" />
                                     Proceder al pago
                                 </button>
+                            )}
+
+                            {quotation.status === 'finalized' && quotation.orderId && (
+                                <Link
+                                    to={`/profile/orders/${quotation.orderId}`}
+                                    className="w-full py-3 px-6 bg-blue-600 text-white rounded-lg font-medium flex items-center justify-center hover:bg-blue-700 transition-colors mt-3"
+                                >
+                                    <HiClipboardCheck  className="mr-2" />
+                                    Ver orden de compra
+                                </Link>
                             )}
 
                             {quotation.status === 'approved' && !isValid && (
