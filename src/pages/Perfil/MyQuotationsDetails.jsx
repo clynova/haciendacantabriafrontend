@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getQuotationById } from '../../services/quotationService';
-import { formatCurrency } from '../../utils/funcionesReutilizables';
+import { formatCurrency, getImageUrl } from '../../utils/funcionesReutilizables';
 import { toast } from 'react-hot-toast';
 import { 
     HiArrowLeft, HiCreditCard, HiExclamationCircle, HiCheckCircle, 
@@ -206,7 +206,7 @@ const MyQuotationsDetails = () => {
                                             <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 overflow-hidden">
                                                 {item.product?.multimedia?.imagenes && item.product.multimedia.imagenes.length > 0 ? (
                                                     <img 
-                                                        src={item.product.multimedia.imagenes[0].url} 
+                                                        src={getImageUrl(item.product.multimedia.imagenes[0].url)} 
                                                         alt={item.product.nombre} 
                                                         className="w-full h-full object-cover"
                                                     />
