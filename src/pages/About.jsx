@@ -2,10 +2,18 @@ import React, { useState } from 'react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { aboutData } from '../data/aboutData';
+import imgAbout from '../images/about/about-hero.webp';
+import imgMission from '../images/about/mission.webp';
+import imgVision from '../images/about/vision.webp';
 
 const About = () => {
     const [activeTab, setActiveTab] = useState('mission');
     const { hero, overview, content, values } = aboutData;
+
+    // Add this helper function to get the correct image
+    const getActiveImage = (tab) => {
+        return tab === 'mission' ? imgMission : imgVision;
+    };
 
     return (
         <div className="min-h-screen flex flex-col dark:bg-gray-900">
@@ -26,7 +34,7 @@ const About = () => {
                     <div className="grid md:grid-cols-2 gap-8 mb-16">
                         <div className="relative h-[400px] rounded-lg overflow-hidden">
                             <img 
-                                src={overview.image}
+                                src={imgAbout}
                                 alt="Nuestras instalaciones"
                                 className="absolute inset-0 w-full h-full object-cover"
                             />
@@ -75,13 +83,13 @@ const About = () => {
                                     <h2 className="text-2xl font-bold text-slate-200 mb-4">
                                         {content[activeTab].title}
                                     </h2>
-                                    <p className="text-slate-300 leading-relaxed">
+                                    <p className="text-slate-300 leading-relaxed whitespace-pre-line">
                                         {content[activeTab].description}
                                     </p>
                                 </div>
                                 <div className="relative h-[300px] rounded-lg overflow-hidden">
                                     <img 
-                                        src={content[activeTab].image}
+                                        src={getActiveImage(activeTab)}
                                         alt={content[activeTab].title}
                                         className="absolute inset-0 w-full h-full object-cover"
                                     />

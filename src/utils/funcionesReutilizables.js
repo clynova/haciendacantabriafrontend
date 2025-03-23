@@ -38,4 +38,17 @@ const formatCurrencyBoletas = (amount) => {
     }).format(amount);
 };
 
-export { cortarTexto, formateoNombre, getImageUrl, formatCurrency, formatCurrencyBoletas };
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('es-CL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(date);
+};
+
+export { cortarTexto, formateoNombre, getImageUrl, formatCurrency, formatCurrencyBoletas,formatDate };

@@ -4,7 +4,7 @@ export const aboutData = {
         description: "Líderes en la importación y distribución de carnes argentinas de primera calidad, pollo premium y aceites selectos. Comprometidos con la excelencia y el sabor en cada producto."
     },
     overview: {
-        image: "/images/about-hero.jpg",
+        image: "../images/about/about-hero.webp",
         title: "Nuestra Historia",
         paragraphs: [
             "Hacienda Cantabria nace de una tradición familiar con más de dos décadas de experiencia en la importación y distribución de carnes premium. Comenzamos con la importación de los mejores cortes argentinos, y hemos expandido nuestra experiencia para incluir pollo de primera calidad y aceites selectos.",
@@ -15,12 +15,12 @@ export const aboutData = {
         mission: {
             title: "Nuestro Compromiso",
             description: "Nos dedicamos a ofrecer los mejores cortes de carne argentina, pollo premium y aceites selectos, garantizando la calidad en cada producto. Mantenemos rigurosos estándares de selección y control de calidad, asegurando que cada producto cumpla con las expectativas de nuestros exigentes clientes.",
-            image: "/images/mission.jpg"
+            image: "../images/about/mission.webp"
         },
         vision: {
             title: "Nuestros Productos",
             description: "Ofrecemos una cuidadosa selección de:\n• Cortes premium argentinos: desde el tradicional bife de chorizo hasta el exclusivo ojo de bife\n• Pollo premium: criado bajo los más altos estándares de calidad\n• Aceite Maravilla: seleccionado por su pureza y calidad superior",
-            image: "/images/vision.jpg"
+            image: "../images/about/vision.webp"
         }
     },
     values: [
