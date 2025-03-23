@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getQuotationById, updateQuotation } from '../../services/quotationService';
 import { HiArrowLeft, HiCheckCircle, HiXCircle, HiExternalLink, HiClipboardCheck  } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
-import { formatCurrency } from '../../utils/funcionesReutilizables';
+import { formatCurrency, getImageUrl } from '../../utils/funcionesReutilizables';
 
 const AdminQuotationDetails = () => {
     const { quotationId } = useParams();
@@ -203,7 +203,7 @@ const AdminQuotationDetails = () => {
                                 <div key={index} className="py-4 first:pt-0 last:pb-0">
                                     <div className="flex items-start gap-4">
                                         <img
-                                            src={item.product.multimedia.imagenes[0].url}
+                                            src={getImageUrl(item.product.multimedia.imagenes[0].url)}
                                             alt={item.product.nombre}
                                             className="w-16 h-16 object-cover rounded-lg"
                                         />
