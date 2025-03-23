@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getAllQuotations, updateQuotation } from "../../services/quotationService";
-import { HiSearch, HiEye, HiCheckCircle, HiXCircle } from 'react-icons/hi';
+import { HiSearch, HiEye, HiCheckCircle, HiXCircle, HiInformationCircle, HiCreditCard } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../../utils/funcionesReutilizables';
 
@@ -11,6 +11,7 @@ const AdminCotizaciones = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [showRejectionReason, setShowRejectionReason] = useState(null);
     const { token } = useAuth();
     const navigate = useNavigate();
 
@@ -59,6 +60,18 @@ const AdminCotizaciones = () => {
         }
     };
 
+    // Verificar si la cotización aún es válida
+    const isQuotationValid = (quotation) => {
+        if (!quotation.validUntil) return false;
+        const validUntil = new Date(quotation.validUntil);
+        const today = new Date();
+        return validUntil > today;
+    };
+
+    const handleProceedToPayment = (quotationId) => {
+        navigate(`/checkout/quotation/${quotationId}`);
+    };
+
     const filteredQuotations = quotations.filter(quotation => {
         const matchesSearch = 
             quotation.userId.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -69,6 +82,10 @@ const AdminCotizaciones = () => {
         
         return matchesSearch && matchesStatus;
     });
+
+    const handleShowRejectionReason = (quotationId) => {
+        setShowRejectionReason(showRejectionReason === quotationId ? null : quotationId);
+    };
 
     return (
         <div className="space-y-6">
@@ -131,68 +148,108 @@ const AdminCotizaciones = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredQuotations.map((quotation) => (
-                                    <tr key={quotation._id} className="hover:bg-slate-700/30">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-medium text-slate-200">
-                                                    {quotation.userId.firstName} {quotation.userId.lastName}
-                                                </span>
-                                                <span className="text-sm text-slate-400">{quotation.userId.email}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                                            {new Date(quotation.quotationDate).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                ${quotation.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                                                quotation.status === 'rejected' ? 'bg-red-100 text-red-800' : 
-                                                'bg-yellow-100 text-yellow-800'}`}>
-                                                {quotation.status === 'approved' ? 'Aprobada' :
-                                                quotation.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                                            {formatCurrency(quotation.subtotal)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                                            {formatCurrency(quotation.total)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                                            {quotation.shipping?.method}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex justify-end gap-2">
-                                                {quotation.status === 'pending' && (
-                                                    <>
+                                filteredQuotations.map((quotation) => {
+                                    const isValid = isQuotationValid(quotation);
+                                    return (
+                                        <React.Fragment key={quotation._id}>
+                                            <tr className="hover:bg-slate-700/30">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium text-slate-200">
+                                                            {quotation.userId.firstName} {quotation.userId.lastName}
+                                                        </span>
+                                                        <span className="text-sm text-slate-400">{quotation.userId.email}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
+                                                    {new Date(quotation.quotationDate).toLocaleDateString()}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                        ${quotation.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                                        quotation.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+                                                        'bg-yellow-100 text-yellow-800'}`}>
+                                                        {quotation.status === 'approved' ? 'Aprobada' :
+                                                        quotation.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
+                                                    </span>
+                                                    {quotation.status === 'approved' && !isValid && (
+                                                        <span className="ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                                                            Expirada
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
+                                                    {formatCurrency(quotation.subtotal)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
+                                                    {formatCurrency(quotation.total)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
+                                                    {quotation.shipping?.method}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <div className="flex justify-end gap-2">
+                                                        {quotation.status === 'pending' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleStatusChange(quotation._id, 'approved')}
+                                                                    className="text-green-400 hover:text-green-300"
+                                                                    title="Aprobar"
+                                                                >
+                                                                    <HiCheckCircle className="h-5 w-5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleReject(quotation._id)}
+                                                                    className="text-red-400 hover:text-red-300"
+                                                                    title="Rechazar"
+                                                                >
+                                                                    <HiXCircle className="h-5 w-5" />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        {quotation.status === 'rejected' && (
+                                                            <button
+                                                                onClick={() => handleShowRejectionReason(quotation._id)}
+                                                                className="text-amber-400 hover:text-amber-300"
+                                                                title="Ver motivo de rechazo"
+                                                            >
+                                                                <HiInformationCircle className="h-5 w-5" />
+                                                            </button>
+                                                        )}
+                                                        {quotation.status === 'approved' && isValid && (
+                                                            <button
+                                                                onClick={() => handleProceedToPayment(quotation._id)}
+                                                                className="text-blue-400 hover:text-blue-300"
+                                                                title="Proceder al pago"
+                                                            >
+                                                                <HiCreditCard className="h-5 w-5" />
+                                                            </button>
+                                                        )}
                                                         <button
-                                                            onClick={() => handleStatusChange(quotation._id, 'approved')}
-                                                            className="text-green-400 hover:text-green-300"
-                                                            title="Aprobar"
+                                                            onClick={() => navigate(`/admin/quotations/${quotation._id}`)}
+                                                            className="text-blue-400 hover:text-blue-300"
+                                                            title="Ver detalles"
                                                         >
-                                                            <HiCheckCircle className="h-5 w-5" />
+                                                            <HiEye className="h-5 w-5" />
                                                         </button>
-                                                        <button
-                                                            onClick={() => handleReject(quotation._id)}
-                                                            className="text-red-400 hover:text-red-300"
-                                                            title="Rechazar"
-                                                        >
-                                                            <HiXCircle className="h-5 w-5" />
-                                                        </button>
-                                                    </>
-                                                )}
-                                                <button
-                                                    onClick={() => navigate(`/admin/quotations/${quotation._id}`)}
-                                                    className="text-blue-400 hover:text-blue-300"
-                                                    title="Ver detalles"
-                                                >
-                                                    <HiEye className="h-5 w-5" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {showRejectionReason === quotation._id && quotation.status === 'rejected' && (
+                                                <tr className="bg-slate-700/20">
+                                                    <td colSpan="7" className="px-6 py-3">
+                                                        <div className="border-l-4 border-amber-500 pl-4">
+                                                            <h4 className="text-sm font-medium text-amber-400 mb-1">Motivo del rechazo:</h4>
+                                                            <p className="text-slate-300 text-sm">
+                                                                {quotation.rejectionReason || 'No se proporcionó un motivo específico'}
+                                                            </p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>

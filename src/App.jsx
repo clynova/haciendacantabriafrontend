@@ -98,7 +98,6 @@ const App = () => {
                       <Route path="settings" element={<MyConfiguration />} />
                       <Route path="quotations" element={<MyQuotations />} />
                       <Route path="quotations/:quotationId" element={<MyQuotationsDetails />} />
-                      <Route path="quotations/checkout" element={<QuotationsCheckout />} />
                     </Route>
                   </Route>
                   <Route path="/admin" element={<AdminRoute><MainLayout /></AdminRoute>}>
@@ -135,6 +134,7 @@ const App = () => {
                       <Route path="envio" element={<FormaEnvio />} />
                       <Route path="pago" element={<SistemaDePago />} />
                       <Route path="cotizacion" element={<SolicitudDeCotizacion />} />
+                      <Route path="quotation/:quotationId" element={<QuotationsCheckout />} />
                     </Route>
                     <Route path="confirmation/success" element={<Confirmation />} />
                     <Route path="confirmation/failure" element={<PaymentFailure />} />

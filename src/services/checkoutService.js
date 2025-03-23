@@ -2,14 +2,35 @@ import api from './api';
 
 export const createOrder = async (orderData, token) => {
   try {
-    const response = await api.post('/api/order', orderData, {
+    const response = await api.post('/api/orders', orderData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
     return response.data;
   } catch (error) {
-    throw error.response?.data || { success: false, message: 'Error al crear la orden' };
+    console.error('Error creating order:', error);
+    throw error.response?.data || error;
+  }
+};
+
+export const createOrderFromQuotation = async (quotationId, paymentMethodId, token) => {
+  try {
+    const response = await api.post('/api/orders/from-quotation', 
+      { 
+        quotationId, 
+        paymentMethod: paymentMethodId 
+      }, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error creating order from quotation:', error);
+    throw error.response?.data || error;
   }
 };
 
@@ -22,7 +43,8 @@ export const initiatePayment = async (orderId, token) => {
     });
     return response.data;
   } catch (error) {
-    throw error.response?.data || { success: false, message: 'Error al iniciar el pago' };
+    console.error('Error initiating payment:', error);
+    throw error.response?.data || error;
   }
 };
 
@@ -35,6 +57,7 @@ export const getPaymentStatus = async (orderId, token) => {
     });
     return response.data;
   } catch (error) {
-    throw error.response?.data || { success: false, message: 'Error al obtener el estado del pago' };
+    console.error('Error checking payment status:', error);
+    throw error.response?.data || error;
   }
-}
+};
