@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import img1 from '../images/sliders/premium.webp';
+import img1 from '../images/sliders/heroCarnes.webp';
 import img2 from '../images/sliders/oferta.webp';
 import img3 from '../images/sliders/masvendidos.webp';
 import { SlArrowLeftCircle, SlArrowRightCircle } from "react-icons/sl";
@@ -8,10 +8,10 @@ import { SlArrowLeftCircle, SlArrowRightCircle } from "react-icons/sl";
 const slides = [
   {
     image: img1,
-    title: "Accesorios Premium",
-    description: "Descubre nuestra nueva colección 2024",
-    cta: "Ver Colección",
-    link: "/categoria/accesorios"
+    title: "Carnes Premium",
+    description: "Descubre el sabor de nuestra carne argentina de calidad premium",
+    cta: "Ver productos",
+    link: "/categoria/carne"
   },
   {
     image: img2,

@@ -1,29 +1,28 @@
 import { CategoryCard } from './CategoryCard';
-import imgNeumatico from '../../images/categories/Neumáticos.webp';
-import imgAccesorios from '../../images/categories/Accesorios.webp';
-import imgHerramientas from '../../images/categories/Herramientas.webp';
-import imgLimpieza from '../../images/categories/Limpieza.webp';
+import imgCarne from '../../images/categories/Carne.webp';
+import imgDestino from '../../images/categories/destino.webp';
+import imgAceite from '../../images/categories/Aceite.webp';
 
 const categories = [
   {
     title: "Carnes",
-    description: "Las mejores marcas en neumáticos para tu vehículo, con garantía de calidad y durabilidad",
-    image: imgNeumatico,
+    description: "Las mejores carnes, con garantía de calidad y sabor excepcional",
+    image: imgCarne,
     href: "/categoria/carne",
-    color: "from-blue-500/20 to-blue-900/40",
+    color: "",
     featured: true // Add this to mark as featured
   },
   {
     title: "Aceites",
-    description: "Productos especializados para mantener tu auto impecable, interior y exterior",
-    image: imgLimpieza,
+    description: "Aceites de oliva y otros aceites premium para tus comidas",
+    image: imgAceite,
     href: "/categoria/aceite",
     color: "from-green-500/20 to-green-900/40"
   },
   {
     title: "Accesorios",
-    description: "Personaliza y mejora tu experiencia de manejo con nuestros accesorios premium",
-    image: imgAccesorios,
+    description: "Encuentra los mejores accesorios para tu cocina y parrilla",
+    image: imgDestino,
     href: "/categoria/accesorios",
     color: "from-purple-500/20 to-purple-900/40"
   }
