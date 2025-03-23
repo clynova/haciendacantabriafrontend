@@ -46,9 +46,10 @@ const createPaymentMethod = async (paymentMethod, token) => {
                 Authorization: `Bearer ${token}`
             }
         });
-        return response.data.data;
+        return response.data;
     } catch (error) {
-        throw error.response?.data || error;
+        console.error('Error al crear método de pago:', error);
+        return { success: false, msg: error.response?.data?.msg || 'Error al crear método de pago' };
     }
 }
 
@@ -59,9 +60,10 @@ const updatePaymentMethod = async (_id, paymentMethod, token) => {
                 Authorization: `Bearer ${token}`
             }
         });
-        return response.data.data;
+        return response.data;
     } catch (error) {
-        throw error.response?.data || error;
+        console.error('Error al actualizar método de pago:', error);
+        return { success: false, msg: error.response?.data?.msg || 'Error al actualizar método de pago' };
     }
 }
 
@@ -72,9 +74,10 @@ const deletePaymentMethod = async (_id, token) => {
                 Authorization: `Bearer ${token}`
             }
         });
-        return response.data.data;
+        return response.data;
     } catch (error) {
-        throw error.response?.data || error;
+        console.error('Error al eliminar método de pago:', error);
+        return { success: false, msg: error.response?.data?.msg || 'Error al eliminar método de pago' };
     }
 }
 

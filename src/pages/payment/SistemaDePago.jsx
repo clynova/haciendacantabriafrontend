@@ -125,10 +125,13 @@ const SistemaDePago = () => {
         const fetchPaymentMethods = async () => {
             try {
                 const response = await getPaymentMethods();
+                
                 if (response.success && response.data) {
-                    setPaymentMethods(response.data);
-                    if (response.data.length > 0) {
-                        setSelectedMethod(response.data[0]._id);
+                    // Filtrar solo los métodos de pago activos
+                    const activePaymentMethods = response.data.filter(method => method.active);
+                    setPaymentMethods(activePaymentMethods);
+                    if (activePaymentMethods.length > 0) {
+                        setSelectedMethod(activePaymentMethods[0]._id);
                     }
                 }
             } catch (err) {
