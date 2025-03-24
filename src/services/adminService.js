@@ -273,7 +273,7 @@ const getPaymentMethodById = async (methodId, token) => {
 // Get all orders with optional status filter
 const getAllOrders = async (token, status = '') => {
     try {
-        const url = status ? `/api/order?status=${status}` : '/api/order';
+        const url = status ? `/api/order/all?status=${status}` : '/api/order/all';
         const response = await api.get(url, {
             headers: {
                 Authorization: `Bearer ${token}`
