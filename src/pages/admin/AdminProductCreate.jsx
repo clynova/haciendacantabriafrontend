@@ -14,6 +14,8 @@ import { ProductTypeSelector } from '../../components/admin/products/ProductType
 import { NutritionalInfoSection } from '../../components/admin/products/NutritionalInfoSection';
 import { ConservationSection } from '../../components/admin/products/ConservationSection';
 import { PricingAndInventorySection } from '../../components/admin/products/PricingAndInventorySection';
+import { SeoSection } from '../../components/admin/products/SeoSection';
+import { AdditionalInfoSection } from '../../components/admin/products/AdditionalInfoSection';
 
 // Update the CORTES_CARNE constant to match backend enum values
 const CORTES_CARNE = [
@@ -158,10 +160,10 @@ const AdminProductCreate = () => {
             precioPorKg: ''
         },
         caracteristicasCarne: {
+            color: '',
+            textura: [],
             porcentajeGrasa: '',
             marmoleo: 1,
-            color: '',
-            textura: []
         },
         infoNutricional: {
             porcion: '',
@@ -182,12 +184,42 @@ const AdminProductCreate = () => {
             tiempoEstimado: '',
             consejos: [],
             recetas: []
+        },
+        produccion: {
+            metodo: '',
+            temperatura: '',
+            fechaEnvasado: '',
+            fechaVencimiento: ''
+        },
+        peso: {
+            esPesoVariable: false,
+            pesoPromedio: '',
+            pesoMinimo: '',
+            pesoMaximo: ''
+        },
+        empaque: {
+            tipo: '',
+            unidadesPorCaja: '',
+            pesoCaja: ''
+        },
+        origen: {
+            pais: '',
+            region: '',
+            productor: '',
+            raza: '',
+            maduracion: ''
+        },
+        procesamiento: {
+            fechaFaenado: '',
+            fechaEnvasado: '',
+            fechaVencimiento: '',
+            numeroLote: ''
         }
     });
 
     const handleInputChange = (e, section, subsection) => {
         const { name, value, type, checked } = e.target;
-        
+
         if (section) {
             if (subsection) {
                 setFormData(prev => ({
@@ -235,31 +267,38 @@ const AdminProductCreate = () => {
         }));
     };
 
+    // Update the handleImageUpload function
     const handleImageUpload = async (e) => {
-        console.log('Starting image upload process...');
         const files = Array.from(e.target.files);
-        
+
         try {
-            // Upload each image to Cloudinary and get URLs
             const uploadPromises = files.map(async (file) => {
                 const cloudinaryUrl = await uploadImageToCloudinary(file);
                 if (cloudinaryUrl) {
                     return {
                         url: cloudinaryUrl,
                         nombre: file.name,
-                        tipo: file.type
+                        tipo: file.type,
+                        textoAlternativo: file.name, // Default alt text
+                        esPrincipal: false
                     };
                 }
                 throw new Error(`Failed to upload ${file.name}`);
             });
 
             const uploadedImages = await Promise.all(uploadPromises);
-            
+
             setFormData(prev => ({
                 ...prev,
                 multimedia: {
                     ...prev.multimedia,
-                    imagenes: [...prev.multimedia.imagenes, ...uploadedImages]
+                    imagenes: [
+                        ...prev.multimedia.imagenes,
+                        ...uploadedImages.map((img, idx) => ({
+                            ...img,
+                            esPrincipal: prev.multimedia.imagenes.length === 0 && idx === 0
+                        }))
+                    ]
                 }
             }));
 
@@ -280,6 +319,45 @@ const AdminProductCreate = () => {
         }));
         toast.success('Imagen eliminada');
     };
+
+    // Add new handlers
+    const handleUpdateAltText = (index, newAltText, setPrincipal = false) => {
+        setFormData(prev => {
+            const updatedImages = [...prev.multimedia.imagenes];
+
+            if (setPrincipal) {
+                // Update principal image
+                updatedImages.forEach((img, i) => {
+                    img.esPrincipal = i === index;
+                });
+            } else {
+                // Update alt text
+                updatedImages[index] = {
+                    ...updatedImages[index],
+                    textoAlternativo: newAltText
+                };
+            }
+
+            return {
+                ...prev,
+                multimedia: {
+                    ...prev.multimedia,
+                    imagenes: updatedImages
+                }
+            };
+        });
+    };
+
+    const handleVideoChange = (e) => {
+        setFormData(prev => ({
+            ...prev,
+            multimedia: {
+                ...prev.multimedia,
+                video: e.target.value
+            }
+        }));
+    };
+
 
     // Add validation before submitting
     const handleSubmit = async (e) => {
@@ -315,7 +393,7 @@ const AdminProductCreate = () => {
             };
 
             const response = await createProduct(dataToSend, token);
-            
+
             toast.dismiss(loadingToast);
 
             if (response.success) {
@@ -355,19 +433,19 @@ const AdminProductCreate = () => {
                     });
                 } else if (response.code === 11000 || response.error?.code === 11000) {
                     const { field, value } = getDuplicateFieldMessage(response.error || response);
-                    
+
                     toast.custom((t) => (
                         <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg">
                             <div className="flex items-center mb-3">
                                 <svg className="w-6 h-6 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                                 <h3 className="font-semibold text-lg">Producto Duplicado</h3>
                             </div>
                             <div className="space-y-2">
                                 <p className="text-sm">
-                                    Ya existe un producto con el {field}: 
+                                    Ya existe un producto con el {field}:
                                     <span className="font-bold ml-1 text-yellow-400">{value}</span>
                                 </p>
                                 <p className="text-sm text-gray-300">
@@ -453,19 +531,19 @@ const AdminProductCreate = () => {
             // Add duplicate handling in catch block too
             if (error.code === 11000 || error.error?.code === 11000) {
                 const { field, value } = getDuplicateFieldMessage(error.error || error);
-                
+
                 toast.custom((t) => (
                     <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg">
                         <div className="flex items-center mb-3">
                             <svg className="w-6 h-6 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                             <h3 className="font-semibold text-lg">Producto Duplicado</h3>
                         </div>
                         <div className="space-y-2">
                             <p className="text-sm">
-                                Ya existe un producto con el {field}: 
+                                Ya existe un producto con el {field}:
                                 <span className="font-bold ml-1 text-yellow-400">{value}</span>
                             </p>
                             <p className="text-sm text-gray-300">
@@ -524,50 +602,58 @@ const AdminProductCreate = () => {
         <div className="p-6">
             <div className="max-w-6xl mx-auto">
                 <ProductHeader onBack={() => navigate('/admin/products')} />
-                
+
                 <form onSubmit={handleSubmit} className="bg-slate-800 rounded-xl shadow-xl overflow-hidden">
                     <div className="p-6 space-y-6">
-                        <ProductTypeSelector 
+                        <ProductTypeSelector
                             selectedType={selectedType}
                             onChange={handleTypeChange}
                         />
 
-                        <BasicInfoSection 
-                            formData={formData} 
-                            handleInputChange={handleInputChange}
-                        />
-                        
-                        <PricingAndInventorySection 
+                        <BasicInfoSection
                             formData={formData}
                             handleInputChange={handleInputChange}
                         />
-                        
+
+                        <PricingAndInventorySection
+                            formData={formData}
+                            handleInputChange={handleInputChange}
+                        />
+
                         {selectedType === 'ProductoAceite' ? (
-                            <AceiteForm 
-                                formData={formData} 
+                            <AceiteForm
+                                formData={formData}
                                 handleInputChange={handleInputChange}
                             />
                         ) : (
-                            <CarneForm 
-                                formData={formData} 
+                            <CarneForm
+                                formData={formData}
                                 handleInputChange={handleInputChange}
                             />
                         )}
 
-                        <NutritionalInfoSection 
+                        <NutritionalInfoSection
                             formData={formData}
                             handleInputChange={handleInputChange}
                         />
-
-                        <ConservationSection 
+                        <AdditionalInfoSection
                             formData={formData}
                             handleInputChange={handleInputChange}
                         />
-
-                        <ImageUploader 
+                        <ConservationSection
+                            formData={formData}
+                            handleInputChange={handleInputChange}
+                        />
+                        <ImageUploader
                             images={formData.multimedia.imagenes}
                             onUpload={handleImageUpload}
                             onDelete={handleImageDelete}
+                            onUpdateAltText={handleUpdateAltText}
+                            onVideoChange={handleVideoChange}
+                        />
+                        <SeoSection
+                            formData={formData}
+                            handleInputChange={handleInputChange}
                         />
 
                         <SubmitButton loading={loading} />
