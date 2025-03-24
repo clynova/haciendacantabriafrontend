@@ -24,6 +24,13 @@ const CORTES_VACUNO = [
     'MOLIDA_ESPECIAL', 'MOLIDA_CORRIENTE'
 ];
 
+const formatCorteLabel = (corte) => {
+    return corte
+        .split('_')
+        .map(word => word.charAt(0) + word.slice(1).toLowerCase())
+        .join(' ');
+};
+
 export const CarneForm = ({ formData = {}, handleInputChange }) => {
     const infoCarne = formData.infoCarne || {};
     const precios = formData.precios || {};
@@ -51,14 +58,24 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormSelect
-                    label="Corte"
-                    name="corte"
-                    value={infoCarne.corte || ''}
-                    onChange={(e) => handleInputChange(e, 'infoCarne')}
-                    options={CORTES_VACUNO}
-                    required
-                />
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Corte *
+                    </label>
+                    <select
+                        name="corte"
+                        value={formData.infoCarne.corte}
+                        onChange={(e) => handleInputChange(e, 'infoCarne')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        required
+                    >
+                        {CORTES_VACUNO.map(corte => (
+                            <option key={corte} value={corte}>
+                                {formatCorteLabel(corte)}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormInput

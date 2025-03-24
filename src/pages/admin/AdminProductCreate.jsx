@@ -15,14 +15,27 @@ import { NutritionalInfoSection } from '../../components/admin/products/Nutritio
 import { ConservationSection } from '../../components/admin/products/ConservationSection';
 import { PricingAndInventorySection } from '../../components/admin/products/PricingAndInventorySection';
 
+// Update the CORTES_CARNE constant to match backend enum values
 const CORTES_CARNE = [
-    'ASADO',
-    'BIFE',
-    'LOMO',
-    'COSTILLA',
-    'POSTA',
-    'OSOBUCO',
-    // Add more cuts as needed
+    'LOMO_VETADO',    // Replace ASADO
+    'LOMO_LISO',      // Replace BIFE
+    'PUNTA_PALETA',   // Replace LOMO
+    'TAPAPECHO',      // Replace COSTILLA
+    'PLATEADA',       // Replace POSTA
+    'ABASTERO',       // Replace OSOBUCO
+    'ASIENTO',
+    'POLLO',
+    'PUNTA_GANSO',
+    'PALANCA',
+    'HUACHALOMO',
+    'POSTA_NEGRA',
+    'POSTA_ROSADA',
+    'SOBRECOSTILLA',
+    'CHOCLILLO',
+    'TAPABARRIGA',
+    'ENTRANHA',
+    'MALAYA',
+    'PICANA'
 ];
 
 const generateSlug = (text) => {
@@ -139,7 +152,7 @@ const AdminProductCreate = () => {
         },
         infoCarne: {
             tipoCarne: 'VACUNO',
-            corte: CORTES_CARNE[0],  // Set a default value from the enum
+            corte: 'LOMO_VETADO',  // Use a valid enum value from CORTES_CARNE
             nombreArgentino: '',
             nombreChileno: '',
             precioPorKg: ''
@@ -268,13 +281,20 @@ const AdminProductCreate = () => {
         toast.success('Imagen eliminada');
     };
 
-    // Update the handleSubmit function to properly handle the slug
+    // Add validation before submitting
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
             setLoading(true);
             const loadingToast = toast.loading('Creando producto...');
+
+            // Validate meat cut if it's a meat product
+            if (selectedType === 'ProductoCarne' && !CORTES_CARNE.includes(formData.infoCarne.corte)) {
+                toast.error('El corte seleccionado no es válido');
+                setLoading(false);
+                return;
+            }
 
             // Generate slug from nombre if it doesn't exist
             const slug = generateSlug(formData.nombre);
