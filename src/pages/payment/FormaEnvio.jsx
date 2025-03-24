@@ -156,6 +156,56 @@ const ShippingMethodSelect = ({ shippingMethods, selectedCarrier, selectedMethod
 
 // Componente para el formulario de información del destinatario
 const RecipientInfoForm = ({ recipientInfo, onChange }) => {
+    const [errors, setErrors] = useState({
+        recipientName: '',
+        phoneContact: ''
+    });
+
+    const validateName = (name) => {
+        const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+        return nameRegex.test(name);
+    };
+
+    const validatePhone = (phone) => {
+        const phoneRegex = /^(\+?56)?(\s?)(0?9)(\s?)[98765432]\d{7}$/;
+        return phoneRegex.test(phone);
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        
+        // Validación específica para cada campo
+        if (name === 'recipientName') {
+            if (value && !validateName(value)) {
+                setErrors(prev => ({
+                    ...prev,
+                    recipientName: 'El nombre solo debe contener letras'
+                }));
+            } else {
+                setErrors(prev => ({
+                    ...prev,
+                    recipientName: ''
+                }));
+            }
+        }
+
+        if (name === 'phoneContact') {
+            if (value && !validatePhone(value)) {
+                setErrors(prev => ({
+                    ...prev,
+                    phoneContact: 'Ingrese un número de teléfono móvil válido (9 dígitos)'
+                }));
+            } else {
+                setErrors(prev => ({
+                    ...prev,
+                    phoneContact: ''
+                }));
+            }
+        }
+
+        onChange(e);
+    };
+
     return (
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
             <h2 className="text-xl font-bold mb-4">Información del Destinatario</h2>
@@ -170,27 +220,33 @@ const RecipientInfoForm = ({ recipientInfo, onChange }) => {
                         id="recipientName"
                         name="recipientName"
                         value={recipientInfo.recipientName}
-                        onChange={onChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border ${errors.recipientName ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 ${errors.recipientName ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                         placeholder="Nombre completo de quien recibirá el paquete"
                         required
                     />
+                    {errors.recipientName && (
+                        <p className="mt-1 text-sm text-red-600">{errors.recipientName}</p>
+                    )}
                 </div>
 
                 <div>
                     <label htmlFor="phoneContact" className="block text-sm font-medium text-gray-700 mb-1">
-                        Teléfono de contacto*
+                        Teléfono de contacto* (Ejemplo: +56912345678)
                     </label>
                     <input
                         type="tel"
                         id="phoneContact"
                         name="phoneContact"
                         value={recipientInfo.phoneContact}
-                        onChange={onChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border ${errors.phoneContact ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 ${errors.phoneContact ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                         placeholder="Número telefónico para contacto"
                         required
                     />
+                    {errors.phoneContact && (
+                        <p className="mt-1 text-sm text-red-600">{errors.phoneContact}</p>
+                    )}
                 </div>
 
                 <div>
@@ -201,7 +257,7 @@ const RecipientInfoForm = ({ recipientInfo, onChange }) => {
                         id="additionalInstructions"
                         name="additionalInstructions"
                         value={recipientInfo.additionalInstructions}
-                        onChange={onChange}
+                        onChange={handleInputChange}
                         rows="3"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Especifica instrucciones para la entrega, referencias, etc."

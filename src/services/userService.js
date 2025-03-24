@@ -231,7 +231,7 @@ const changePassword = async (passwordData, token) => {
 
 export const getOrderById = async (orderId, token) => {
     try {
-        const response = await api.get(`/api/order/${orderId}`, {
+        const response = await api.get(`/api/order/user/${orderId}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
