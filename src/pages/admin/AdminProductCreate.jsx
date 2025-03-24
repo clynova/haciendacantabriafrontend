@@ -38,6 +38,39 @@ const generateSlug = (text) => {
         .replace(/-+$/, '');
 };
 
+// First, update the getDuplicateFieldMessage function to better handle MongoDB errors
+const getDuplicateFieldMessage = (error) => {
+    let field, value;
+
+    // Check for MongoDB duplicate key error pattern
+    if (error.keyPattern || error.error?.keyPattern) {
+        const keyPattern = error.keyPattern || error.error.keyPattern;
+        const keyValue = error.keyValue || error.error.keyValue;
+        field = Object.keys(keyPattern)[0];
+        value = keyValue[field];
+    } else if (typeof error === 'string') {
+        // Try to parse error message
+        const matches = error.match(/duplicate key error.*\{ (\w+): "([^"]+)" \}/);
+        if (matches) {
+            field = matches[1];
+            value = matches[2];
+        }
+    }
+
+    // Map technical field names to user-friendly Spanish names
+    const fieldMap = {
+        codigo: 'código',
+        sku: 'SKU',
+        nombre: 'nombre',
+        slug: 'URL amigable'
+    };
+
+    return {
+        field: fieldMap[field] || field,
+        value: value
+    };
+};
+
 const AdminProductCreate = () => {
     const navigate = useNavigate();
     const { token } = useAuth();
@@ -125,7 +158,10 @@ const AdminProductCreate = () => {
             grasaSaturada: '',
             colesterol: '',
             sodio: '',
-            carbohidratos: ''
+            carbohidratos: '',
+            grasaTrans: '',
+            grasaPoliinsaturada: '',
+            grasaMonoinsaturada: ''
         },
         coccion: {
             metodos: [],
@@ -232,57 +268,233 @@ const AdminProductCreate = () => {
         toast.success('Imagen eliminada');
     };
 
+    // Update the handleSubmit function to properly handle the slug
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // Add validation for required fields
-        if (selectedType === 'ProductoCarne' && (!formData.infoCarne.corte || !formData.inventario.stockKg)) {
-            toast.error('Para productos de carne, el corte y stock en Kg son obligatorios');
-            return;
-        }
 
         try {
             setLoading(true);
-            console.log('Iniciando creación de producto...');
-            
-            const dataToSend = {
-                ...formData,
-                slug: generateSlug(formData.nombre),
-                precios: {
-                    ...formData.precios,
-                    base: Number(formData.precios.base),
-                    descuentos: {
-                        regular: Number(formData.precios.descuentos.regular),
-                        transferencia: Number(formData.precios.descuentos.transferencia)
-                    }
-                },
-                inventario: {
-                    ...formData.inventario,
-                    stockUnidades: Number(formData.inventario.stockUnidades || 0),
-                    umbralStockBajo: Number(formData.inventario.umbralStockBajo || 0),
-                    stockKg: selectedType === 'ProductoCarne' ? Number(formData.inventario.stockKg) : undefined
-                }
-            };
-
-            console.log('Datos a enviar:', dataToSend);
             const loadingToast = toast.loading('Creando producto...');
 
+            // Generate slug from nombre if it doesn't exist
+            const slug = generateSlug(formData.nombre);
+
+            // Transform data before sending
+            const dataToSend = {
+                ...formData,
+                slug, // Add the generated slug
+                precios: {
+                    ...formData.precios,
+                    base: Number(formData.precios.base) || 0,
+                    descuentos: {
+                        regular: Number(formData.precios.descuentos.regular) / 100 || 0,
+                        transferencia: Number(formData.precios.descuentos.transferencia) / 100 || 0
+                    }
+                },
+                // Add any other necessary transformations...
+            };
+
             const response = await createProduct(dataToSend, token);
-            console.log('Respuesta del servidor:', response);
+            
+            toast.dismiss(loadingToast);
 
             if (response.success) {
-                toast.dismiss(loadingToast);
                 toast.success('Producto creado exitosamente');
-                console.log('Producto creado:', response.data);
                 navigate('/admin/products');
             } else {
-                toast.dismiss(loadingToast);
-                toast.error(response.message || 'Error al crear el producto');
-                console.error('Error en la creación:', response.message);
+                // Handle validation errors
+                if (response.error?.errores?.length > 0) {
+                    toast.custom((t) => (
+                        <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg max-w-lg">
+                            <div className="flex items-center mb-3">
+                                <svg className="w-6 h-6 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <h3 className="font-semibold text-lg">Errores de validación</h3>
+                            </div>
+                            <ul className="list-disc pl-5 space-y-1">
+                                {response.error.errores.map((err, index) => (
+                                    <li key={index} className="text-sm">
+                                        <span className="font-medium">
+                                            {err.campo === 'slug' ? 'URL amigable' : err.campo}:
+                                        </span>{' '}
+                                        {err.mensaje}
+                                    </li>
+                                ))}
+                            </ul>
+                            <button
+                                onClick={() => toast.dismiss(t.id)}
+                                className="mt-4 text-sm text-slate-400 hover:text-white"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    ), {
+                        duration: 8000,
+                        position: 'top-center',
+                    });
+                } else if (response.code === 11000 || response.error?.code === 11000) {
+                    const { field, value } = getDuplicateFieldMessage(response.error || response);
+                    
+                    toast.custom((t) => (
+                        <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg">
+                            <div className="flex items-center mb-3">
+                                <svg className="w-6 h-6 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <h3 className="font-semibold text-lg">Producto Duplicado</h3>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="text-sm">
+                                    Ya existe un producto con el {field}: 
+                                    <span className="font-bold ml-1 text-yellow-400">{value}</span>
+                                </p>
+                                <p className="text-sm text-gray-300">
+                                    Por favor, utiliza un {field} diferente para este producto.
+                                </p>
+                                {field === 'SKU' && (
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Tip: El SKU debe ser único para cada producto.
+                                    </p>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => toast.dismiss(t.id)}
+                                className="mt-4 text-sm text-slate-400 hover:text-white"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    ), {
+                        duration: 8000,
+                        position: 'top-center',
+                    });
+                    return; // Stop execution after showing duplicate error
+                } else {
+                    toast.error(response.msg || 'Error al crear el producto');
+                }
             }
         } catch (error) {
             console.error('Error en el proceso de creación:', error);
-            toast.error('Error al crear el producto. Por favor, intente nuevamente.');
+            
+            // Check for duplicate key error in various formats
+            if (error.code === 11000 || 
+                error.error?.code === 11000 || 
+                error.message?.includes('duplicate key error') ||
+                error.error?.message?.includes('duplicate key error')) {
+                
+                const duplicateInfo = getDuplicateFieldMessage(error);
+                
+                if (duplicateInfo.field && duplicateInfo.value) {
+                    toast.custom((t) => (
+                        <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg">
+                            <div className="flex items-center mb-3">
+                                <svg className="w-6 h-6 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <h3 className="font-semibold text-lg">Producto Duplicado</h3>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="text-sm">
+                                    Ya existe un producto con el mismo {duplicateInfo.field}:
+                                    <span className="font-bold ml-1 text-yellow-400">{duplicateInfo.value}</span>
+                                </p>
+                                <p className="text-sm text-gray-300">
+                                    Por favor, utiliza un {duplicateInfo.field} diferente para este producto.
+                                </p>
+                                {duplicateInfo.field === 'SKU' && (
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Tip: El SKU debe ser único para cada producto.
+                                    </p>
+                                )}
+                                {duplicateInfo.field === 'código' && (
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Tip: El código debe ser único para cada producto.
+                                    </p>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => toast.dismiss(t.id)}
+                                className="mt-4 text-sm text-slate-400 hover:text-white"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    ), {
+                        duration: 10000, // Increased duration to ensure message is seen
+                        position: 'top-center',
+                    });
+                    return;
+                }
+            }
+            
+            // Add duplicate handling in catch block too
+            if (error.code === 11000 || error.error?.code === 11000) {
+                const { field, value } = getDuplicateFieldMessage(error.error || error);
+                
+                toast.custom((t) => (
+                    <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg">
+                        <div className="flex items-center mb-3">
+                            <svg className="w-6 h-6 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <h3 className="font-semibold text-lg">Producto Duplicado</h3>
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm">
+                                Ya existe un producto con el {field}: 
+                                <span className="font-bold ml-1 text-yellow-400">{value}</span>
+                            </p>
+                            <p className="text-sm text-gray-300">
+                                Por favor, utiliza un {field} diferente para este producto.
+                            </p>
+                            {field === 'SKU' && (
+                                <p className="text-xs text-gray-400 mt-1">
+                                    Tip: El SKU debe ser único para cada producto.
+                                </p>
+                            )}
+                        </div>
+                        <button
+                            onClick={() => toast.dismiss(t.id)}
+                            className="mt-4 text-sm text-slate-400 hover:text-white"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                ));
+            } else if (error.error?.errores?.length > 0) {
+                toast.custom((t) => (
+                    <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg max-w-lg">
+                        <div className="flex items-center mb-3">
+                            <svg className="w-6 h-6 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 className="font-semibold text-lg">Error al crear el producto</h3>
+                        </div>
+                        <ul className="list-disc pl-5 space-y-1">
+                            {error.error.errores.map((err, index) => (
+                                <li key={index} className="text-sm">
+                                    <span className="font-medium">{err.campo}:</span> {err.mensaje}
+                                </li>
+                            ))}
+                        </ul>
+                        <button
+                            onClick={() => toast.dismiss(t.id)}
+                            className="mt-4 text-sm text-slate-400 hover:text-white"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                ), {
+                    duration: 8000,
+                    position: 'top-center',
+                });
+            } else {
+                toast.error(`Error: ${error.message || 'Error desconocido'}`);
+            }
         } finally {
             setLoading(false);
         }
