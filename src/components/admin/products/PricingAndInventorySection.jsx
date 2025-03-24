@@ -68,6 +68,7 @@ export const PricingAndInventorySection = ({ formData, handleInputChange }) => {
                         value={inventario.stockUnidades || ''}
                         onChange={(e) => handleInputChange(e, 'inventario')}
                         min="0"
+                        
                     />
                     <FormInput
                         label="Stock Mínimo"
@@ -76,6 +77,7 @@ export const PricingAndInventorySection = ({ formData, handleInputChange }) => {
                         value={inventario.umbralStockBajo || ''}
                         onChange={(e) => handleInputChange(e, 'inventario')}
                         min="0"
+                        
                     />
                 </div>
             </div>

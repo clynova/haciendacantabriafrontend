@@ -6,6 +6,23 @@ import { toast } from 'react-hot-toast';
 import { getProductById } from '../../services/adminService';
 import { ImageGallery } from '../../components/admin/products/sections/ImageGallery';
 
+const formatValue = (value, type = 'text') => {
+    if (value === undefined || value === null) return 'No especificado';
+    
+    switch (type) {
+        case 'date':
+            return new Date(value).toLocaleDateString();
+        case 'boolean':
+            return value ? 'Sí' : 'No';
+        case 'number':
+            return value.toFixed(2);
+        case 'array':
+            return value.length ? value.join(', ') : 'No especificado';
+        default:
+            return value.toString();
+    }
+};
+
 const AdminProductDetails = () => {
     const { productId } = useParams();
     const navigate = useNavigate();
@@ -182,6 +199,112 @@ const AdminProductDetails = () => {
                                 </p>
                             </div>
                         </div>
+
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Opciones de Peso</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Peso Variable:</span> 
+                                    {product.peso?.esPesoVariable ? 'Sí' : 'No'}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Peso Promedio:</span> 
+                                    {product.peso?.pesoPromedio} kg
+                                </p>
+                                {product.peso?.esPesoVariable && (
+                                    <>
+                                        <p className="text-slate-300">
+                                            <span className="text-slate-400">Peso Mínimo:</span> 
+                                            {product.peso?.pesoMinimo} kg
+                                        </p>
+                                        <p className="text-slate-300">
+                                            <span className="text-slate-400">Peso Máximo:</span> 
+                                            {product.peso?.pesoMaximo} kg
+                                        </p>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Empaque</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Tipo:</span> 
+                                    {product.empaque?.tipo}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Unidades por Caja:</span> 
+                                    {product.empaque?.unidadesPorCaja}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Peso por Caja:</span> 
+                                    {product.empaque?.pesoCaja} kg
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Origen</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">País:</span> 
+                                    {product.origen?.pais}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Región:</span> 
+                                    {product.origen?.region || 'No especificada'}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Productor:</span> 
+                                    {product.origen?.productor || 'No especificado'}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Raza:</span> 
+                                    {product.origen?.raza}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Maduración:</span> 
+                                    {product.origen?.maduracion} días
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Procesamiento</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Fecha Faenado:</span> 
+                                    {new Date(product.procesamiento?.fechaFaenado).toLocaleDateString()}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Fecha Envasado:</span> 
+                                    {new Date(product.procesamiento?.fechaEnvasado).toLocaleDateString()}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Fecha Vencimiento:</span> 
+                                    {new Date(product.procesamiento?.fechaVencimiento).toLocaleDateString()}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Número de Lote:</span> 
+                                    {product.procesamiento?.numeroLote}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Producción</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Método:</span> 
+                                    {product.produccion?.metodo}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Temperatura:</span> 
+                                    {product.produccion?.temperatura}°C
+                                </p>
+                            </div>
+                        </div>
                     </>
                 );
 
@@ -210,6 +333,48 @@ const AdminProductDetails = () => {
                                         </ul>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+
+                        {/* Add Characteristics Section */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Características</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Filtración:</span> 
+                                    {product.caracteristicas?.filtracion}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Acidez:</span> 
+                                    {product.caracteristicas?.acidez}%
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Extracción:</span> 
+                                    {product.caracteristicas?.extraccion}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Add Production Section */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Producción</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Método:</span> 
+                                    {product.produccion?.metodo}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Temperatura:</span> 
+                                    {product.produccion?.temperatura}°C
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Fecha Envasado:</span> 
+                                    {new Date(product.produccion?.fechaEnvasado).toLocaleDateString()}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Fecha Vencimiento:</span> 
+                                    {new Date(product.produccion?.fechaVencimiento).toLocaleDateString()}
+                                </p>
                             </div>
                         </div>
 

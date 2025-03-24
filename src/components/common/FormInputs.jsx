@@ -2,25 +2,17 @@ import PropTypes from 'prop-types';
 
 export const FormInput = ({ 
     label, 
-    name, 
-    value, 
-    onChange, 
-    type = "text", 
-    required = false, 
+    value = '', // Add default value
     ...props 
 }) => {
     return (
-        <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">
-                {label} {required && <span className="text-red-500">*</span>}
+        <div className="form-group">
+            <label className="block text-sm font-medium text-gray-200 mb-1">
+                {label}
             </label>
             <input
-                type={type}
-                name={name}
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                 value={value}
-                onChange={onChange}
-                required={required}
-                className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 text-slate-200"
                 {...props}
             />
         </div>
@@ -88,11 +80,13 @@ export const FormTextarea = ({
 
 FormInput.propTypes = {
     label: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    value: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number
+    ]),
     onChange: PropTypes.func.isRequired,
     type: PropTypes.string,
-    required: PropTypes.bool
+    name: PropTypes.string.isRequired
 };
 
 FormSelect.propTypes = {
