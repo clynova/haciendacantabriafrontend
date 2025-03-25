@@ -66,6 +66,17 @@ const getInitialState = (categoria = PRODUCT_TYPES.ACEITE) => ({
         palabrasClave: []
     },
     usosRecomendados: []
+});
+
+const generateSlug = (text) => {
+    if (!text) return '';
+    return text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+        .trim();
 };
 
 export const AdminProductEdit = () => {
@@ -110,14 +121,14 @@ export const AdminProductEdit = () => {
                     }
                 };
 
-                // Format SEO data
+                // Format SEO data with automatic slug generation
                 const formattedSeo = {
-                    metaTitulo: response.product.seo?.metaTitulo || '',
+                    metaTitulo: response.product.seo?.metaTitulo || response.product.nombre || '',
                     metaDescripcion: response.product.seo?.metaDescripcion || '',
                     palabrasClave: Array.isArray(response.product.seo?.palabrasClave) 
                         ? response.product.seo.palabrasClave 
                         : [],
-                    slug: response.product.slug || ''
+                    slug: response.product.seo?.slug || generateSlug(response.product.nombre)
                 };
 
                 // Format the complete data
@@ -244,7 +255,13 @@ export const AdminProductEdit = () => {
     // Update the handleSubmit function
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const errors = validateProductData(formData);
         
+        if (errors.length > 0) {
+            errors.forEach(error => toast.error(error));
+            return;
+        }
+
         try {
             setSaving(true);
             console.group('💾 Form Submission');
@@ -272,6 +289,14 @@ export const AdminProductEdit = () => {
                 }
             };
             
+            const dataToSend = {
+                ...cleanedData,
+                seo: {
+                    ...cleanedData.seo,
+                    slug: cleanedData.seo?.slug || generateSlug(cleanedData.seo?.metaTitulo || cleanedData.nombre)
+                }
+            };
+
             // Remove calculated fields
             delete dataToSend.precioFinal;
             delete dataToSend.precioTransferencia;
