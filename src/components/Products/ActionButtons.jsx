@@ -21,7 +21,6 @@ const ActionButtons = ({ product, addToCart }) => {
         setIsLoading(prev => ({ ...prev, cart: true }));
         try {
             addToCart(product);
-            // Eliminado el toast duplicado aquí
         } catch (error) {
             toast.error('Error al agregar al carrito');
         } finally {
@@ -99,13 +98,12 @@ const ActionButtons = ({ product, addToCart }) => {
                         <span>Compartir</span>
                     </button>
 
-                    {isShareMenuOpen && (
-                        <ShareMenu
-                            url={shareUrl}
-                            title={shareTitle}
-                            onClose={() => setIsShareMenuOpen(false)}
-                        />
-                    )}
+                    <ShareMenu
+                        url={shareUrl}
+                        title={shareTitle}
+                        isOpen={isShareMenuOpen}
+                        onClose={() => setIsShareMenuOpen(false)}
+                    />
                 </div>
             </div>
         </div>

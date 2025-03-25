@@ -12,11 +12,8 @@ import {
 } from 'react-share';
 
 // Componente intermedio para filtrar props no válidas
-const SafeShareButton = ({ children, ...props }) => {
-    const filteredProps = Object.fromEntries(
-        Object.entries(props).filter(([key]) => !key.startsWith('networkName'))
-    );
-    return <div {...filteredProps}>{children}</div>;
+const SafeShareButton = ({ children }) => {
+    return <div className="cursor-pointer">{children}</div>;
 };
 
 SafeShareButton.propTypes = {
@@ -41,9 +38,8 @@ const ShareMenu = ({ url, title, isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <div ref={menuRef} className="absolute bottom-full mb-2 rounded-lg shadow-lg p-4 dark:bg-gray-800">
+        <div ref={menuRef} className="absolute bottom-full mb-2 rounded-lg shadow-lg p-4 bg-white dark:bg-gray-800">
             <div className="flex space-x-4">
-                {/* Usamos SafeShareButton para envolver cada botón */}
                 <SafeShareButton>
                     <FacebookShareButton url={url} quote={title}>
                         <FacebookIcon size={32} round />

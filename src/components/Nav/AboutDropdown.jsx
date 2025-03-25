@@ -43,20 +43,7 @@ const AboutDropdown = () => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <button
-        onClick={handleClick}
-        className={`
-          text-slate-300 hover:text-blue-400 px-3 py-2 text-sm font-medium 
-          transition-colors duration-200 flex items-center justify-between
-          ${isMobile ? 'w-full' : ''}
-        `}
-      >
-        <span>Sobre Nosotros</span>
-        <HiChevronDown
-          className={`ml-1 h-4 w-4 transition-transform duration-200
-          ${isOpen ? 'transform rotate-180' : ''}`}
-        />
-      </button>
+
 
       {isOpen && (
         <div
