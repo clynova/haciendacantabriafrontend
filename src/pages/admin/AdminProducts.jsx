@@ -19,21 +19,15 @@ const AdminProducts = () => {
     const fetchProducts = async (filters = {}) => {
         try {
             setLoading(true);
-            console.log('Fetching products...'); // Debug log
             const response = await getAllProducts(token, filters);
-            console.log('API Response:', response); // Debug log
             
             if (response.success) {
-                // Update to use response.products instead of response.data
-                console.log('Products data:', response.products); // Debug log
                 setProducts(response.products || []);
             } else {
-                console.error('Error response:', response); // Debug log
                 toast.error('Error al cargar los productos');
                 setProducts([]);
             }
         } catch (error) {
-            console.error('Fetch error:', error); // Debug log
             toast.error(error.msg || 'Error al cargar los productos');
             setProducts([]);
         } finally {
@@ -68,9 +62,6 @@ const AdminProducts = () => {
         product?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product?.codigo?.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
-
-    console.log('Current products state:', products); // Debug log
-    console.log('Filtered products:', filteredProducts); // Debug log
 
     return (
         <div className="p-6">

@@ -42,7 +42,6 @@ export const searchProducts = async (filters = {}) => {
         const response = await api.get(`/api/product?${queryParams.toString()}`);
         return response.data;
     } catch (error) {
-        console.error('Error in searchProducts:', error);
         throw error.response?.data || error;
     }
 };

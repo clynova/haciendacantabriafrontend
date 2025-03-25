@@ -29,53 +29,8 @@ const AdminProductDetails = () => {
     const { token } = useAuth();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [formData, setFormData] = useState({
-        codigo: '',
-        sku: '',
-        nombre: '',
-        descripcion: {
-            corta: '',
-            completa: ''
-        },
-        precios: {
-            base: '',
-            descuentos: {
-                regular: 0,
-                transferencia: 0
-            },
-            promocion: {
-                porcentaje: 0,
-                activa: false
-            }
-        },
-        tipoProducto: 'ProductoAceite',
-        categoria: 'ACEITE',
-        estado: true,
-        destacado: false,
-        infoAceite: {
-            tipo: 'OLIVA',
-            volumen: '',
-            envase: 'BOTELLA'
-        },
-        inventario: {
-            stockUnidades: '',
-            umbralStockBajo: ''
-        },
-        conservacion: {
-            requiereRefrigeracion: false,
-            requiereCongelacion: false
-        },
-        infoAdicional: {
-            certificaciones: []
-        },
-        seo: {
-            palabrasClave: []
-        },
-        usosRecomendados: []
-    });
-
+    
     useEffect(() => {
-        console.log('ProductDetails mounted/updated with ID:', productId);
         if (productId !== 'create') {
             fetchProductDetails();
         }
@@ -84,28 +39,17 @@ const AdminProductDetails = () => {
     const fetchProductDetails = async () => {
         try {
             setLoading(true);
-            console.log('Fetching product with ID:', productId); // Log the ID being requested
-
             const response = await getProductById(productId, token);
-            console.log('Raw API Response:', response); // Log full API response
 
             if (response.success) {
-                console.log('Product data:', response.product); // Log the product data
                 setProduct(response.product);
             } else {
-                console.error('Error response:', response); // Log error response
                 toast.error('Error al cargar los detalles del producto');
             }
         } catch (error) {
-            console.error('Fetch error details:', {
-                message: error.message,
-                response: error.response,
-                data: error.response?.data
-            }); // Detailed error logging
             toast.error(error.msg || 'Error al cargar los detalles del producto');
         } finally {
             setLoading(false);
-            console.log('Current product state:', product); // Log the final state
         }
     };
 
