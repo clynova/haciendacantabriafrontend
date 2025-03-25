@@ -97,7 +97,7 @@ const AdminProductCreate = () => {
         nombre: '',
         tipoProducto: 'ProductoAceite',
         categoria: 'ACEITE',
-        estado: 'ACTIVO',
+        estado: true,
         destacado: false,
         descripcion: {
             corta: '',

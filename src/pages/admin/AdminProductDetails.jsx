@@ -50,7 +50,7 @@ const AdminProductDetails = () => {
         },
         tipoProducto: 'ProductoAceite',
         categoria: 'ACEITE',
-        estado: 'ACTIVO',
+        estado: true,
         destacado: false,
         infoAceite: {
             tipo: 'OLIVA',

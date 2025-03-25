@@ -32,7 +32,7 @@ const ProductProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/product`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/product/active`, {
         params: {
           page,
           ...filters
