@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { HiSearch, HiPlus, HiPencil, HiTrash, HiEye } from 'react-icons/hi';
+import { HiSearch, HiPlus, HiPencil, HiTrash, HiEye, HiStatusOnline } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
-import { getAllProducts, deleteProduct } from '../../services/adminService';
+import { getAllProducts, updateProductStatus } from '../../services/adminService';
 
 const AdminProducts = () => {
     const navigate = useNavigate();
@@ -41,21 +41,23 @@ const AdminProducts = () => {
         }
     };
 
-    const handleDelete = async (productId) => {
-        if (window.confirm('¿Está seguro de eliminar este producto?')) {
+    const handleToggleStatus = async (productId, currentStatus) => {
+        const newStatus = !currentStatus;
+        const action = newStatus ? 'activar' : 'desactivar';
+        
+        if (window.confirm(`¿Está seguro de ${action} este producto?`)) {
             try {
                 setLoading(true);
-                const response = await deleteProduct(productId, token);
+                const response = await updateProductStatus(productId, newStatus, token);
                 
                 if (response.success) {
-                    toast.success('Producto eliminado exitosamente');
-                    // Refresh the products list
+                    toast.success(`Producto ${action}do exitosamente`);
                     await fetchProducts();
                 } else {
-                    toast.error(response.msg || 'Error al eliminar el producto');
+                    toast.error(response.msg || `Error al ${action} el producto`);
                 }
             } catch (error) {
-                toast.error(error.msg || 'Error al eliminar el producto');
+                toast.error(error.msg || `Error al ${action} el producto`);
             } finally {
                 setLoading(false);
             }
@@ -152,12 +154,11 @@ const AdminProducts = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                    product.estado === 'ACTIVO' ? 'bg-green-100 text-green-800' :
-                                                    product.estado === 'INACTIVO' ? 'bg-red-100 text-red-800' :
-                                                    product.estado === 'SIN_STOCK' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-blue-100 text-blue-800'
+                                                    product.estado 
+                                                        ? 'bg-green-100 text-green-800' 
+                                                        : 'bg-red-100 text-red-800'
                                                 }`}>
-                                                    {product.estado}
+                                                    {product.estado ? 'Activo' : 'Inactivo'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -177,11 +178,15 @@ const AdminProducts = () => {
                                                         <HiPencil className="h-5 w-5" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDelete(product._id)}
-                                                        className="text-red-400 hover:text-red-300"
-                                                        title="Eliminar"
+                                                        onClick={() => handleToggleStatus(product._id, product.estado)}
+                                                        className={`${
+                                                            product.estado 
+                                                                ? 'text-red-400 hover:text-red-300' 
+                                                                : 'text-green-400 hover:text-green-300'
+                                                        }`}
+                                                        title={product.estado ? 'Desactivar' : 'Activar'}
                                                     >
-                                                        <HiTrash className="h-5 w-5" />
+                                                        <HiStatusOnline className="h-5 w-5" />
                                                     </button>
                                                 </div>
                                             </td>

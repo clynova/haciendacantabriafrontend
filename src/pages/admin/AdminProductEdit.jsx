@@ -137,7 +137,7 @@ export const AdminProductEdit = () => {
                 nombre: formData.nombre?.trim(),
                 categoria: formData.categoria,
                 tipoProducto: formData.tipoProducto,
-                estado: formData.estado || 'ACTIVO',
+                estado: Boolean(formData.estado),
                 destacado: Boolean(formData.destacado),
                 descripcion: {
                     corta: formData.descripcion?.corta?.trim() || '',

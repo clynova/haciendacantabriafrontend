@@ -8,7 +8,7 @@ import { ImageGallery } from '../../components/admin/products/sections/ImageGall
 
 const formatValue = (value, type = 'text') => {
     if (value === undefined || value === null) return 'No especificado';
-    
+
     switch (type) {
         case 'date':
             return new Date(value).toLocaleDateString();
@@ -88,7 +88,7 @@ const AdminProductDetails = () => {
 
             const response = await getProductById(productId, token);
             console.log('Raw API Response:', response); // Log full API response
-            
+
             if (response.success) {
                 console.log('Product data:', response.product); // Log the product data
                 setProduct(response.product);
@@ -204,21 +204,21 @@ const AdminProductDetails = () => {
                             <h2 className="text-lg font-semibold text-slate-200">Opciones de Peso</h2>
                             <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Peso Variable:</span> 
+                                    <span className="text-slate-400">Peso Variable:</span>
                                     {product.peso?.esPesoVariable ? 'Sí' : 'No'}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Peso Promedio:</span> 
+                                    <span className="text-slate-400">Peso Promedio:</span>
                                     {product.peso?.pesoPromedio} kg
                                 </p>
                                 {product.peso?.esPesoVariable && (
                                     <>
                                         <p className="text-slate-300">
-                                            <span className="text-slate-400">Peso Mínimo:</span> 
+                                            <span className="text-slate-400">Peso Mínimo:</span>
                                             {product.peso?.pesoMinimo} kg
                                         </p>
                                         <p className="text-slate-300">
-                                            <span className="text-slate-400">Peso Máximo:</span> 
+                                            <span className="text-slate-400">Peso Máximo:</span>
                                             {product.peso?.pesoMaximo} kg
                                         </p>
                                     </>
@@ -230,15 +230,15 @@ const AdminProductDetails = () => {
                             <h2 className="text-lg font-semibold text-slate-200">Empaque</h2>
                             <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Tipo:</span> 
+                                    <span className="text-slate-400">Tipo:</span>
                                     {product.empaque?.tipo}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Unidades por Caja:</span> 
+                                    <span className="text-slate-400">Unidades por Caja:</span>
                                     {product.empaque?.unidadesPorCaja}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Peso por Caja:</span> 
+                                    <span className="text-slate-400">Peso por Caja:</span>
                                     {product.empaque?.pesoCaja} kg
                                 </p>
                             </div>
@@ -248,23 +248,23 @@ const AdminProductDetails = () => {
                             <h2 className="text-lg font-semibold text-slate-200">Origen</h2>
                             <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">País:</span> 
+                                    <span className="text-slate-400">País:</span>
                                     {product.origen?.pais}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Región:</span> 
+                                    <span className="text-slate-400">Región:</span>
                                     {product.origen?.region || 'No especificada'}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Productor:</span> 
+                                    <span className="text-slate-400">Productor:</span>
                                     {product.origen?.productor || 'No especificado'}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Raza:</span> 
+                                    <span className="text-slate-400">Raza:</span>
                                     {product.origen?.raza}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Maduración:</span> 
+                                    <span className="text-slate-400">Maduración:</span>
                                     {product.origen?.maduracion} días
                                 </p>
                             </div>
@@ -274,19 +274,19 @@ const AdminProductDetails = () => {
                             <h2 className="text-lg font-semibold text-slate-200">Procesamiento</h2>
                             <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Fecha Faenado:</span> 
+                                    <span className="text-slate-400">Fecha Faenado:</span>
                                     {new Date(product.procesamiento?.fechaFaenado).toLocaleDateString()}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Fecha Envasado:</span> 
+                                    <span className="text-slate-400">Fecha Envasado:</span>
                                     {new Date(product.procesamiento?.fechaEnvasado).toLocaleDateString()}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Fecha Vencimiento:</span> 
+                                    <span className="text-slate-400">Fecha Vencimiento:</span>
                                     {new Date(product.procesamiento?.fechaVencimiento).toLocaleDateString()}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Número de Lote:</span> 
+                                    <span className="text-slate-400">Número de Lote:</span>
                                     {product.procesamiento?.numeroLote}
                                 </p>
                             </div>
@@ -296,11 +296,11 @@ const AdminProductDetails = () => {
                             <h2 className="text-lg font-semibold text-slate-200">Producción</h2>
                             <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Método:</span> 
+                                    <span className="text-slate-400">Método:</span>
                                     {product.produccion?.metodo}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Temperatura:</span> 
+                                    <span className="text-slate-400">Temperatura:</span>
                                     {product.produccion?.temperatura}°C
                                 </p>
                             </div>
@@ -341,15 +341,15 @@ const AdminProductDetails = () => {
                             <h2 className="text-lg font-semibold text-slate-200">Características</h2>
                             <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Filtración:</span> 
+                                    <span className="text-slate-400">Filtración:</span>
                                     {product.caracteristicas?.filtracion}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Acidez:</span> 
+                                    <span className="text-slate-400">Acidez:</span>
                                     {product.caracteristicas?.acidez}%
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Extracción:</span> 
+                                    <span className="text-slate-400">Extracción:</span>
                                     {product.caracteristicas?.extraccion}
                                 </p>
                             </div>
@@ -360,19 +360,19 @@ const AdminProductDetails = () => {
                             <h2 className="text-lg font-semibold text-slate-200">Producción</h2>
                             <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Método:</span> 
+                                    <span className="text-slate-400">Método:</span>
                                     {product.produccion?.metodo}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Temperatura:</span> 
+                                    <span className="text-slate-400">Temperatura:</span>
                                     {product.produccion?.temperatura}°C
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Fecha Envasado:</span> 
+                                    <span className="text-slate-400">Fecha Envasado:</span>
                                     {new Date(product.produccion?.fechaEnvasado).toLocaleDateString()}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Fecha Vencimiento:</span> 
+                                    <span className="text-slate-400">Fecha Vencimiento:</span>
                                     {new Date(product.produccion?.fechaVencimiento).toLocaleDateString()}
                                 </p>
                             </div>
@@ -451,13 +451,11 @@ const AdminProductDetails = () => {
                                 <p className="text-slate-400 mt-2">ID: {product._id}</p>
                                 <p className="text-slate-400">Slug: {product.slug}</p>
                             </div>
-                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                                product.estado === 'ACTIVO' ? 'bg-green-100 text-green-800' :
-                                product.estado === 'INACTIVO' ? 'bg-red-100 text-red-800' :
-                                product.estado === 'SIN_STOCK' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-blue-100 text-blue-800'
-                            }`}>
-                                {product.estado}
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.estado
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                {product.estado ? 'Activo' : 'Inactivo'}
                             </span>
                         </div>
                     </div>
@@ -468,8 +466,8 @@ const AdminProductDetails = () => {
                         <div className="space-y-4">
                             <h2 className="text-lg font-semibold text-slate-200">Imágenes del Producto</h2>
                             <div className="bg-slate-700/50 p-4 rounded-lg">
-                                <ImageGallery 
-                                    images={product.multimedia?.imagenes || []} 
+                                <ImageGallery
+                                    images={product.multimedia?.imagenes || []}
                                     productName={product.nombre}
                                 />
                             </div>
@@ -579,7 +577,7 @@ const AdminProductDetails = () => {
                                     <span className="text-slate-400 block mb-2">Palabras Clave:</span>
                                     <div className="flex flex-wrap gap-2">
                                         {product.seo?.palabrasClave?.map((palabra, index) => (
-                                            <span 
+                                            <span
                                                 key={index}
                                                 className="px-3 py-1 bg-slate-600 text-slate-200 rounded-full text-sm"
                                             >
@@ -620,7 +618,7 @@ const AdminProductDetails = () => {
                                         <p className="text-slate-300">No hay certificaciones registradas</p>
                                     )}
                                 </div>
-                                
+
                                 <div>
                                     <span className="text-slate-400 block mb-1">Usos Recomendados:</span>
                                     {product.usosRecomendados?.length > 0 ? (

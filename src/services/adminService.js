@@ -254,6 +254,28 @@ export const updateProduct = async (productId, data, token) => {
     }
 };
 
+export const updateProductStatus = async (productId, estado, token) => {
+    try {
+        const response = await api.put(
+            `/api/product/${productId}/status`,
+            { estado },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Update status error:', error);
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al actualizar el estado del producto'
+        };
+    }
+};
+
 const getPaymentMethodById = async (methodId, token) => {
     try {
         const response = await api.get(`/api/payment-methods/${methodId}`, {

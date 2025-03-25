@@ -1,4 +1,4 @@
-import { FormInput, FormTextarea } from '../../common/FormInputs';
+import { FormInput, FormTextarea, FormSelect } from '../../common/FormInputs';
 
 export const BasicInfoSection = ({ formData, handleInputChange }) => {
     return (
@@ -27,6 +27,36 @@ export const BasicInfoSection = ({ formData, handleInputChange }) => {
                         value={formData.nombre}
                         onChange={handleInputChange}
                         required
+                    />
+                    <FormSelect
+                        label="Estado"
+                        name="estado"
+                        value={formData.estado}
+                        onChange={(e) => handleInputChange({
+                            target: {
+                                name: 'estado',
+                                value: e.target.value === 'true'
+                            }
+                        })}
+                        options={[
+                            { value: true, label: 'Activo' },
+                            { value: false, label: 'Inactivo' }
+                        ]}
+                    />
+                    <FormSelect
+                        label="Destacado"
+                        name="destacado"
+                        value={formData.destacado}
+                        onChange={(e) => handleInputChange({
+                            target: {
+                                name: 'destacado',
+                                value: e.target.value === 'true'
+                            }
+                        })}
+                        options={[
+                            { value: false, label: 'No' },
+                            { value: true, label: 'Sí' }
+                        ]}
                     />
                 </div>
             </div>
