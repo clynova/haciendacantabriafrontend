@@ -57,6 +57,7 @@ import { AdminCotizaciones } from "./pages/admin/AdminCotizaciones";
 import { AdminQuotationDetails } from "./pages/admin/AdminQuotationDetails";
 import { MyQuotationsDetails } from "./pages/Perfil/MyQuotationsDetails";
 import { QuotationsCheckout } from "./pages/payment/QuotationsCheckout";
+import { AdminOrderDetails } from "./pages/admin/AdminOrderDetails";
 
 
 const App = () => {
@@ -109,7 +110,10 @@ const App = () => {
                         <Route path=":productId/edit" element={<AdminProductEdit />} />
                         <Route path=":productId" element={<AdminProductDetails />} />
                       </Route>
-                      <Route path="orders" element={<AdminOrders />} />
+                      <Route path="orders">
+                        <Route index element={<AdminOrders />} />
+                        <Route path=":orderId" element={<AdminOrderDetails />} />
+                      </Route>
                       <Route path="payment-methods" element={<AdminMetodosDePago />} />
                       <Route path="shipping-methods" element={<AdminMetodosDeEnvio />} />
                       <Route path="users">
