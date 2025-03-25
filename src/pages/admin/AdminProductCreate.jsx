@@ -16,6 +16,7 @@ import { ConservationSection } from '../../components/admin/products/Conservatio
 import { PricingAndInventorySection } from '../../components/admin/products/PricingAndInventorySection';
 import { SeoSection } from '../../components/admin/products/SeoSection';
 import { AdditionalInfoSection } from '../../components/admin/products/AdditionalInfoSection';
+import { TestingTools } from '../../components/admin/products/TestingTools';
 
 // Update the CORTES_CARNE constant to match backend enum values
 const CORTES_CARNE = [
@@ -358,6 +359,26 @@ const AdminProductCreate = () => {
         }));
     };
 
+    // Add inside the AdminProductCreate component, before the return statement
+    const handleTestDataFill = (testData) => {
+        setFormData(prev => ({
+            ...prev,
+            ...testData,
+            estado: true, // Ensure boolean value
+            destacado: false, // Ensure boolean value
+            conservacion: {
+                ...prev.conservacion,
+                ...testData.conservacion,
+                requiereRefrigeracion: Boolean(testData.conservacion?.requiereRefrigeracion),
+                requiereCongelacion: Boolean(testData.conservacion?.requiereCongelacion)
+            },
+            peso: {
+                ...prev.peso,
+                ...testData.peso,
+                esPesoVariable: Boolean(testData.peso?.esPesoVariable)
+            }
+        }));
+    };
 
     // Add validation before submitting
     const handleSubmit = async (e) => {
@@ -381,6 +402,7 @@ const AdminProductCreate = () => {
             const dataToSend = {
                 ...formData,
                 slug, // Add the generated slug
+                estado: Boolean(formData.estado),
                 precios: {
                     ...formData.precios,
                     base: Number(formData.precios.base) || 0,
@@ -475,21 +497,21 @@ const AdminProductCreate = () => {
             }
         } catch (error) {
             console.error('Error en el proceso de creación:', error);
-            
+
             // Check for duplicate key error in various formats
-            if (error.code === 11000 || 
-                error.error?.code === 11000 || 
+            if (error.code === 11000 ||
+                error.error?.code === 11000 ||
                 error.message?.includes('duplicate key error') ||
                 error.error?.message?.includes('duplicate key error')) {
-                
+
                 const duplicateInfo = getDuplicateFieldMessage(error);
-                
+
                 if (duplicateInfo.field && duplicateInfo.value) {
                     toast.custom((t) => (
                         <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg">
                             <div className="flex items-center mb-3">
                                 <svg className="w-6 h-6 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                                 <h3 className="font-semibold text-lg">Producto Duplicado</h3>
@@ -527,7 +549,7 @@ const AdminProductCreate = () => {
                     return;
                 }
             }
-            
+
             // Add duplicate handling in catch block too
             if (error.code === 11000 || error.error?.code === 11000) {
                 const { field, value } = getDuplicateFieldMessage(error.error || error);

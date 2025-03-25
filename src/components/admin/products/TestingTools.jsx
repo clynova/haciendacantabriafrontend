@@ -33,7 +33,9 @@ const mockData = {
             temperatura: '25',
             fechaEnvasado: '2024-03-24',
             fechaVencimiento: '2025-03-24'
-        }
+        },
+        estado: true,
+        destacado: false,
     },
     carne: {
         codigo: `CAR-${Date.now()}`,
@@ -86,7 +88,9 @@ const mockData = {
             fechaEnvasado: '2024-03-22',
             fechaVencimiento: '2024-04-22',
             numeroLote: 'LOT-2024-001'
-        }
+        },
+        estado: true,
+        destacado: false,
     },
     common: {
         seo: {

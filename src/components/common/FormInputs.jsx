@@ -35,15 +35,18 @@ export const FormSelect = ({
             </label>
             <select
                 name={name}
-                value={value}
+                value={value.toString()} // Convert boolean to string
                 onChange={onChange}
                 required={required}
                 className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 text-slate-200"
                 {...props}
             >
                 {options.map(option => (
-                    <option key={option} value={option}>
-                        {option}
+                    <option 
+                        key={typeof option === 'object' ? option.value : option} 
+                        value={typeof option === 'object' ? option.value : option}
+                    >
+                        {typeof option === 'object' ? option.label : option}
                     </option>
                 ))}
             </select>
@@ -92,9 +95,25 @@ FormInput.propTypes = {
 FormSelect.propTypes = {
     label: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    value: PropTypes.string.isRequired,
+    value: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.bool,
+        PropTypes.number
+    ]).isRequired,
     onChange: PropTypes.func.isRequired,
-    options: PropTypes.arrayOf(PropTypes.string).isRequired,
+    options: PropTypes.arrayOf(
+        PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.shape({
+                value: PropTypes.oneOfType([
+                    PropTypes.string,
+                    PropTypes.bool,
+                    PropTypes.number
+                ]).isRequired,
+                label: PropTypes.string.isRequired
+            })
+        ])
+    ).isRequired,
     required: PropTypes.bool
 };
 
