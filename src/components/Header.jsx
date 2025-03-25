@@ -57,8 +57,8 @@ const Header = () => {
 
   const navLinks = [
     { name: "Inicio", href: "/" },
-    { name: "Carnes", href: "/categoria/carne" },
-    { name: "Condimentos", href: "/categoria/condimento" },
+    { name: "Ofertas", href: "/categoria/ofertas" },
+    { name: "Carnes", href: "/categoria/carne" },    
     { name: "Aceites", href: "/categoria/aceite" },
   ];
 
