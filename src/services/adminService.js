@@ -290,14 +290,12 @@ const getAllOrders = async (token, status = '') => {
 
 // Get order by ID
 export const getOrderById = async (orderId, token) => {
-    console.log('getOrderById called with:', { orderId, token });
     try {
         const response = await api.get(`/api/order/${orderId}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         });
-        console.log('API response:', response);
         return response.data;
     } catch (error) {
         console.error('getOrderById error:', error.response || error);
@@ -311,11 +309,9 @@ export const getOrderById = async (orderId, token) => {
 // Update order status
 const updateOrderStatus = async (orderId, status, token) => {
     try {
-        console.log('Updating order status:', { orderId, status, token });
-        
         const response = await api.put(
             `/api/order/${orderId}/status`,
-            { status: status.toUpperCase() }, // Ensure status is uppercase
+            { status: status.toLowerCase() }, // Ensure status is uppercase
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -323,8 +319,6 @@ const updateOrderStatus = async (orderId, status, token) => {
                 }
             }
         );
-        
-        console.log('Update status response:', response.data);
         return response.data;
     } catch (error) {
         console.error('Update status error:', error.response?.data || error);
