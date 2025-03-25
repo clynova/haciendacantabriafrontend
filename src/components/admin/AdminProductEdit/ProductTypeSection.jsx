@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const TIPOS_ACEITE = [
     { value: 'OLIVA', label: 'Aceite de Oliva' },
@@ -16,6 +17,7 @@ export const ProductTypeSection = ({ data, onChange }) => {
         const { name, value, type, checked } = e.target;
         if (name === 'categoria') {
             onChange('categoria', value);
+            onChange('tipoProducto', value === 'ACEITE' ? 'ProductoAceite' : 'ProductoCarne');
             // Reset category specific info when changing category
             onChange('infoAceite', {
                 tipo: 'OLIVA',
@@ -121,4 +123,12 @@ export const ProductTypeSection = ({ data, onChange }) => {
             </div>
         </div>
     );
+};
+
+ProductTypeSection.propTypes = {
+    data: PropTypes.shape({
+        categoria: PropTypes.string.isRequired,
+        tipoProducto: PropTypes.string.isRequired
+    }).isRequired,
+    onChange: PropTypes.func.isRequired
 };

@@ -232,25 +232,53 @@ export const createProduct = async (productData, token) => {
 // Update the updateProduct function
 export const updateProduct = async (productId, data, token) => {
     try {
-        const response = await api.put(
-            `/api/product/${productId}`, 
-            data,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
+        // Remove calculated fields before sending
+        const cleanedData = {
+            ...data,
+            estado: Boolean(data.estado),
+            destacado: Boolean(data.destacado),
+            conservacion: data.conservacion ? {
+                ...data.conservacion,
+                requiereRefrigeracion: Boolean(data.conservacion.requiereRefrigeracion),
+                requiereCongelacion: Boolean(data.conservacion.requiereCongelacion)
+            } : undefined
+        };
+
+        // Remove calculated fields that shouldn't be sent to the backend
+        delete cleanedData.precioFinal;
+        delete cleanedData.precioTransferencia;
+        delete cleanedData.precioPorKgFinal;
+        delete cleanedData.precioPorKgTransferencia;
+        delete cleanedData.__v;
+        delete cleanedData.fechaActualizacion;
+
+        console.log('Cleaned data for update:', JSON.stringify(cleanedData, null, 2));
+
+        const response = await api.put(`/api/product/${productId}`, cleanedData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-        );
+        });
 
         if (!response.data.success) {
-            throw new Error(response.data.msg || 'Error al actualizar el producto');
+            throw new Error(response.data.msg || 'Error en la respuesta del servidor');
         }
 
         return response.data;
     } catch (error) {
-        console.error('Update error:', error);
-        throw error.response?.data || error;
+        console.error('Update error details:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            message: error.message,
+            originalData: data
+        });
+
+        throw {
+            success: false,
+            msg: error.response?.data?.msg || error.message || 'Error al actualizar el producto',
+            error: error.response?.data || error
+        };
     }
 };
 
