@@ -139,7 +139,6 @@ const createUser = async (userData, token) => {
         );
         return response.data;
     } catch (error) {
-        console.error('Error creating user:', error.response?.data);
         throw error.response?.data || {
             success: false,
             msg: 'Error al crear el usuario'
@@ -149,10 +148,7 @@ const createUser = async (userData, token) => {
 
 export const getAllProducts = async (token, filters = {}) => {
     try {
-        // Convert filters object to query string
         const queryParams = new URLSearchParams();
-        
-        // Add any filters that are provided
         Object.entries(filters).forEach(([key, value]) => {
             if (value) queryParams.append(key, value);
         });
@@ -167,7 +163,6 @@ export const getAllProducts = async (token, filters = {}) => {
         });
         return response.data;
     } catch (error) {
-        console.error('Error fetching products:', error.response?.data);
         throw error.response?.data || {
             success: false,
             msg: 'Error al obtener los productos'
@@ -209,18 +204,14 @@ export const getProductById = async (productId, token) => {
 
 export const createProduct = async (productData, token) => {
     try {
-        console.log('Creating product with data:', productData);
-        
         const response = await api.post('/api/product', productData, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             }
         });
-
         return response.data;
     } catch (error) {
-        console.error('Error creating product:', error);
         throw {
             success: false,
             msg: error.response?.data?.msg || 'Error al crear el producto',
@@ -229,10 +220,8 @@ export const createProduct = async (productData, token) => {
     }
 };
 
-// Update the updateProduct function
 export const updateProduct = async (productId, data, token) => {
     try {
-        // Remove calculated fields before sending
         const cleanedData = {
             ...data,
             estado: Boolean(data.estado),
@@ -244,15 +233,12 @@ export const updateProduct = async (productId, data, token) => {
             } : undefined
         };
 
-        // Remove calculated fields that shouldn't be sent to the backend
         delete cleanedData.precioFinal;
         delete cleanedData.precioTransferencia;
         delete cleanedData.precioPorKgFinal;
         delete cleanedData.precioPorKgTransferencia;
         delete cleanedData.__v;
         delete cleanedData.fechaActualizacion;
-
-        console.log('Cleaned data for update:', JSON.stringify(cleanedData, null, 2));
 
         const response = await api.put(`/api/product/${productId}`, cleanedData, {
             headers: {
@@ -267,13 +253,6 @@ export const updateProduct = async (productId, data, token) => {
 
         return response.data;
     } catch (error) {
-        console.error('Update error details:', {
-            status: error.response?.status,
-            data: error.response?.data,
-            message: error.message,
-            originalData: data
-        });
-
         throw {
             success: false,
             msg: error.response?.data?.msg || error.message || 'Error al actualizar el producto',
@@ -296,7 +275,6 @@ export const updateProductStatus = async (productId, estado, token) => {
         );
         return response.data;
     } catch (error) {
-        console.error('Update status error:', error);
         throw error.response?.data || {
             success: false,
             msg: 'Error al actualizar el estado del producto'
@@ -348,7 +326,6 @@ export const getOrderById = async (orderId, token) => {
         });
         return response.data;
     } catch (error) {
-        console.error('getOrderById error:', error.response || error);
         throw {
             success: false,
             msg: error.response?.data?.msg || 'Error al obtener la orden'
@@ -382,25 +359,17 @@ const updateOrderStatus = async (orderId, status, token) => {
 // Delete/Cancel order
 export const deleteOrder = async (orderId, token) => {
     try {
-        console.log('Attempting to delete order:', { orderId, hasToken: !!token });
-        
         const response = await api.delete(`/api/order/${orderId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
         
-        console.log('Delete order response:', response.data);
         return {
             success: true,
             msg: 'Pedido cancelado correctamente'
         };
     } catch (error) {
-        console.error('Delete order error:', {
-            status: error.response?.status,
-            data: error.response?.data,
-            message: error.message
-        });
         throw {
             success: false,
             msg: error.response?.data?.message || 'Error al cancelar el pedido'

@@ -6,32 +6,29 @@ export const SeoSection = ({ data, onChange }) => {
         if (!text) return '';
         return text
             .toLowerCase()
-            .normalize('NFD') // Normalize accented characters
-            .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-            .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
-            .replace(/(^-|-$)/g, '') // Remove leading/trailing hyphens
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')
             .trim();
     };
 
     // Initial slug generation on mount and when metaTitulo changes
     useEffect(() => {
-        // Generate slug only if metaTitulo exists and slug is empty or different
         if (data.seo?.metaTitulo) {
             const newSlug = generateSlug(data.seo.metaTitulo);
             if (!data.seo?.slug || data.seo.slug !== newSlug) {
-                console.log('Generating initial slug from:', data.seo.metaTitulo);
                 onChange('seo', {
                     ...data.seo,
                     slug: newSlug
                 });
             }
         }
-    }, [data.seo?.metaTitulo]); // Run on mount and when metaTitulo changes
+    }, [data.seo?.metaTitulo]);
 
     // Ensure SEO object exists with default values
     useEffect(() => {
         if (!data.seo) {
-            console.log('Initializing SEO data with default values');
             onChange('seo', {
                 metaTitulo: '',
                 metaDescripcion: '',
@@ -46,7 +43,6 @@ export const SeoSection = ({ data, onChange }) => {
         onChange('seo', {
             ...data.seo,
             [name]: value,
-            // Update slug immediately when meta title changes
             ...(name === 'metaTitulo' ? { slug: generateSlug(value) } : {})
         });
     };
@@ -68,7 +64,6 @@ export const SeoSection = ({ data, onChange }) => {
             <h2 className="text-xl font-semibold text-white mb-4">Optimización SEO</h2>
             
             <div className="space-y-4">
-                {/* Meta Title input */}
                 <div>
                     <label className="block text-sm font-medium text-slate-300 mb-1">
                         Meta Título
@@ -117,7 +112,6 @@ export const SeoSection = ({ data, onChange }) => {
                     />
                 </div>
 
-                {/* Read-only Slug field */}
                 <div>
                     <label className="block text-sm font-medium text-slate-300 mb-1">
                         URL Amigable (generada automáticamente)

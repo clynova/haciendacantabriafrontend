@@ -93,11 +93,9 @@ export const AdminProductEdit = () => {
 
     const fetchProductDetails = async () => {
         try {
-            console.log('Fetching product details for ID:', productId);
             const response = await getProductById(productId, token);
             
             if (response.success) {
-                // Format multimedia data
                 const formattedMultimedia = {
                     ...response.product.multimedia,
                     imagenes: response.product.multimedia?.imagenes?.map(img => ({
@@ -108,7 +106,6 @@ export const AdminProductEdit = () => {
                     })) || []
                 };
 
-                // Format prices and discounts
                 const formattedPrecios = {
                     base: Number(response.product.precios?.base) || 0,
                     descuentos: {
@@ -121,7 +118,6 @@ export const AdminProductEdit = () => {
                     }
                 };
 
-                // Format SEO data with automatic slug generation
                 const formattedSeo = {
                     metaTitulo: response.product.seo?.metaTitulo || response.product.nombre || '',
                     metaDescripcion: response.product.seo?.metaDescripcion || '',
@@ -131,7 +127,6 @@ export const AdminProductEdit = () => {
                     slug: response.product.seo?.slug || generateSlug(response.product.nombre)
                 };
 
-                // Format the complete data
                 const formattedData = {
                     ...response.product,
                     estado: Boolean(response.product.estado),
@@ -163,11 +158,9 @@ export const AdminProductEdit = () => {
                     seo: formattedSeo
                 };
 
-                console.log('Formatted SEO data:', formattedSeo);
                 setFormData(formattedData);
             }
         } catch (error) {
-            console.error('Error fetching product:', error);
             toast.error('Error al cargar el producto');
         } finally {
             setLoading(false);
@@ -186,26 +179,18 @@ export const AdminProductEdit = () => {
 
     // Update handleInputChange to handle category changes
     const handleInputChange = (field, value) => {
-        console.log('Input change:', { field, value });
         if (field === 'categoria' && value !== formData.categoria) {
-            console.log('Category change detected:', value);
             handleCategoryChange(value);
             return;
         }
 
-        setFormData(prev => {
-            const newData = {
-                ...prev,
-                [field]: value
-            };
-            console.log('Updated form data:', newData);
-            return newData;
-        });
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     const validateProductData = (data) => {
-        console.log('Validating product data:', data);
-        
         const errors = [];
     
         // Required fields validation
@@ -226,11 +211,9 @@ export const AdminProductEdit = () => {
     
         // Data type validation
         if (typeof data.estado !== 'boolean') {
-            console.warn('Estado no es booleano:', data.estado);
             errors.push('El estado debe ser un valor booleano');
         }
         if (typeof data.destacado !== 'boolean') {
-            console.warn('Destacado no es booleano:', data.destacado);
             errors.push('El destacado debe ser un valor booleano');
         }
 
@@ -248,7 +231,6 @@ export const AdminProductEdit = () => {
             errors.push('El slug es requerido');
         }
     
-        console.log('Validation results:', { errors, isValid: errors.length === 0 });
         return errors;
     };
 
@@ -264,36 +246,12 @@ export const AdminProductEdit = () => {
 
         try {
             setSaving(true);
-            console.group('💾 Form Submission');
-            
-            const cleanedData = {
-                codigo: formData.codigo?.trim(),
-                sku: formData.sku?.trim(),
-                nombre: formData.nombre?.trim(),
-                categoria: formData.categoria,
-                tipoProducto: formData.tipoProducto,
-                estado: formData.estado || 'ACTIVO',
-                destacado: Boolean(formData.destacado),
-                conservacion: formData.conservacion ? {
-                    ...formData.conservacion,
-                    requiereRefrigeracion: Boolean(formData.conservacion.requiereRefrigeracion),
-                    requiereCongelacion: Boolean(formData.conservacion.requiereCongelacion)
-                } : { requiereRefrigeracion: false, requiereCongelacion: false },
-                seo: {
-                    metaTitulo: formData.seo?.metaTitulo?.trim() || '',
-                    metaDescripcion: formData.seo?.metaDescripcion?.trim() || '',
-                    palabrasClave: Array.isArray(formData.seo?.palabrasClave) 
-                        ? formData.seo.palabrasClave.filter(keyword => keyword?.trim())
-                        : [],
-                    slug: formData.seo?.slug?.trim() || ''
-                }
-            };
             
             const dataToSend = {
-                ...cleanedData,
+                ...formData,
                 seo: {
-                    ...cleanedData.seo,
-                    slug: cleanedData.seo?.slug || generateSlug(cleanedData.seo?.metaTitulo || cleanedData.nombre)
+                    ...formData.seo,
+                    slug: formData.seo?.slug || generateSlug(formData.seo?.metaTitulo || formData.nombre)
                 }
             };
 
@@ -304,8 +262,6 @@ export const AdminProductEdit = () => {
             delete dataToSend.precioPorKgTransferencia;
             delete dataToSend.__v;
             delete dataToSend.fechaActualizacion;
-
-            console.log('Sending data:', JSON.stringify(dataToSend, null, 2));
             
             const response = await updateProduct(productId, dataToSend, token);
             
@@ -316,11 +272,6 @@ export const AdminProductEdit = () => {
                 throw new Error(response.msg || 'Error al actualizar el producto');
             }
         } catch (error) {
-            console.error('Update error:', {
-                message: error.message,
-                data: error.response?.data,
-                formData
-            });
             toast.error(error.msg || 'Error al actualizar el producto');
         } finally {
             setSaving(false);
