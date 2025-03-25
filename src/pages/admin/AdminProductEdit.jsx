@@ -31,7 +31,7 @@ const DEFAULT_FORM_DATA = {
             transferencia: 0
         }
     },
-    estado: 'ACTIVO',
+    estado: true,
     destacado: false,
     categoria: 'ACEITE',
     tipoProducto: 'ProductoAceite',

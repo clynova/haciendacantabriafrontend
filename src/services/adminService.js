@@ -158,7 +158,7 @@ export const getAllProducts = async (token, filters = {}) => {
         });
 
         const queryString = queryParams.toString();
-        const url = `/api/product${queryString ? `?${queryString}` : ''}`;
+        const url = `/api/product/admin/all${queryString ? `?${queryString}` : ''}`;
 
         const response = await api.get(url, {
             headers: {
