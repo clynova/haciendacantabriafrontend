@@ -1,20 +1,10 @@
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { 
-    HiMail, 
-    HiUser, 
-    HiChat, 
-    HiPhone, 
-    HiClock, 
-    HiLocationMarker
-} from 'react-icons/hi';
-import { 
-    FaFacebookSquare,
-    FaInstagram,
-} from 'react-icons/fa';
+import React, { useState } from 'react';
+import { HiLocationMarker, HiPhone, HiMail, HiClock, HiUser, HiChat } from 'react-icons/hi';
+import { FaFacebookSquare, FaInstagram } from 'react-icons/fa';
+import { sendContactForm } from '../services/utilService';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { sendContactForm } from '../services/utilService';
+import toast, { Toaster } from 'react-hot-toast'; // Importamos react-hot-toast
 
 const Contact = () => {
     const [formData, setFormData] = useState({
@@ -46,38 +36,44 @@ const Contact = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setSending(true);
-
-        try {
-            // Basic validation
-            if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
-                toast.error('Por favor completa todos los campos');
-                setSending(false);
-                return;
-            }
-
-            // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(formData.email)) {
-                toast.error('Por favor ingresa un email válido');
-                setSending(false);
-                return;
-            }
-
-            // Enviar el formulario usando el servicio
-            const response = await sendContactForm(formData);
         
+        // Basic validation
+        if (!formData.name || !formData.email || !formData.message) {
+            toast.error('Por favor, completa todos los campos');
+            return;
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            toast.error('Por favor, ingresa un email válido');
+            return;
+        }
+        
+        try {
+            setSending(true);
+            
+            // Mostrar un toast de carga
+            const loadingToast = toast.loading('Enviando mensaje...');
+            
+            const response = await sendContactForm(formData);
+            
+            // Eliminar el toast de carga
+            toast.dismiss(loadingToast);
+            
             if (response.success) {
-                toast.success('Mensaje enviado correctamente. Te contactaremos pronto.');
-                setFormData({ name: '', email: '', message: '' });
+                toast.success('Mensaje enviado con éxito. Nos pondremos en contacto contigo pronto.');
+                // Reset form
+                setFormData({
+                    name: '',
+                    email: '',
+                    message: ''
+                });
             } else {
-                throw new Error(response.message || 'Error al enviar el mensaje');
+                toast.error(response.message || 'Hubo un error al enviar el mensaje. Por favor, intenta de nuevo.');
             }
         } catch (error) {
-            toast.error(
-                error.message || 
-                'Error al enviar el mensaje. Por favor intenta más tarde.'
-            );
+            toast.error('Hubo un error al enviar el mensaje. Por favor, intenta de nuevo.');
         } finally {
             setSending(false);
         }
@@ -85,8 +81,35 @@ const Contact = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+            {/* Agregamos el componente Toaster para mostrar las notificaciones */}
+            <Toaster 
+                position="top-right"
+                toastOptions={{
+                    // Estilos por defecto para todos los toasts
+                    style: {
+                        background: '#363636',
+                        color: '#fff',
+                    },
+                    // Duración personalizada
+                    duration: 4000,
+                    // Estilos específicos para los tipos de toast
+                    success: {
+                        duration: 3000,
+                        style: {
+                            background: '#10B981',
+                        },
+                    },
+                    error: {
+                        duration: 5000,
+                        style: {
+                            background: '#EF4444',
+                        },
+                    },
+                }}
+            />
+            
             <Header />
-            {/* Hero Section */}
+            
             <div className="bg-blue-600 dark:bg-blue-800">
                 <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
                     <div className="text-center">
@@ -264,3 +287,4 @@ const Contact = () => {
 };
 
 export { Contact };
+export default Contact;

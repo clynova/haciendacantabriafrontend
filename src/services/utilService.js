@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// Fix: Make sure the API_URL is defined correctly and has a fallback
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 const uploadImageToCloudinary = async (file) => {
     const formData = new FormData();
@@ -29,11 +30,13 @@ const uploadImageToCloudinary = async (file) => {
 
 export const sendContactForm = async (formData) => {
   try {
+    
     const response = await axios.post(`${API_URL}/api/util/contact`, formData, {
       headers: {
         'Content-Type': 'application/json'
       }
     });
+    
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
