@@ -8,6 +8,7 @@ import { FiArrowLeft, FiArrowRight, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { AddressForm } from '../Perfil/MyAddresses';
 import { toast } from 'react-hot-toast';
 import { getShippingMethods } from '../../services/shippingMethods';
+import { getRegionsActive } from '../../services/regionService';
 import CartSummary from '../../components/Cart/CartSummary';
 import { formatCurrency } from '../../utils/funcionesReutilizables';
 
@@ -292,6 +293,7 @@ const FormaEnvio = () => {
     const [loading, setLoading] = useState(true);
     const [showAddressForm, setShowAddressForm] = useState(false);
     const [addressToEdit, setAddressToEdit] = useState(null);
+    const [activeRegions, setActiveRegions] = useState([]);
     const [recipientInfo, setRecipientInfo] = useState({
         recipientName: '',
         phoneContact: '',
@@ -310,8 +312,7 @@ const FormaEnvio = () => {
                 const defaultAddress = addressResponse.data.addresses?.find(addr => addr.isDefault);
                 if (defaultAddress) {
                     setSelectedAddressId(defaultAddress._id);
-                    // Verificar la región al cargar la dirección predeterminada
-                    setIsValparaisoRegion(defaultAddress.state === 'Valparaíso' || defaultAddress.city === 'Valparaíso');
+                    // La verificación de región se realizará cuando se carguen las regiones activas
                 }
             }
         } catch (error) {
@@ -322,7 +323,7 @@ const FormaEnvio = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch addresses
+                // Fetch addresses first
                 await fetchAddresses();
 
                 // Fetch shipping methods
@@ -336,6 +337,19 @@ const FormaEnvio = () => {
                         }
                     }
                 }
+
+                // Fetch active regions
+                const regionsResponse = await getRegionsActive(token);
+                if (regionsResponse.success) {
+                    setActiveRegions(regionsResponse.data || []);
+                    
+                    // Verificar la región de la dirección predeterminada después de cargar las regiones activas
+                    const defaultAddress = addresses.find(addr => addr.isDefault);
+                    if (defaultAddress) {
+                        const isActive = regionsResponse.data?.some(region => region.name === defaultAddress.city);
+                        setIsValparaisoRegion(isActive);
+                    }
+                }
             } catch (error) {
                 toast.error("Error al cargar los datos");
             } finally {
@@ -346,20 +360,22 @@ const FormaEnvio = () => {
         fetchData();
     }, [token]);
 
-    // Función para verificar si la dirección está en la región de Valparaíso
-    const checkIsValparaisoRegion = (addressId) => {
-        const selectedAddress = addresses.find(addr => addr._id === addressId);
-        // Verificar exactamente si la región o ciudad es Valparaíso
-        return selectedAddress?.state === 'Valparaíso' || selectedAddress?.city === 'Valparaíso';
+    // Function to check if a region is active for direct payment
+    const isRegionActive = (regionName) => {
+        return activeRegions.some(region => region.name === regionName);
     };
 
     // Actualizar la función que maneja la selección de dirección
     const handleAddressSelect = (addressId) => {
         setSelectedAddressId(addressId);
-        const isValparaiso = checkIsValparaisoRegion(addressId);
-        setIsValparaisoRegion(isValparaiso);
+        const selectedAddress = addresses.find(addr => addr._id === addressId);
+        if (!selectedAddress) return;
+        
+        const isActive = isRegionActive(selectedAddress.city);
+        setIsValparaisoRegion(isActive);
     };
 
+    // Update region check function for form submission
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!selectedAddressId) {
@@ -394,8 +410,9 @@ const FormaEnvio = () => {
 
         saveShippingInfo(shippingData);
 
-        // Redirigir según la región
-        if (selectedAddress.state === 'Valparaíso' || selectedAddress.city === 'Valparaíso') {
+        // Redirigir según si la región está activa para pago directo
+        const isActive = isRegionActive(selectedAddress.city);
+        if (isActive) {
             window.location.href = '/checkout/pago';
         } else {
             window.location.href = '/checkout/cotizacion';

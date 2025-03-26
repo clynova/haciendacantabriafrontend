@@ -58,6 +58,7 @@ import { AdminQuotationDetails } from "./pages/admin/AdminQuotationDetails";
 import { MyQuotationsDetails } from "./pages/Perfil/MyQuotationsDetails";
 import { QuotationsCheckout } from "./pages/payment/QuotationsCheckout";
 import { AdminOrderDetails } from "./pages/admin/AdminOrderDetails";
+import { AdminRegionesDeEnvio } from "./pages/admin/AdminRegionesDeEnvio";
 import { Contact } from "./pages/Contact";
 
 
@@ -127,6 +128,7 @@ const App = () => {
                         <Route path=":quotationId" element={<AdminQuotationDetails />} />
                       </Route>
                       <Route path="categories" element={<AdminCategories />} />
+                      <Route path="shipping-regions" element={<AdminRegionesDeEnvio />} />
                     </Route>
                   </Route>
                   <Route path="/checkout" element={

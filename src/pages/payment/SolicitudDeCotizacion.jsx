@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { createQuotation } from '../../services/quotationService';
+import { getRegionsActive } from '../../services/regionService';
 import { HiCheckCircle, HiInformationCircle } from 'react-icons/hi';
 import { FiArrowLeft } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
@@ -16,20 +17,34 @@ const SolicitudDeCotizacion = () => {
     const [validityDays, setValidityDays] = useState(7);
 
     useEffect(() => {
-        // Verificar que tenemos la información necesaria
-        if (!shippingInfo || !shippingInfo.address) {
-            toast.error("Por favor selecciona una dirección de envío primero");
-            navigate('/checkout/envio');
-            return;
-        }
+        const checkRegionEligibility = async () => {
+            // Verificar que tenemos la información necesaria
+            if (!shippingInfo || !shippingInfo.address) {
+                toast.error("Por favor selecciona una dirección de envío primero");
+                navigate('/checkout/envio');
+                return;
+            }
 
-        // Verificar que la dirección no es de Valparaíso
-        if (shippingInfo.address.state === 'Valparaíso' || shippingInfo.address.city === 'Valparaíso') {
-            toast.error("No se pueden generar cotizaciones para la región de Valparaíso");
-            navigate('/checkout/envio');
-            return;
-        }
-    }, [shippingInfo, navigate]);
+            try {
+                const regionsResponse = await getRegionsActive(token);
+                if (regionsResponse.success) {
+                    const activeRegions = regionsResponse.data || [];
+                    const isRegionActive = activeRegions.some(region => region.name === shippingInfo.address.state);
+                    
+                    if (isRegionActive) {
+                        toast.error("Esta región ya cuenta con envío directo, no requiere cotización");
+                        navigate('/checkout/envio');
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking region eligibility:', error);
+                // If there's an error checking regions, allow the quotation process to continue
+            }
+        };
+
+        checkRegionEligibility();
+    }, [shippingInfo, navigate, token]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
