@@ -291,6 +291,8 @@ const FormaEnvio = () => {
     const [selectedAddressId, setSelectedAddressId] = useState('');
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [addressesLoaded, setAddressesLoaded] = useState(false);
+    const [regionsLoaded, setRegionsLoaded] = useState(false);
     const [showAddressForm, setShowAddressForm] = useState(false);
     const [addressToEdit, setAddressToEdit] = useState(null);
     const [activeRegions, setActiveRegions] = useState([]);
@@ -312,20 +314,29 @@ const FormaEnvio = () => {
                 const defaultAddress = addressResponse.data.addresses?.find(addr => addr.isDefault);
                 if (defaultAddress) {
                     setSelectedAddressId(defaultAddress._id);
-                    // La verificación de región se realizará cuando se carguen las regiones activas
+                    // La verificación de región se realizará después de cargar las regiones activas
                 }
+                setAddressesLoaded(true);
             }
         } catch (error) {
             toast.error("Error al cargar las direcciones");
+            setAddressesLoaded(true); // Marcar como cargado aunque haya error
         }
     };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch addresses first
+                // Fetch active regions first
+                const regionsResponse = await getRegionsActive(token);
+                if (regionsResponse.success) {
+                    setActiveRegions(regionsResponse.data || []);
+                }
+                setRegionsLoaded(true);
+                
+                // Fetch addresses
                 await fetchAddresses();
-
+                
                 // Fetch shipping methods
                 const shippingResponse = await getShippingMethods(token);
                 if (shippingResponse.success) {
@@ -335,19 +346,6 @@ const FormaEnvio = () => {
                         if (shippingResponse.data[0].methods.length > 0) {
                             setSelectedMethod(shippingResponse.data[0].methods[0]._id);
                         }
-                    }
-                }
-
-                // Fetch active regions
-                const regionsResponse = await getRegionsActive(token);
-                if (regionsResponse.success) {
-                    setActiveRegions(regionsResponse.data || []);
-                    
-                    // Verificar la región de la dirección predeterminada después de cargar las regiones activas
-                    const defaultAddress = addresses.find(addr => addr.isDefault);
-                    if (defaultAddress) {
-                        const isActive = regionsResponse.data?.some(region => region.name === defaultAddress.city);
-                        setIsValparaisoRegion(isActive);
                     }
                 }
             } catch (error) {
@@ -365,14 +363,28 @@ const FormaEnvio = () => {
         return activeRegions.some(region => region.name === regionName);
     };
 
+    // Verificar la validez de la región seleccionada
+    const verifySelectedRegion = () => {
+        if (selectedAddressId && addresses.length > 0 && activeRegions.length > 0) {
+            const selectedAddress = addresses.find(addr => addr._id === selectedAddressId);
+            if (selectedAddress) {
+                const isActive = isRegionActive(selectedAddress.city);
+                setIsValparaisoRegion(isActive);
+            }
+        }
+    };
+
+    // Efecto para verificar la región cuando las direcciones y regiones están cargadas
+    useEffect(() => {
+        if (addressesLoaded && regionsLoaded) {
+            verifySelectedRegion();
+        }
+    }, [addressesLoaded, regionsLoaded, selectedAddressId, addresses, activeRegions]);
+
     // Actualizar la función que maneja la selección de dirección
     const handleAddressSelect = (addressId) => {
         setSelectedAddressId(addressId);
-        const selectedAddress = addresses.find(addr => addr._id === addressId);
-        if (!selectedAddress) return;
-        
-        const isActive = isRegionActive(selectedAddress.city);
-        setIsValparaisoRegion(isActive);
+        // La verificación de región se realizará en el efecto que observa selectedAddressId
     };
 
     // Update region check function for form submission
@@ -410,9 +422,8 @@ const FormaEnvio = () => {
 
         saveShippingInfo(shippingData);
 
-        // Redirigir según si la región está activa para pago directo
-        const isActive = isRegionActive(selectedAddress.city);
-        if (isActive) {
+        // Redirigir según la validación actual de la región
+        if (isValparaisoRegion) {
             window.location.href = '/checkout/pago';
         } else {
             window.location.href = '/checkout/cotizacion';
