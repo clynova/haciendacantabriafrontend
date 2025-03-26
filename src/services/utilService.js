@@ -1,3 +1,8 @@
+import axios from 'axios';
+
+// Fix: Make sure the API_URL is defined correctly and has a fallback
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
 const uploadImageToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -20,6 +25,22 @@ const uploadImageToCloudinary = async (file) => {
         console.error("Error subiendo la imagen:", error);
         return null;
     }
+};
+
+
+export const sendContactForm = async (formData) => {
+  try {
+    
+    const response = await axios.post(`${API_URL}/api/util/contact`, formData, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
 };
 
 export { uploadImageToCloudinary };

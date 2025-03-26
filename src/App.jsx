@@ -58,6 +58,7 @@ import { AdminQuotationDetails } from "./pages/admin/AdminQuotationDetails";
 import { MyQuotationsDetails } from "./pages/Perfil/MyQuotationsDetails";
 import { QuotationsCheckout } from "./pages/payment/QuotationsCheckout";
 import { AdminOrderDetails } from "./pages/admin/AdminOrderDetails";
+import { Contact } from "./pages/Contact";
 
 
 const App = () => {
@@ -145,7 +146,7 @@ const App = () => {
                     <Route path="confirmation/cotizacion" element={<ConfirmacionCotizacion />} />
                   </Route>
                   <Route path="/about" element={<About/>} />
-                  <Route path="/contact" element={<div>Contact</div>} />
+                  <Route path="/contact" element={<Contact/>} />
                   <Route path="/faq" element={<Faq />}/>
                   <Route path="/policies" element={<Policies /> } />
                   <Route path="/terms" element={<Terms />}/>
