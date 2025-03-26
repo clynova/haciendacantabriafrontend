@@ -1,3 +1,7 @@
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 const uploadImageToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -20,6 +24,20 @@ const uploadImageToCloudinary = async (file) => {
         console.error("Error subiendo la imagen:", error);
         return null;
     }
+};
+
+
+export const sendContactForm = async (formData) => {
+  try {
+    const response = await axios.post(`${API_URL}/api/util/contact`, formData, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
 };
 
 export { uploadImageToCloudinary };
