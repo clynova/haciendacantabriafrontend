@@ -11,6 +11,7 @@ const AdminSidebar = () => {
     { to: '/admin/payment-methods', icon: FiCreditCard , label: 'Métodos de pago' },
     { to: '/admin/shipping-methods', icon: FiBox, label: 'Métodos de envío' },
     { to: '/admin/quotations', icon: FiBox, label: 'Cotizaciones' },
+    { to: '/admin/shipping-regions', icon: FiBox, label: 'Regiones de envío' },
   ];
 
   return (
