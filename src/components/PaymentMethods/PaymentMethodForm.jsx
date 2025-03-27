@@ -64,7 +64,6 @@ const PaymentMethodForm = ({ initialData, onSubmit, onCancel }) => {
                         <option value="">Seleccione un tipo</option>
                         <option value="transferencia">Transferencia</option>
                         <option value="webpay">Webpay</option>
-                        <option value="mercadopago">Mercadopago</option>
                         <option value="flow">Flow</option>
                     </select>
                 </div>
