@@ -1,68 +1,18 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Login } from "./pages/auth/Login";
-import { Register } from "./pages/auth/Register";
-import { ForgotPassword } from "./pages/auth/ForgotPassword";
-import { Home } from "./pages/Home";
+import { BrowserRouter, Routes } from "react-router-dom";
 import { GlobalProvider } from "./context/GlobalContext";
 import { PageTitle } from "./components/PageTitle";
 import { HelmetProvider } from 'react-helmet-async';
-import { MainLayout } from "./layouts/MainLayout/MainLayout";
-import { AuthLayout } from "./layouts/AuthLayout/AuthLayout";
-import { PasswordResetSuccess } from "./pages/auth/passwordResetSuccess";
-import { Categorias } from "./pages/Categorias";
 import { CartProvider } from './context/CartContext';
-import { NotFound } from "./pages/NotFound";
-import { ProductDetails } from "./pages/ProductDetails";
-import { MyProfile } from "./pages/Perfil/MyProfile";
 import { Toaster } from 'react-hot-toast';
-import { VerificationPending } from "./pages/auth/VerificationPending";
-import { VerificationSuccess } from "./pages/auth/VerificationSuccess";
 import { ProductProvider } from './context/ProductContext';
-import { ProfileLayout } from "./layouts/MainLayout/ProfileLayout";
 import { AuthProvider } from "./context/AuthContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { MyOrders } from "./pages/Perfil/MyOrders";
-import { MyWishlist } from "./pages/Perfil/MyWishlist";
-import { MyAddresses } from "./pages/Perfil/MyAddresses";
-import { MyConfiguration } from "./pages/Perfil/MyConfiguration";
-import { FormaEnvio } from "./pages/payment/FormaEnvio";
-import { CarroDeCompras } from "./pages/payment/CarroDeCompras";
-import { SistemaDePago } from "./pages/payment/SistemaDePago";
-import { CheckoutLayout } from "./layouts/MainLayout/CheckoutLayout";
-import { Confirmation } from './pages/payment/Confirmation';
-import { PaymentFailure } from './pages/payment/PaymentFailure';
-import { MyOrderDetails } from "./pages/Perfil/MyOrderDetails";
-import { MyQuotations } from "./pages/Perfil/MyQuotations";
-import { AdminRoute } from './components/AdminRoute';
-import { AdminDashboard } from './pages/admin/AdminDashboard';
-import { AdminProducts } from './pages/admin/AdminProducts';
-import { AdminOrders } from './pages/admin/AdminOrders';
-import { AdminUsers } from './pages/admin/AdminUsers';
-import { AdminCategories } from './pages/admin/AdminCategories';
-import { About } from "./pages/About";
-import { Faq } from "./pages/Faq";
-import { Policies } from './pages/Policies';
-import { Terms } from './pages/Terms';
-import { AdminLayout } from "./layouts/MainLayout/AdminLayout";
-import { AdminUserDetails } from "./pages/admin/AdminUserDetails";
-import { AdminUserCreate } from "./pages/admin/AdminUserCreate";
-import { AdminProductCreate } from "./pages/admin/AdminProductCreate";
-import { AdminProductDetails } from "./pages/admin/AdminProductDetails";
-import { AdminProductEdit } from "./pages/admin/AdminProductEdit";
-import { AdminMetodosDePago } from "./pages/admin/AdminMetodosDePago";
-import { AdminMetodosDeEnvio } from "./pages/admin/AdminMetodosDeEnvio";
-import { SolicitudDeCotizacion } from "./pages/payment/SolicitudDeCotizacion";  
-import { ConfirmacionCotizacion } from "./pages/payment/ConfirmacionCotizacion";
-import { AdminCotizaciones } from "./pages/admin/AdminCotizaciones";
-import { AdminQuotationDetails } from "./pages/admin/AdminQuotationDetails";
-import { MyQuotationsDetails } from "./pages/Perfil/MyQuotationsDetails";
-import { QuotationsCheckout } from "./pages/payment/QuotationsCheckout";
-import { AdminOrderDetails } from "./pages/admin/AdminOrderDetails";
-import { AdminRegionesDeEnvio } from "./pages/admin/AdminRegionesDeEnvio";
-import { Contact } from "./pages/Contact";
 
+// Importar rutas modulares
+import appRoutes from './routes';
 
 const App = () => {
+  const { authRoutes, homeRoutes, profileRoutes, adminRoutes, checkoutRoutes, publicRoutes } = appRoutes;
+  
   return (
     <AuthProvider>
       <ProductProvider>
@@ -72,88 +22,23 @@ const App = () => {
               <PageTitle />
               <BrowserRouter>
                 <Routes>
-                  <Route path="/" element={<MainLayout />}>
-                    <Route index element={<Home />} />
-                    <Route path="product/:_id" element={<ProductDetails />} />
-                  </Route>
-                  <Route path="/categoria/:nombre" element={<MainLayout />}>
-                    <Route index element={<Categorias />} />
-                  </Route>
-                  <Route path="/auth" element={<AuthLayout />}>
-                    <Route index element={<Login />} />
-                    <Route path="signup" element={<Register />} />
-                    <Route path="forgot-password" element={<ForgotPassword />} />
-                    <Route path="password-confirmada" element={<PasswordResetSuccess />} />
-                    <Route path="verification-pending" element={<VerificationPending />} />
-                    <Route path="verification-success" element={<VerificationSuccess />} />
-                  </Route>
-                  <Route path="/profile" element={
-                    <ProtectedRoute>
-                      <MainLayout />
-                    </ProtectedRoute>
-                  }>
-                    <Route element={<ProfileLayout />}>
-                      <Route index element={<MyProfile />} />
-                      <Route path="orders" element={<MyOrders />} />
-                      <Route path="orders/:orderId" element={<MyOrderDetails />} />
-                      <Route path="wishlist" element={<MyWishlist />} />
-                      <Route path="addresses" element={<MyAddresses />} />
-                      <Route path="settings" element={<MyConfiguration />} />
-                      <Route path="quotations" element={<MyQuotations />} />
-                      <Route path="quotations/:quotationId" element={<MyQuotationsDetails />} />
-                    </Route>
-                  </Route>
-                  <Route path="/admin" element={<AdminRoute><MainLayout /></AdminRoute>}>
-                    <Route element={<AdminLayout />}>
-                      <Route index element={<AdminDashboard />} />
-                      <Route path="products">
-                        <Route index element={<AdminProducts />} />
-                        <Route path="create" element={<AdminProductCreate />} /> {/* Changed from "new" to "create" for consistency */}
-                        <Route path=":productId/edit" element={<AdminProductEdit />} />
-                        <Route path=":productId" element={<AdminProductDetails />} />
-                      </Route>
-                      <Route path="orders">
-                        <Route index element={<AdminOrders />} />
-                        <Route path=":orderId" element={<AdminOrderDetails />} />
-                      </Route>
-                      <Route path="payment-methods" element={<AdminMetodosDePago />} />
-                      <Route path="shipping-methods" element={<AdminMetodosDeEnvio />} />
-                      <Route path="users">
-                        <Route index element={<AdminUsers />} />
-                        <Route path="new" element={<AdminUserCreate />} />
-                        <Route path=":userId" element={<AdminUserDetails />} />
-                      </Route>
-                      <Route path="quotations">
-                        <Route index element={<AdminCotizaciones />} />
-                        <Route path=":quotationId" element={<AdminQuotationDetails />} />
-                      </Route>
-                      <Route path="categories" element={<AdminCategories />} />
-                      <Route path="shipping-regions" element={<AdminRegionesDeEnvio />} />
-                    </Route>
-                  </Route>
-                  <Route path="/checkout" element={
-                    <ProtectedRoute>
-                      <MainLayout />
-                    </ProtectedRoute>
-                  }>
-                    <Route element={<CheckoutLayout />}>
-                      <Route index element={<CarroDeCompras />} />
-                      <Route path="envio" element={<FormaEnvio />} />
-                      <Route path="pago" element={<SistemaDePago />} />
-                      <Route path="cotizacion" element={<SolicitudDeCotizacion />} />
-                      <Route path="quotation/:quotationId" element={<QuotationsCheckout />} />
-                    </Route>
-                    <Route path="confirmation/success" element={<Confirmation />} />
-                    <Route path="confirmation/failure" element={<PaymentFailure />} />
-                    <Route path="confirmation/cotizacion" element={<ConfirmacionCotizacion />} />
-                  </Route>
-                  <Route path="/about" element={<About/>} />
-                  <Route path="/contact" element={<Contact/>} />
-                  <Route path="/faq" element={<Faq />}/>
-                  <Route path="/policies" element={<Policies /> } />
-                  <Route path="/terms" element={<Terms />}/>
-                  <Route path="*" element={<NotFound />} />
-                  <Route path="/product/:_id" element={<ProductDetails />} />
+                  {/* Rutas de Home */}
+                  {homeRoutes}
+                  
+                  {/* Rutas de autenticación */}
+                  {authRoutes}
+                  
+                  {/* Rutas de perfil */}
+                  {profileRoutes}
+                  
+                  {/* Rutas de administración */}
+                  {adminRoutes}
+                  
+                  {/* Rutas de checkout */}
+                  {checkoutRoutes}
+                  
+                  {/* Rutas públicas */}
+                  {publicRoutes}
                 </Routes>
               </BrowserRouter>
               <Toaster

@@ -111,7 +111,6 @@ const Faq = () => {
                     </div>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 };

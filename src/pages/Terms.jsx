@@ -119,7 +119,6 @@ const Terms = () => {
                     </motion.div>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 };
