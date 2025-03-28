@@ -39,7 +39,6 @@ export const InventorySection = ({ data, onChange }) => {
                         onChange={handleChange}
                         className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
                         min="0"
-                        required
                     />
                 </div>
 

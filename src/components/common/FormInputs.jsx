@@ -1,20 +1,36 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 
 export const FormInput = ({ 
     label, 
-    value = '', // Add default value
+    name, 
+    value, 
+    onChange, 
+    type = 'text', 
+    helperText, 
     ...props 
 }) => {
+    // Crear un nuevo objeto sin la propiedad helperText para pasarlo al input
+    const inputProps = { ...props };
+    
     return (
-        <div className="form-group">
+        <div>
             <label className="block text-sm font-medium text-gray-200 mb-1">
                 {label}
             </label>
             <input
+                type={type}
+                name={name}
+                value={value || ''}
+                onChange={onChange}
                 className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
-                value={value}
-                {...props}
+                {...inputProps}
             />
+            {helperText && (
+                <p className="text-xs text-gray-400 mt-1">
+                    {helperText}
+                </p>
+            )}
         </div>
     );
 };
@@ -82,14 +98,15 @@ export const FormTextarea = ({
 };
 
 FormInput.propTypes = {
-    label: PropTypes.string.isRequired,
+    label: PropTypes.string,
+    name: PropTypes.string,
     value: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.number
     ]),
     onChange: PropTypes.func.isRequired,
     type: PropTypes.string,
-    name: PropTypes.string.isRequired
+    helperText: PropTypes.string
 };
 
 FormSelect.propTypes = {

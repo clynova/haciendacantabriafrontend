@@ -70,7 +70,6 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                     value={formData.infoAceite.tipo}
                     onChange={(e) => handleInputChange(e, 'infoAceite')}
                     options={TIPO_ACEITE}
-                    required
                 />
                 <FormInput
                     label="Volumen (ml)"
@@ -79,7 +78,6 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                     value={formData.infoAceite.volumen}
                     onChange={(e) => handleInputChange(e, 'infoAceite')}
                     min="0"
-                    required
                 />
                 <FormSelect
                     label="Tipo de Envase"
@@ -87,7 +85,6 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                     value={formData.infoAceite.envase}
                     onChange={(e) => handleInputChange(e, 'infoAceite')}
                     options={TIPO_ENVASE}
-                    required
                 />
             </div>
             <h2 className="text-lg font-semibold text-slate-200">Características del Aceite</h2>
@@ -199,7 +196,6 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                         value={formData.produccion?.metodo || ''}
                         onChange={(e) => handleInputChange(e, 'produccion')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
-                        required
                     >
                         <option value="">Seleccione el método</option>
                         {METODOS_PRODUCCION.map(metodo => (
@@ -224,7 +220,6 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                             min="0"
                             max="300"
                             step="0.1"
-                            required
                             placeholder="0.0"
                         />
                         <span className="absolute right-3 top-2 text-gray-400">°C</span>
@@ -241,7 +236,6 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                         value={formData.produccion?.fechaEnvasado || ''}
                         onChange={(e) => handleInputChange(e, 'produccion')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
-                        required
                     />
                 </div>
 
@@ -255,7 +249,6 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                         value={formData.produccion?.fechaVencimiento || ''}
                         onChange={(e) => handleInputChange(e, 'produccion')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
-                        required
                         min={formData.produccion?.fechaEnvasado || ''}
                     />
                     {formData.produccion?.fechaVencimiento && 

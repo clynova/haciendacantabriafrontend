@@ -65,9 +65,6 @@ const AdminProductDetails = () => {
                                     <span className="text-slate-400">Tipo de Carne:</span> {product.infoCarne?.tipoCarne}
                                 </p>
                                 <p className="text-slate-300">
-                                    <span className="text-slate-400">Corte:</span> {product.infoCarne?.corte}
-                                </p>
-                                <p className="text-slate-300">
                                     <span className="text-slate-400">Precio por Kg:</span> ${product.infoCarne?.precioPorKg?.toFixed(2)}
                                 </p>
                                 <p className="text-slate-300">
@@ -424,9 +421,6 @@ const AdminProductDetails = () => {
                                 <h2 className="text-lg font-semibold text-slate-200">Información Básica</h2>
                                 <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
                                     <p className="text-slate-300">
-                                        <span className="text-slate-400">Código:</span> {product.codigo}
-                                    </p>
-                                    <p className="text-slate-300">
                                         <span className="text-slate-400">SKU:</span> {product.sku}
                                     </p>
                                     <p className="text-slate-300">
@@ -451,19 +445,6 @@ const AdminProductDetails = () => {
                                     <p className="text-slate-300">
                                         <span className="text-slate-400">Descuento Regular:</span> {product.precios?.descuentos?.regular}%
                                     </p>
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Descuento Transferencia:</span> {product.precios?.descuentos?.transferencia}%
-                                    </p>
-                                    <div className="mt-4 pt-4 border-t border-slate-600">
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">Promoción:</span> {product.precios?.promocion?.activa ? 'Activa' : 'Inactiva'}
-                                        </p>
-                                        {product.precios?.promocion?.activa && (
-                                            <p className="text-slate-300">
-                                                <span className="text-slate-400">Porcentaje Promoción:</span> {product.precios?.promocion?.porcentaje}%
-                                            </p>
-                                        )}
-                                    </div>
                                 </div>
                             </div>
                         </div>

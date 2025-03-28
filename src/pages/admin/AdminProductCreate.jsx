@@ -1,46 +1,40 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { BasicInfoSection } from '../../components/admin/products/BasicInfoSection';
 import { AceiteForm } from '../../components/admin/products/AceiteForm';
 import { CarneForm } from '../../components/admin/products/CarneForm';
-import { ImageUploader } from '../../components/admin/products/ImageUploader';
 import { ProductHeader } from '../../components/admin/products/ProductHeader';
-import { createProduct } from '../../services/adminService';
+import { createProduct, getAllProducts } from '../../services/adminService'; // Add getAllProducts import
 import { toast } from 'react-hot-toast';
 import { uploadImageToCloudinary } from '../../services/utilService';
 import { SubmitButton } from '../../components/common/SubmitButton';
 import { ProductTypeSelector } from '../../components/admin/products/ProductTypeSelector';
 import { NutritionalInfoSection } from '../../components/admin/products/NutritionalInfoSection';
-import { ConservationSection } from '../../components/admin/products/ConservationSection';
-import { PricingAndInventorySection } from '../../components/admin/products/PricingAndInventorySection';
-import { SeoSection } from '../../components/admin/products/SeoSection';
-import { AdditionalInfoSection } from '../../components/admin/products/AdditionalInfoSection';
 import { TestingTools } from '../../components/admin/products/TestingTools';
+import BaseProductForm from '../../components/admin/products/create/BaseProductForm';
 
-// Update the CORTES_CARNE constant to match backend enum values
+// Cortes de carne según el modelo del backend
 const CORTES_CARNE = [
-    'LOMO_VETADO',    // Replace ASADO
-    'LOMO_LISO',      // Replace BIFE
-    'PUNTA_PALETA',   // Replace LOMO
-    'TAPAPECHO',      // Replace COSTILLA
-    'PLATEADA',       // Replace POSTA
-    'ABASTERO',       // Replace OSOBUCO
-    'ASIENTO',
-    'POLLO',
-    'PUNTA_GANSO',
-    'PALANCA',
-    'HUACHALOMO',
-    'POSTA_NEGRA',
-    'POSTA_ROSADA',
-    'SOBRECOSTILLA',
-    'CHOCLILLO',
-    'TAPABARRIGA',
-    'ENTRANHA',
-    'MALAYA',
-    'PICANA'
+    'LOMO_VETADO', 'LOMO_LISO', 'ASADO_DEL_CARNICERO', 'PALANCA',
+    'POSTA_ROSADA', 'OSOBUCO_DE_MANO', 'GANSO', 'POSTA_DE_PALETA',
+    'CHOCLILLO', 'PUNTA_PICANA', 'ASIENTO', 'ENTRAÑA',
+    'ALETILLA', 'OSOBUCO_DE_PIERNA', 'FILETE', 'PUNTA_DE_PALETA',
+    'POSTA_NEGRA', 'POLLO_DE_GANSO', 'TAPAPECHO', 'PLATEADA',
+    'PUNTA_DE_GANSO', 'ABASTERO', 'TAPABARRIGA',
+    'BIFE_ANCHO', 'BIFE_ANGOSTO', 'BIFE_DE_PALETA', 'BIFE_DE_VACIO',
+    'BOLA_DE_LOMO', 'BRAZUELO', 'CARNAZA_DE_CUADRADA', 'CARNAZA_PALETA',
+    'CHINGOLO', 'COGOTE', 'COLITA_DE_CUADRIL', 'CORAZON_DE_CUADRIL',
+    'ENTRAÑA_FINA', 'FALDA_DESHUESADA', 'GARRON', 'HUACHALOMO',
+    'LOMO', 'MARUCHA', 'NALGA_DE_ADENTRO', 'PECETO',
+    'PECHO', 'SOBRECOSTILLA', 'TAPA_DE_BIFE_ANCHO', 'TAPA_DE_CUADRIL',
+    'TORTUGUITA', 'VACIO',
+    'MOLIDA_ESPECIAL', 'MOLIDA_CORRIENTE'
 ];
 
+// Categorías de productos según el modelo del backend
+const PRODUCT_CATEGORIES = ['CARNE', 'ACEITE', 'CONDIMENTO', 'ACCESORIO', 'OTRO'];
+
+// Función para generar slug a partir de texto
 const generateSlug = (text) => {
     return text
         .toString()
@@ -54,46 +48,15 @@ const generateSlug = (text) => {
         .replace(/-+$/, '');
 };
 
-// First, update the getDuplicateFieldMessage function to better handle MongoDB errors
-const getDuplicateFieldMessage = (error) => {
-    let field, value;
-
-    // Check for MongoDB duplicate key error pattern
-    if (error.keyPattern || error.error?.keyPattern) {
-        const keyPattern = error.keyPattern || error.error.keyPattern;
-        const keyValue = error.keyValue || error.error.keyValue;
-        field = Object.keys(keyPattern)[0];
-        value = keyValue[field];
-    } else if (typeof error === 'string') {
-        // Try to parse error message
-        const matches = error.match(/duplicate key error.*\{ (\w+): "([^"]+)" \}/);
-        if (matches) {
-            field = matches[1];
-            value = matches[2];
-        }
-    }
-
-    // Map technical field names to user-friendly Spanish names
-    const fieldMap = {
-        codigo: 'código',
-        sku: 'SKU',
-        nombre: 'nombre',
-        slug: 'URL amigable'
-    };
-
-    return {
-        field: fieldMap[field] || field,
-        value: value
-    };
-};
-
 const AdminProductCreate = () => {
     const navigate = useNavigate();
     const { token } = useAuth();
     const [loading, setLoading] = useState(false);
     const [selectedType, setSelectedType] = useState('ProductoAceite');
+    const [selectedCategoria, setSelectedCategoria] = useState('ACEITE');
+    
+    // Estado inicial para todos los tipos de productos
     const [formData, setFormData] = useState({
-        codigo: '',
         sku: '',
         nombre: '',
         tipoProducto: 'ProductoAceite',
@@ -107,18 +70,12 @@ const AdminProductCreate = () => {
         precios: {
             base: '',
             descuentos: {
-                regular: 0,
-                transferencia: 0
-            },
-            promocion: {
-                porcentaje: 0,
-                activa: false,
-                fechaInicio: '',
-                fechaFin: ''
+                regular: 0
             }
         },
         multimedia: {
-            imagenes: []
+            imagenes: [],
+            video: ''
         },
         seo: {
             metaTitulo: '',
@@ -136,36 +93,48 @@ const AdminProductCreate = () => {
             vidaUtil: '',
             instrucciones: ''
         },
+        tags: [],
+        // Para aceite
         infoAceite: {
             tipo: 'OLIVA',
             volumen: '',
             envase: 'BOTELLA'
         },
-        caracteristicas: {
+        caracteristicasAceite: {
             aditivos: [],
             filtracion: '',
             acidez: '',
             extraccion: ''
         },
-        usosRecomendados: [],
-        inventario: {
-            stockUnidades: '',
-            umbralStockBajo: '',
-            stockKg: ''  // Add this required field
-        },
+        // Para carne
         infoCarne: {
             tipoCarne: 'VACUNO',
-            corte: 'LOMO_VETADO',  // Use a valid enum value from CORTES_CARNE
+            corte: 'LOMO_VETADO',
             nombreArgentino: '',
-            nombreChileno: '',
-            precioPorKg: ''
+            nombreChileno: ''
         },
         caracteristicasCarne: {
-            color: '',
-            textura: [],
             porcentajeGrasa: '',
             marmoleo: 1,
+            color: '',
+            textura: []
         },
+        coccion: {
+            metodos: [],
+            temperaturaIdeal: '',
+            tiempoEstimado: '',
+            consejos: [],
+            recetas: []
+        },
+        opcionesPeso: {
+            esPesoVariable: true,
+            pesoPromedio: '',
+            pesoMinimo: '',
+            pesoMaximo: '',
+            pesosEstandar: [],
+            rangosPreferidos: []
+        },
+        // Para información nutricional (todos los productos)
         infoNutricional: {
             porcion: '',
             calorias: '',
@@ -179,27 +148,23 @@ const AdminProductCreate = () => {
             grasaPoliinsaturada: '',
             grasaMonoinsaturada: ''
         },
-        coccion: {
-            metodos: [],
-            temperaturaIdeal: '',
-            tiempoEstimado: '',
-            consejos: [],
-            recetas: []
-        },
+        // Campos adicionales para productos genéricos
+        tipoCondimento: '',
+        contenidoNeto: '',
+        tipoAccesorio: '',
+        material: '',
+        dimensiones: '',
+        descripcionEspecial: '',
+        // Campos para aceite
         produccion: {
             metodo: '',
             temperatura: '',
             fechaEnvasado: '',
             fechaVencimiento: ''
         },
-        peso: {
-            esPesoVariable: false,
-            pesoPromedio: '',
-            pesoMinimo: '',
-            pesoMaximo: ''
-        },
+        // Campos para carne
         empaque: {
-            tipo: '',
+            tipo: 'VACIO',
             unidadesPorCaja: '',
             pesoCaja: ''
         },
@@ -215,12 +180,36 @@ const AdminProductCreate = () => {
             fechaEnvasado: '',
             fechaVencimiento: '',
             numeroLote: ''
+        },
+        // Campo para inventario
+        inventario: {
+            stockUnidades: '',
+            umbralStockBajo: ''
         }
     });
 
+    // Manejador para cambios en inputs genéricos
     const handleInputChange = (e, section, subsection) => {
         const { name, value, type, checked } = e.target;
-
+        
+        // Manejar campos específicos de cada tipo de producto
+        if (section === 'caracteristicas') {
+            // Dirigir a caracteristicasAceite o caracteristicasCarne según el tipo seleccionado
+            const targetSection = selectedType === 'ProductoAceite' 
+                ? 'caracteristicasAceite' 
+                : 'caracteristicasCarne';
+            
+            setFormData(prev => ({
+                ...prev,
+                [targetSection]: {
+                    ...prev[targetSection],
+                    [name]: type === 'checkbox' ? checked : value
+                }
+            }));
+            return;
+        }
+        
+        // Para otros campos con estructura jerárquica
         if (section) {
             if (subsection) {
                 setFormData(prev => ({
@@ -250,25 +239,21 @@ const AdminProductCreate = () => {
         }
     };
 
+    // Manejador para cambio de tipo de producto
     const handleTypeChange = (e) => {
         const newType = e.target.value;
+        const newCategoria = e.target.dataset?.categoria || 'ACEITE';
+        
         setSelectedType(newType);
+        setSelectedCategoria(newCategoria);
+        
         setFormData(prev => ({
             ...prev,
             tipoProducto: newType,
-            categoria: newType === 'ProductoAceite' ? 'ACEITE' : 'CARNE'
+            categoria: newCategoria
         }));
     };
-
-    const handleArrayInput = (e, field) => {
-        const values = e.target.value.split(',').map(item => item.trim());
-        setFormData(prev => ({
-            ...prev,
-            [field]: values
-        }));
-    };
-
-    // Update the handleImageUpload function
+    // Manejador para subir imágenes
     const handleImageUpload = async (e) => {
         const files = Array.from(e.target.files);
 
@@ -280,11 +265,11 @@ const AdminProductCreate = () => {
                         url: cloudinaryUrl,
                         nombre: file.name,
                         tipo: file.type,
-                        textoAlternativo: file.name, // Default alt text
+                        textoAlternativo: file.name, // Texto alt predeterminado
                         esPrincipal: false
                     };
                 }
-                throw new Error(`Failed to upload ${file.name}`);
+                throw new Error(`Error al subir ${file.name}`);
             });
 
             const uploadedImages = await Promise.all(uploadPromises);
@@ -305,11 +290,12 @@ const AdminProductCreate = () => {
 
             toast.success(`${uploadedImages.length} imágenes subidas exitosamente`);
         } catch (error) {
-            console.error('Error processing images:', error);
+            console.error('Error al procesar imágenes:', error);
             toast.error('Error al subir las imágenes');
         }
     };
 
+    // Manejador para eliminar imágenes
     const handleImageDelete = (index) => {
         setFormData(prev => ({
             ...prev,
@@ -321,18 +307,18 @@ const AdminProductCreate = () => {
         toast.success('Imagen eliminada');
     };
 
-    // Add new handlers
+    // Manejador para actualizar texto alternativo o imagen principal
     const handleUpdateAltText = (index, newAltText, setPrincipal = false) => {
         setFormData(prev => {
             const updatedImages = [...prev.multimedia.imagenes];
 
             if (setPrincipal) {
-                // Update principal image
+                // Actualizar imagen principal
                 updatedImages.forEach((img, i) => {
                     img.esPrincipal = i === index;
                 });
             } else {
-                // Update alt text
+                // Actualizar texto alternativo
                 updatedImages[index] = {
                     ...updatedImages[index],
                     textoAlternativo: newAltText
@@ -349,6 +335,7 @@ const AdminProductCreate = () => {
         });
     };
 
+    // Manejador para cambiar video
     const handleVideoChange = (e) => {
         setFormData(prev => ({
             ...prev,
@@ -359,264 +346,306 @@ const AdminProductCreate = () => {
         }));
     };
 
-    // Add inside the AdminProductCreate component, before the return statement
+    // Manejador para cargar datos de prueba
     const handleTestDataFill = (testData) => {
+        console.log('Recibiendo datos de prueba:', testData);
+        
+        // Actualizar el tipo y categoría según los datos de prueba
+        if (testData.tipoProducto) {
+            setSelectedType(testData.tipoProducto);
+        }
+        
+        if (testData.categoria) {
+            setSelectedCategoria(testData.categoria);
+        }
+        
+        setFormData(prev => {
+            const updatedForm = {
+                ...prev,
+                ...testData,
+                estado: true,
+                destacado: false,
+                conservacion: {
+                    ...prev.conservacion,
+                    ...testData.conservacion,
+                    requiereRefrigeracion: Boolean(testData.conservacion?.requiereRefrigeracion),
+                    requiereCongelacion: Boolean(testData.conservacion?.requiereCongelacion)
+                },
+                opcionesPeso: {
+                    ...prev.opcionesPeso,
+                    ...testData.opcionesPeso,
+                    esPesoVariable: Boolean(testData.opcionesPeso?.esPesoVariable)
+                }
+            };
+            console.log('Formulario actualizado:', updatedForm);
+            return updatedForm;
+        });
+    };
+
+    // Manejador para cambiar tags
+    const handleTagChange = (newTags) => {
         setFormData(prev => ({
             ...prev,
-            ...testData,
-            estado: true, // Ensure boolean value
-            destacado: false, // Ensure boolean value
-            conservacion: {
-                ...prev.conservacion,
-                ...testData.conservacion,
-                requiereRefrigeracion: Boolean(testData.conservacion?.requiereRefrigeracion),
-                requiereCongelacion: Boolean(testData.conservacion?.requiereCongelacion)
-            },
-            peso: {
-                ...prev.peso,
-                ...testData.peso,
-                esPesoVariable: Boolean(testData.peso?.esPesoVariable)
-            }
+            tags: newTags
         }));
     };
 
-    // Add validation before submitting
+    // Add the missing function to check if SKU exists
+    const checkExistingSku = async (sku) => {
+        try {
+            const response = await getAllProducts(token, { sku });
+            return response.products && response.products.some(product => 
+                product.sku.toLowerCase() === sku.toLowerCase()
+            );
+        } catch (error) {
+            console.error('Error al verificar SKU:', error);
+            return false; // En caso de error, permitir continuar
+        }
+    };
+
+    // Fix the submit handler
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Define the loadingToast variable here
+        let loadingToast;
+
         try {
             setLoading(true);
-            const loadingToast = toast.loading('Creando producto...');
+            loadingToast = toast.loading('Creando producto...'); // Define it here
 
-            // Validate meat cut if it's a meat product
+            // Validar campos obligatorios
+            if (!formData.sku || !formData.nombre) {
+                toast.dismiss(loadingToast);
+                toast.error('SKU y Nombre son campos obligatorios');
+                setLoading(false);
+                return;
+            }
+
+            // Verificar si el SKU ya existe
+            const skuExists = await checkExistingSku(formData.sku);
+            if (skuExists) {
+                toast.dismiss(loadingToast);
+                toast.error(`Ya existe un producto con el SKU: "${formData.sku}". Utilice un valor único.`);
+                setLoading(false);
+                return;
+            }
+
+            // Validar el corte de carne si es un producto de carne
             if (selectedType === 'ProductoCarne' && !CORTES_CARNE.includes(formData.infoCarne.corte)) {
+                toast.dismiss(loadingToast);
                 toast.error('El corte seleccionado no es válido');
                 setLoading(false);
                 return;
             }
 
-            // Generate slug from nombre if it doesn't exist
-            const slug = generateSlug(formData.nombre);
+            // Generar slug único con timestamp
+            const slug = generateSlug(formData.nombre) + '-' + Date.now();
 
-            // Transform data before sending
-            const dataToSend = {
-                ...formData,
-                slug, // Add the generated slug
+            // Preparar datos base
+            const baseData = {
+                sku: formData.sku,
+                nombre: formData.nombre,
+                slug,
+                categoria: selectedCategoria,
                 estado: Boolean(formData.estado),
+                destacado: Boolean(formData.destacado),
+                descripcion: formData.descripcion,
                 precios: {
                     ...formData.precios,
                     base: Number(formData.precios.base) || 0,
                     descuentos: {
-                        regular: Number(formData.precios.descuentos.regular) / 100 || 0,
-                        transferencia: Number(formData.precios.descuentos.transferencia) / 100 || 0
+                        regular: Number(formData.precios.descuentos.regular) / 100 || 0
                     }
                 },
-                // Add any other necessary transformations...
+                multimedia: formData.multimedia,
+                seo: {
+                    ...formData.seo,
+                    slug
+                },
+                infoAdicional: formData.infoAdicional,
+                conservacion: {
+                    ...formData.conservacion,
+                    requiereRefrigeracion: Boolean(formData.conservacion.requiereRefrigeracion),
+                    requiereCongelacion: Boolean(formData.conservacion.requiereCongelacion)
+                },
+                inventario: {
+                    ...formData.inventario,
+                    stockUnidades: Number(formData.inventario.stockUnidades) || 0,
+                    umbralStockBajo: Number(formData.inventario.umbralStockBajo) || 5
+                },
+                tags: formData.tags || []
             };
 
+            // Preparar datos específicos según el tipo de producto
+            let specificData = {};
+            
+            if (selectedType === 'ProductoAceite') {
+                specificData = {
+                    tipoProducto: 'ProductoAceite',
+                    infoAceite: {
+                        ...formData.infoAceite,
+                        volumen: Number(formData.infoAceite.volumen) || 0
+                    },
+                    caracteristicas: formData.caracteristicasAceite,
+                    produccion: formData.produccion,
+                    infoNutricional: {
+                        ...formData.infoNutricional,
+                        calorias: Number(formData.infoNutricional.calorias) || 0,
+                        grasaTotal: Number(formData.infoNutricional.grasaTotal) || 0,
+                        grasaSaturada: Number(formData.infoNutricional.grasaSaturada) || 0,
+                        grasaTrans: formData.infoNutricional.grasaTrans || '',
+                        grasaPoliinsaturada: formData.infoNutricional.grasaPoliinsaturada || '',
+                        grasaMonoinsaturada: formData.infoNutricional.grasaMonoinsaturada || ''
+                    }
+                };
+            } else if (selectedType === 'ProductoCarne') {
+                specificData = {
+                    tipoProducto: 'ProductoCarne',
+                    infoCarne: formData.infoCarne,
+                    caracteristicas: formData.caracteristicasCarne,
+                    coccion: {
+                        ...formData.coccion,
+                        metodos: Array.isArray(formData.coccion.metodos) ? formData.coccion.metodos : []
+                    },
+                    opcionesPeso: {
+                        ...formData.opcionesPeso,
+                        esPesoVariable: Boolean(formData.opcionesPeso.esPesoVariable),
+                        pesoPromedio: Number(formData.opcionesPeso.pesoPromedio) || null,
+                        pesoMinimo: Number(formData.opcionesPeso.pesoMinimo) || null,
+                        pesoMaximo: Number(formData.opcionesPeso.pesoMaximo) || null
+                    },
+                    empaque: formData.empaque,
+                    origen: formData.origen,
+                    procesamiento: formData.procesamiento,
+                    infoNutricional: {
+                        ...formData.infoNutricional,
+                        calorias: Number(formData.infoNutricional.calorias) || 0,
+                        proteinas: Number(formData.infoNutricional.proteinas) || 0,
+                        grasaTotal: Number(formData.infoNutricional.grasaTotal) || 0,
+                        grasaSaturada: Number(formData.infoNutricional.grasaSaturada) || 0,
+                        colesterol: Number(formData.infoNutricional.colesterol) || 0,
+                        sodio: Number(formData.infoNutricional.sodio) || 0,
+                        carbohidratos: Number(formData.infoNutricional.carbohidratos) || 0
+                    }
+                };
+            } else {
+                // Para otros tipos de productos (CONDIMENTO, ACCESORIO, OTRO)
+                specificData = {
+                    tipoProducto: 'ProductoBase',
+                    // Incluir información específica según la categoría
+                    infoEspecifica: {
+                        categoria: selectedCategoria,
+                        // Para condimentos
+                        ...(selectedCategoria === 'CONDIMENTO' && {
+                            tipoCondimento: formData.tipoCondimento || '',
+                            contenidoNeto: Number(formData.contenidoNeto) || 0
+                        }),
+                        // Para accesorios
+                        ...(selectedCategoria === 'ACCESORIO' && {
+                            tipoAccesorio: formData.tipoAccesorio || '',
+                            material: formData.material || '',
+                            dimensiones: formData.dimensiones || ''
+                        }),
+                        // Para otros productos
+                        ...(selectedCategoria === 'OTRO' && {
+                            descripcionEspecial: formData.descripcionEspecial || ''
+                        })
+                    },
+                    infoNutricional: {
+                        ...formData.infoNutricional,
+                        calorias: Number(formData.infoNutricional.calorias) || 0,
+                        proteinas: Number(formData.infoNutricional.proteinas) || 0,
+                        grasaTotal: Number(formData.infoNutricional.grasaTotal) || 0,
+                        grasaSaturada: Number(formData.infoNutricional.grasaSaturada) || 0,
+                        colesterol: Number(formData.infoNutricional.colesterol) || 0,
+                        sodio: Number(formData.infoNutricional.sodio) || 0,
+                        carbohidratos: Number(formData.infoNutricional.carbohidratos) || 0
+                    }
+                };
+            }
+
+            // Combinar datos
+            const dataToSend = {
+                ...baseData,
+                ...specificData
+            };
+
+            // Eliminar campos duplicados y temporales
+            delete dataToSend.caracteristicasAceite;
+            delete dataToSend.caracteristicasCarne;
+            delete dataToSend.tipoCondimento;
+            delete dataToSend.contenidoNeto;
+            delete dataToSend.tipoAccesorio;
+            delete dataToSend.material;
+            delete dataToSend.dimensiones;
+            delete dataToSend.descripcionEspecial;
+
+            console.log('Enviando datos al servidor:', dataToSend);
+            
+            // Enviar datos al servidor
             const response = await createProduct(dataToSend, token);
-
+            
+            // Manejar respuesta exitosa
             toast.dismiss(loadingToast);
-
-            if (response.success) {
-                toast.success('Producto creado exitosamente');
-                navigate('/admin/products');
-            } else {
-                // Handle validation errors
-                if (response.error?.errores?.length > 0) {
-                    toast.custom((t) => (
-                        <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg max-w-lg">
-                            <div className="flex items-center mb-3">
-                                <svg className="w-6 h-6 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <h3 className="font-semibold text-lg">Errores de validación</h3>
-                            </div>
-                            <ul className="list-disc pl-5 space-y-1">
-                                {response.error.errores.map((err, index) => (
-                                    <li key={index} className="text-sm">
-                                        <span className="font-medium">
-                                            {err.campo === 'slug' ? 'URL amigable' : err.campo}:
-                                        </span>{' '}
-                                        {err.mensaje}
-                                    </li>
-                                ))}
-                            </ul>
-                            <button
-                                onClick={() => toast.dismiss(t.id)}
-                                className="mt-4 text-sm text-slate-400 hover:text-white"
-                            >
-                                Cerrar
-                            </button>
-                        </div>
-                    ), {
-                        duration: 8000,
-                        position: 'top-center',
-                    });
-                } else if (response.code === 11000 || response.error?.code === 11000) {
-                    const { field, value } = getDuplicateFieldMessage(response.error || response);
-
-                    toast.custom((t) => (
-                        <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg">
-                            <div className="flex items-center mb-3">
-                                <svg className="w-6 h-6 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                <h3 className="font-semibold text-lg">Producto Duplicado</h3>
-                            </div>
-                            <div className="space-y-2">
-                                <p className="text-sm">
-                                    Ya existe un producto con el {field}:
-                                    <span className="font-bold ml-1 text-yellow-400">{value}</span>
-                                </p>
-                                <p className="text-sm text-gray-300">
-                                    Por favor, utiliza un {field} diferente para este producto.
-                                </p>
-                                {field === 'SKU' && (
-                                    <p className="text-xs text-gray-400 mt-1">
-                                        Tip: El SKU debe ser único para cada producto.
-                                    </p>
-                                )}
-                            </div>
-                            <button
-                                onClick={() => toast.dismiss(t.id)}
-                                className="mt-4 text-sm text-slate-400 hover:text-white"
-                            >
-                                Cerrar
-                            </button>
-                        </div>
-                    ), {
-                        duration: 8000,
-                        position: 'top-center',
-                    });
-                    return; // Stop execution after showing duplicate error
-                } else {
-                    toast.error(response.msg || 'Error al crear el producto');
-                }
-            }
+            toast.success('Producto creado exitosamente');
+            console.log('Respuesta del servidor:', response);
+            
+            navigate('/admin/products');
+            
         } catch (error) {
-            console.error('Error en el proceso de creación:', error);
-
-            // Check for duplicate key error in various formats
-            if (error.code === 11000 ||
-                error.error?.code === 11000 ||
-                error.message?.includes('duplicate key error') ||
-                error.error?.message?.includes('duplicate key error')) {
-
-                const duplicateInfo = getDuplicateFieldMessage(error);
-
-                if (duplicateInfo.field && duplicateInfo.value) {
-                    toast.custom((t) => (
-                        <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg">
-                            <div className="flex items-center mb-3">
-                                <svg className="w-6 h-6 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                <h3 className="font-semibold text-lg">Producto Duplicado</h3>
-                            </div>
-                            <div className="space-y-2">
-                                <p className="text-sm">
-                                    Ya existe un producto con el mismo {duplicateInfo.field}:
-                                    <span className="font-bold ml-1 text-yellow-400">{duplicateInfo.value}</span>
-                                </p>
-                                <p className="text-sm text-gray-300">
-                                    Por favor, utiliza un {duplicateInfo.field} diferente para este producto.
-                                </p>
-                                {duplicateInfo.field === 'SKU' && (
-                                    <p className="text-xs text-gray-400 mt-1">
-                                        Tip: El SKU debe ser único para cada producto.
-                                    </p>
-                                )}
-                                {duplicateInfo.field === 'código' && (
-                                    <p className="text-xs text-gray-400 mt-1">
-                                        Tip: El código debe ser único para cada producto.
-                                    </p>
-                                )}
-                            </div>
-                            <button
-                                onClick={() => toast.dismiss(t.id)}
-                                className="mt-4 text-sm text-slate-400 hover:text-white"
-                            >
-                                Cerrar
-                            </button>
-                        </div>
-                    ), {
-                        duration: 10000, // Increased duration to ensure message is seen
-                        position: 'top-center',
-                    });
-                    return;
-                }
-            }
-
-            // Add duplicate handling in catch block too
-            if (error.code === 11000 || error.error?.code === 11000) {
-                const { field, value } = getDuplicateFieldMessage(error.error || error);
-
-                toast.custom((t) => (
-                    <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg">
-                        <div className="flex items-center mb-3">
-                            <svg className="w-6 h-6 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                            <h3 className="font-semibold text-lg">Producto Duplicado</h3>
-                        </div>
-                        <div className="space-y-2">
-                            <p className="text-sm">
-                                Ya existe un producto con el {field}:
-                                <span className="font-bold ml-1 text-yellow-400">{value}</span>
-                            </p>
-                            <p className="text-sm text-gray-300">
-                                Por favor, utiliza un {field} diferente para este producto.
-                            </p>
-                            {field === 'SKU' && (
-                                <p className="text-xs text-gray-400 mt-1">
-                                    Tip: El SKU debe ser único para cada producto.
-                                </p>
-                            )}
-                        </div>
-                        <button
-                            onClick={() => toast.dismiss(t.id)}
-                            className="mt-4 text-sm text-slate-400 hover:text-white"
-                        >
-                            Cerrar
-                        </button>
-                    </div>
-                ));
-            } else if (error.error?.errores?.length > 0) {
-                toast.custom((t) => (
-                    <div className="bg-slate-800 text-white px-6 py-4 rounded-lg shadow-lg max-w-lg">
-                        <div className="flex items-center mb-3">
-                            <svg className="w-6 h-6 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <h3 className="font-semibold text-lg">Error al crear el producto</h3>
-                        </div>
-                        <ul className="list-disc pl-5 space-y-1">
-                            {error.error.errores.map((err, index) => (
-                                <li key={index} className="text-sm">
-                                    <span className="font-medium">{err.campo}:</span> {err.mensaje}
-                                </li>
-                            ))}
-                        </ul>
-                        <button
-                            onClick={() => toast.dismiss(t.id)}
-                            className="mt-4 text-sm text-slate-400 hover:text-white"
-                        >
-                            Cerrar
-                        </button>
-                    </div>
-                ), {
-                    duration: 8000,
-                    position: 'top-center',
-                });
-            } else {
-                toast.error(`Error: ${error.message || 'Error desconocido'}`);
-            }
-        } finally {
+            console.error('Error al crear producto:', error);
+            if (loadingToast) toast.dismiss(loadingToast); // Check if defined before dismissing
             setLoading(false);
+            
+            // Manejar errores de duplicación de forma más completa
+            if (error.response?.data?.error?.type === "DuplicateKeyError") {
+                // Formato de error específico con tipo
+                const field = error.response.data.error.field;
+                const value = error.response.data.error.value;
+                
+                const fieldNames = {
+                    sku: 'SKU',
+                    nombre: 'Nombre',
+                    slug: 'URL amigable',
+                };
+                
+                const fieldName = fieldNames[field] || field;
+                toast.error(`Ya existe un producto con ${fieldName}: "${value}". Utilice un valor único.`);
+            } 
+            else if (error.code === 11000 || error.response?.data?.code === 11000) {
+                // MongoDB duplicate key error code
+                const errorData = error.response?.data || error;
+                const keyPattern = errorData.keyPattern || {};
+                const field = Object.keys(keyPattern)[0] || 'campo';
+                
+                const fieldNames = {
+                    sku: 'SKU',
+                    nombre: 'Nombre',
+                    slug: 'URL amigable'
+                };
+                
+                const fieldName = fieldNames[field] || field;
+                toast.error(`Ya existe un producto con el mismo ${fieldName}. Utilice un valor único.`);
+            }
+            else if (error.response?.status === 400) {
+                // A veces el backend envía un mensaje específico para duplicados
+                const errorMsg = error.response.data?.msg || '';
+                if (errorMsg.includes('Ya existe un producto con ese SKU') || 
+                    errorMsg.includes('Ya existe un producto con ese slug') ||
+                    errorMsg.includes('existe un producto con el mismo valor') ||
+                    errorMsg.includes('duplicate key')) {
+                    toast.error(errorMsg);
+                } else {
+                    toast.error(errorMsg || 'Error al crear el producto. Verifica los datos e intenta nuevamente.');
+                }
+            } 
+            else if (error.response?.data?.message) {
+                toast.error(error.response.data.message);
+            } 
+            else {
+                toast.error('Error al crear el producto. Verifica los datos e intenta nuevamente.');
+            }
         }
     };
 
@@ -629,51 +658,45 @@ const AdminProductCreate = () => {
                     <div className="p-6 space-y-6">
                         <ProductTypeSelector
                             selectedType={selectedType}
+                            selectedCategoria={selectedCategoria}
                             onChange={handleTypeChange}
                         />
 
-                        <BasicInfoSection
+                        {/* Componente base para todos los campos comunes */}
+                        <BaseProductForm
                             formData={formData}
                             handleInputChange={handleInputChange}
+                            handleImageUpload={handleImageUpload}
+                            handleImageDelete={handleImageDelete}
+                            handleUpdateAltText={handleUpdateAltText}
+                            handleVideoChange={handleVideoChange}
+                            handleTagChange={handleTagChange}
                         />
 
-                        <PricingAndInventorySection
-                            formData={formData}
-                            handleInputChange={handleInputChange}
-                        />
-
-                        {selectedType === 'ProductoAceite' ? (
+                        {/* Formularios específicos basados en el tipo de producto */}
+                        {selectedType === 'ProductoAceite' && (
                             <AceiteForm
-                                formData={formData}
-                                handleInputChange={handleInputChange}
-                            />
-                        ) : (
-                            <CarneForm
-                                formData={formData}
+                                formData={{
+                                    ...formData,
+                                    caracteristicas: formData.caracteristicasAceite
+                                }}
                                 handleInputChange={handleInputChange}
                             />
                         )}
 
+                        {selectedType === 'ProductoCarne' && (
+                            <CarneForm
+                                formData={{
+                                    ...formData,
+                                    caracteristicas: formData.caracteristicasCarne
+                                }}
+                                handleInputChange={handleInputChange}
+                                cortesCarne={CORTES_CARNE}
+                            />
+                        )}
+
+                        {/* Para todos los productos se muestra la información nutricional */}
                         <NutritionalInfoSection
-                            formData={formData}
-                            handleInputChange={handleInputChange}
-                        />
-                        <AdditionalInfoSection
-                            formData={formData}
-                            handleInputChange={handleInputChange}
-                        />
-                        <ConservationSection
-                            formData={formData}
-                            handleInputChange={handleInputChange}
-                        />
-                        <ImageUploader
-                            images={formData.multimedia.imagenes}
-                            onUpload={handleImageUpload}
-                            onDelete={handleImageDelete}
-                            onUpdateAltText={handleUpdateAltText}
-                            onVideoChange={handleVideoChange}
-                        />
-                        <SeoSection
                             formData={formData}
                             handleInputChange={handleInputChange}
                         />
@@ -682,6 +705,11 @@ const AdminProductCreate = () => {
                     </div>
                 </form>
             </div>
+            <TestingTools 
+                onTestDataFill={handleTestDataFill} 
+                selectedType={selectedType}
+                selectedCategoria={selectedCategoria}
+            />
         </div>
     );
 };

@@ -1,4 +1,4 @@
-import { FormInput, FormTextarea, FormSelect } from '../../common/FormInputs';
+import { FormInput, FormTextarea, FormSelect } from '../../../common/FormInputs';
 
 export const BasicInfoSection = ({ formData, handleInputChange }) => {
     return (
@@ -7,13 +7,6 @@ export const BasicInfoSection = ({ formData, handleInputChange }) => {
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-slate-200">Información Básica</h2>
                 <div className="space-y-4">
-                    <FormInput
-                        label="Código *"
-                        name="codigo"
-                        value={formData.codigo}
-                        onChange={handleInputChange}
-                        required
-                    />
                     <FormInput
                         label="SKU *"
                         name="sku"

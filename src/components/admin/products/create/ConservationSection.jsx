@@ -1,4 +1,4 @@
-import { FormInput, FormTextarea } from '../../common/FormInputs';
+import { FormInput, FormTextarea } from '../../../common/FormInputs';
 
 export const ConservationSection = ({ formData, handleInputChange }) => {
     return (

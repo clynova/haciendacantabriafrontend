@@ -1,33 +1,46 @@
-export const ProductTypeSelector = ({ selectedType, onChange }) => {
+import React from 'react';
+import PropTypes from 'prop-types';
+
+// Definir todos los tipos de productos y sus categorías
+const PRODUCT_TYPES = [
+    { value: 'ProductoAceite', label: 'Aceite', categoria: 'ACEITE' },
+    { value: 'ProductoCarne', label: 'Carne', categoria: 'CARNE' },
+    { value: 'ProductoBase', label: 'Condimento', categoria: 'CONDIMENTO' },
+    { value: 'ProductoBase', label: 'Accesorio', categoria: 'ACCESORIO' },
+    { value: 'ProductoBase', label: 'Otro', categoria: 'OTRO' }
+];
+
+export const ProductTypeSelector = ({ selectedType, selectedCategoria, onChange }) => {
     return (
-        <div className="mb-6">
-            <h2 className="text-lg font-semibold text-slate-200 mb-4">Tipo de Producto</h2>
-            <div className="grid grid-cols-2 gap-4">
-                <button
-                    type="button"
-                    onClick={() => onChange({ target: { value: 'ProductoAceite' }})}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                        selectedType === 'ProductoAceite'
-                            ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                            : 'border-slate-600 hover:border-slate-500 text-slate-300'
-                    }`}
-                >
-                    <div className="text-3xl mb-2">🫒</div>
-                    <div className="font-medium">Aceite</div>
-                </button>
-                <button
-                    type="button"
-                    onClick={() => onChange({ target: { value: 'ProductoCarne' }})}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                        selectedType === 'ProductoCarne'
-                            ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                            : 'border-slate-600 hover:border-slate-500 text-slate-300'
-                    }`}
-                >
-                    <div className="text-3xl mb-2">🥩</div>
-                    <div className="font-medium">Carne</div>
-                </button>
+        <div className="bg-slate-700 rounded-lg p-4">
+            <h2 className="text-lg font-semibold text-white mb-3">Tipo de Producto</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                {PRODUCT_TYPES.map((type) => (
+                    <button
+                        key={`${type.value}-${type.categoria}`}
+                        type="button"
+                        onClick={() => onChange({
+                            target: { 
+                                value: type.value,
+                                dataset: { categoria: type.categoria }
+                            }
+                        })}
+                        className={`py-2 px-4 rounded-md text-center transition-colors ${
+                            selectedType === type.value && selectedCategoria === type.categoria
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-600 text-gray-200 hover:bg-slate-500'
+                        }`}
+                    >
+                        {type.label}
+                    </button>
+                ))}
             </div>
         </div>
     );
+};
+
+ProductTypeSelector.propTypes = {
+    selectedType: PropTypes.string.isRequired,
+    selectedCategoria: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired
 };

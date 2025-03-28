@@ -1,4 +1,4 @@
-import { FormInput } from '../../common/FormInputs';
+import { FormInput } from '../../../common/FormInputs';
 
 export const PricingAndInventorySection = ({ formData, handleInputChange }) => {
     // Add default values and null checks
@@ -28,32 +28,6 @@ export const PricingAndInventorySection = ({ formData, handleInputChange }) => {
                         value={descuentos.regular || ''}
                         onChange={(e) => handleInputChange(e, 'precios', 'descuentos')}
                     />
-                    <FormInput
-                        label="Descuento Transferencia (%)"
-                        type="number"
-                        name="transferencia"
-                        value={descuentos.transferencia || ''}
-                        onChange={(e) => handleInputChange(e, 'precios', 'descuentos')}
-                    />
-                </div>
-            </div>
-
-            {/* Promoción */}
-            <div>
-                <h3 className="text-md font-medium text-slate-300 mb-3">Promoción</h3>
-                <div className="space-y-4">
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
-                            name="activa"
-                            checked={promocion.activa || false}
-                            onChange={(e) => handleInputChange(e, 'precios', 'promocion')}
-                            className="w-4 h-4 text-blue-600"
-                        />
-                        <label className="ml-2 text-sm text-slate-300">
-                            Promoción Activa
-                        </label>
-                    </div>
                 </div>
             </div>
 
@@ -71,7 +45,7 @@ export const PricingAndInventorySection = ({ formData, handleInputChange }) => {
                         
                     />
                     <FormInput
-                        label="Stock Mínimo"
+                        label="Umbral Stock Bajo"
                         type="number"
                         name="umbralStockBajo"
                         value={inventario.umbralStockBajo || ''}
