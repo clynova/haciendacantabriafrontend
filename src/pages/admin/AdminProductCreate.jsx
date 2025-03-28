@@ -9,7 +9,6 @@ import { toast } from 'react-hot-toast';
 import { uploadImageToCloudinary } from '../../services/utilService';
 import { SubmitButton } from '../../components/common/SubmitButton';
 import { ProductTypeSelector } from '../../components/admin/products/ProductTypeSelector';
-import { NutritionalInfoSection } from '../../components/admin/products/NutritionalInfoSection';
 // import { TestingTools } from '../../components/admin/products/TestingTools';
 import BaseProductForm from '../../components/admin/products/create/BaseProductForm';
 
@@ -137,16 +136,16 @@ const AdminProductCreate = () => {
         // Para información nutricional (todos los productos)
         infoNutricional: {
             porcion: '',
-            calorias: '',
-            proteinas: '',
-            grasaTotal: '',
-            grasaSaturada: '',
-            colesterol: '',
-            sodio: '',
-            carbohidratos: '',
-            grasaTrans: '',
-            grasaPoliinsaturada: '',
-            grasaMonoinsaturada: ''
+            calorias: 0, // Changed from '' to 0
+            proteinas: 0, // Changed from '' to 0
+            grasaTotal: 0, // Changed from '' to 0
+            grasaSaturada: 0, // Changed from '' to 0
+            colesterol: 0, // Changed from '' to 0
+            sodio: 0, // Changed from '' to 0
+            carbohidratos: 0, // Changed from '' to 0
+            grasaTrans: 0, // Changed from '' to 0
+            grasaPoliinsaturada: 0, // Changed from '' to 0
+            grasaMonoinsaturada: 0 // Changed from '' to 0
         },
         // Campos adicionales para productos genéricos
         tipoCondimento: '',
@@ -188,53 +187,48 @@ const AdminProductCreate = () => {
         }
     });
 
-    // Manejador para cambios en inputs genéricos
+    // Update handleInputChange function
     const handleInputChange = (e, section, subsection) => {
-        const { name, value, type, checked } = e.target;
-        
-        // Manejar campos específicos de cada tipo de producto
-        if (section === 'caracteristicas') {
-            // Dirigir a caracteristicasAceite o caracteristicasCarne según el tipo seleccionado
-            const targetSection = selectedType === 'ProductoAceite' 
-                ? 'caracteristicasAceite' 
-                : 'caracteristicasCarne';
+        if (typeof e === 'object' && e.target) {
+            const { name, value, type, checked } = e.target;
             
-            setFormData(prev => ({
-                ...prev,
-                [targetSection]: {
-                    ...prev[targetSection],
-                    [name]: type === 'checkbox' ? checked : value
+            setFormData(prev => {
+                // Handle direct (top-level) fields
+                if (!section) {
+                    return {
+                        ...prev,
+                        [name]: type === 'checkbox' ? checked : value
+                    };
                 }
-            }));
-            return;
-        }
-        
-        // Para otros campos con estructura jerárquica
-        if (section) {
-            if (subsection) {
-                setFormData(prev => ({
-                    ...prev,
-                    [section]: {
-                        ...prev[section],
-                        [subsection]: {
-                            ...prev[section][subsection],
-                            [name]: type === 'checkbox' ? checked : value
+
+                // Handle numeric inputs for infoNutricional
+                if (section === 'infoNutricional' && type === 'number') {
+                    return {
+                        ...prev,
+                        [section]: {
+                            ...prev[section],
+                            [name]: value === '' ? 0 : Number(value)
                         }
-                    }
-                }));
-            } else {
-                setFormData(prev => ({
+                    };
+                }
+
+                // Handle nested fields
+                return {
                     ...prev,
                     [section]: {
                         ...prev[section],
                         [name]: type === 'checkbox' ? checked : value
                     }
-                }));
-            }
+                };
+            });
         } else {
+            // Handle direct value updates
             setFormData(prev => ({
                 ...prev,
-                [name]: type === 'checkbox' ? checked : value
+                [section]: subsection ? {
+                    ...prev[section],
+                    [subsection]: e
+                } : e
             }));
         }
     };
@@ -694,13 +688,6 @@ const AdminProductCreate = () => {
                                 cortesCarne={CORTES_CARNE}
                             />
                         )}
-
-                        {/* Para todos los productos se muestra la información nutricional */}
-                        <NutritionalInfoSection
-                            formData={formData}
-                            handleInputChange={handleInputChange}
-                        />
-
                         <SubmitButton loading={loading} />
                     </div>
                 </form>

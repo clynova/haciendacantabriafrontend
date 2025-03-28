@@ -6,7 +6,6 @@ import { toast } from 'react-hot-toast';
 import { getProductById, updateProduct } from '../../services/adminService';
 
 // Import existing section components
-import { BasicInfoSection } from '../../components/admin/AdminProductEdit/BasicInfoSection';
 import { ProductTypeSection } from '../../components/admin/AdminProductEdit/ProductTypeSection';
 import { DescriptionSection } from '../../components/admin/AdminProductEdit/DescriptionSection';
 import { PricingSection } from '../../components/admin/AdminProductEdit/PricingSection';
@@ -21,6 +20,11 @@ import { CarneDetailsSection } from '../../components/admin/AdminProductEdit/Car
 import { AceiteDetailsSection } from '../../components/admin/AdminProductEdit/AceiteDetailsSection';
 import { PRODUCT_TYPES, DEFAULT_VALUES } from '../../constants/productDefaults';
 import { TagsSection } from '../../components/admin/AdminProductEdit/TagsSection';
+import { BasicInfoSection } from '../../components/admin/products/create/BasicInfoSection';
+
+// Actualizar imports
+import { CarneForm } from '../../components/admin/products/CarneForm';
+import { AceiteForm } from '../../components/admin/products/AceiteForm';
 
 // Update the initial state
 const getInitialState = (categoria = PRODUCT_TYPES.ACEITE) => ({
@@ -90,6 +94,7 @@ export const AdminProductEdit = () => {
         fetchProductDetails();
     }, [productId]);
 
+    // Update the fetchProductDetails function to properly format aceite data
     const fetchProductDetails = async () => {
         try {
             const response = await getProductById(productId, token);
@@ -120,8 +125,8 @@ export const AdminProductEdit = () => {
                 const formattedSeo = {
                     metaTitulo: response.product.seo?.metaTitulo || response.product.nombre || '',
                     metaDescripcion: response.product.seo?.metaDescripcion || '',
-                    palabrasClave: Array.isArray(response.product.seo?.palabrasClave) 
-                        ? response.product.seo.palabrasClave 
+                    palabrasClave: Array.isArray(response.product.seo?.palabrasClave)
+                        ? response.product.seo.palabrasClave
                         : [],
                     slug: response.product.seo?.slug || generateSlug(response.product.nombre)
                 };
@@ -135,7 +140,13 @@ export const AdminProductEdit = () => {
                     tags: Array.isArray(response.product.tags) ? response.product.tags : [],
                     caracteristicas: {
                         textura: response.product.caracteristicas?.textura || [],
-                        ...response.product.caracteristicas
+                        ...response.product.caracteristicas,
+                        acidez: response.product.caracteristicas?.acidez || '',
+                        filtracion: response.product.caracteristicas?.filtracion || '',
+                        extraccion: response.product.caracteristicas?.extraccion || '',
+                        aditivos: Array.isArray(response.product.caracteristicas?.aditivos) 
+                            ? response.product.caracteristicas.aditivos 
+                            : []
                     },
                     coccion: {
                         metodos: response.product.coccion?.metodos || [],
@@ -154,6 +165,21 @@ export const AdminProductEdit = () => {
                         ...response.product.infoCarne,
                         precioPorKg: Number(response.product.infoCarne?.precioPorKg) || 0
                     } : undefined,
+                    produccion: {
+                        metodo: response.product.produccion?.metodo || '',
+                        temperatura: response.product.produccion?.temperatura || '',
+                        fechaEnvasado: response.product.produccion?.fechaEnvasado || '',
+                        fechaVencimiento: response.product.produccion?.fechaVencimiento || ''
+                    },
+                    infoNutricional: {
+                        ...response.product.infoNutricional
+                    },
+                    usosRecomendados: Array.isArray(response.product.usosRecomendados)
+                        ? response.product.usosRecomendados
+                        : [],
+                    opcionesVolumen: Array.isArray(response.product.opcionesVolumen)
+                        ? response.product.opcionesVolumen
+                        : [],
                     seo: formattedSeo
                 };
 
@@ -166,46 +192,55 @@ export const AdminProductEdit = () => {
         }
     };
 
-    // Add category change handler
-    const handleCategoryChange = (newCategory) => {
-        setFormData(prev => ({
-            ...getInitialState(newCategory),
-            sku: prev.sku,
-            nombre: prev.nombre
-        }));
-    };
-
-    // Update handleInputChange to handle category changes
+    // Replace the existing handleInputChange function
     const handleInputChange = (field, value) => {
-        if (field === 'categoria' && value !== formData.categoria) {
-            handleCategoryChange(value);
-            return;
-        }
+        setFormData(prev => {
+            let newState;
+            
+            if (typeof field === 'object' && field.target) {
+                const { name, value: eventValue, type, checked } = field.target;
+                const section = value;
+                
+                newState = {
+                    ...prev,
+                    [section]: {
+                        ...(prev[section] || {}),
+                        [name]: type === 'checkbox' ? checked : eventValue
+                    }
+                };
+            } else if (typeof value === 'object' && !Array.isArray(value)) {
+                newState = {
+                    ...prev,
+                    [field]: {
+                        ...(prev[field] || {}),
+                        ...value
+                    }
+                };
+            } else if (Array.isArray(value)) {
+                newState = {
+                    ...prev,
+                    [field]: value
+                };
+            } else {
+                newState = {
+                    ...prev,
+                    [field]: value
+                };
+            }
 
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
+            return newState;
+        });
     };
 
     const validateProductData = (data) => {
         const errors = [];
-    
+
         // Required fields validation
         if (!data.sku?.trim()) errors.push('El SKU es requerido');
         if (!data.nombre?.trim()) errors.push('El nombre es requerido');
         if (!data.categoria) errors.push('La categoría es requerida');
         if (!data.precios?.base) errors.push('El precio base es requerido');
-    
-        // Category specific validation
-        if (data.categoria === 'ACEITE') {
-            if (!data.infoAceite?.tipo) errors.push('El tipo de aceite es requerido');
-            if (!data.infoAceite?.volumen) errors.push('El volumen es requerido');
-        } else if (data.categoria === 'CARNE') {
-            if (!data.infoCarne?.tipoCarne) errors.push('El tipo de carne es requerido');
-            if (!data.infoCarne?.corte) errors.push('El corte es requerido');
-        }
-    
+
         // Data type validation
         if (typeof data.estado !== 'boolean') {
             errors.push('El estado debe ser un valor booleano');
@@ -218,24 +253,18 @@ export const AdminProductEdit = () => {
         if (!data.seo?.metaTitulo?.trim()) {
             errors.push('El meta título es requerido');
         }
-        if (!data.seo?.metaDescripcion?.trim()) {
-            errors.push('La meta descripción es requerida');
-        }
-        if (!Array.isArray(data.seo?.palabrasClave) || data.seo.palabrasClave.length === 0) {
-            errors.push('Se requiere al menos una palabra clave');
-        }
         if (!data.seo?.slug?.trim()) {
             errors.push('El slug es requerido');
         }
-    
+
         return errors;
     };
 
     // Update the handleSubmit function
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         const errors = validateProductData(formData);
-        
         if (errors.length > 0) {
             errors.forEach(error => toast.error(error));
             return;
@@ -243,25 +272,59 @@ export const AdminProductEdit = () => {
 
         try {
             setSaving(true);
-            
+
+            // Formatear los datos específicos de aceite antes de enviar
             const dataToSend = {
                 ...formData,
+                // Asegurar que los datos específicos del aceite estén presentes
+                caracteristicas: {
+                    ...(formData.caracteristicas || {}),
+                    aditivos: formData.caracteristicas?.aditivos || [],
+                    acidez: Number(formData.caracteristicas?.acidez) || 0,
+                    filtracion: formData.caracteristicas?.filtracion || '',
+                    extraccion: formData.caracteristicas?.extraccion || ''
+                },
+                produccion: {
+                    ...(formData.produccion || {}),
+                    metodo: formData.produccion?.metodo || '',
+                    temperatura: Number(formData.produccion?.temperatura) || 0,
+                    fechaEnvasado: formData.produccion?.fechaEnvasado || '',
+                    fechaVencimiento: formData.produccion?.fechaVencimiento || ''
+                },
+                infoNutricional: {
+                    ...(formData.infoNutricional || {}),
+                    porcion: formData.infoNutricional?.porcion || '',
+                    calorias: Number(formData.infoNutricional?.calorias) || 0,
+                    grasaTotal: Number(formData.infoNutricional?.grasaTotal) || 0,
+                    grasaSaturada: Number(formData.infoNutricional?.grasaSaturada) || 0,
+                    grasaTrans: Number(formData.infoNutricional?.grasaTrans) || 0,
+                    grasaPoliinsaturada: Number(formData.infoNutricional?.grasaPoliinsaturada) || 0,
+                    grasaMonoinsaturada: Number(formData.infoNutricional?.grasaMonoinsaturada) || 0
+                },
+                usosRecomendados: formData.usosRecomendados || [],
+                opcionesVolumen: (formData.opcionesVolumen || []).map(opcion => ({
+                    ...opcion,
+                    volumen: Number(opcion.volumen) || 0,
+                    precio: Number(opcion.precio) || 0,
+                    sku: opcion.sku || '',
+                    esPredeterminado: Boolean(opcion.esPredeterminado)
+                })),
                 seo: {
                     ...formData.seo,
                     slug: formData.seo?.slug || generateSlug(formData.seo?.metaTitulo || formData.nombre)
                 }
             };
 
-            // Remove calculated fields
+            // Remover campos calculados y metadata
             delete dataToSend.precioFinal;
             delete dataToSend.precioTransferencia;
             delete dataToSend.precioPorKgFinal;
             delete dataToSend.precioPorKgTransferencia;
             delete dataToSend.__v;
             delete dataToSend.fechaActualizacion;
-            
+
             const response = await updateProduct(productId, dataToSend, token);
-            
+
             if (response.success) {
                 toast.success('Producto actualizado exitosamente');
                 navigate('/admin/products');
@@ -269,9 +332,33 @@ export const AdminProductEdit = () => {
                 throw new Error(response.msg || 'Error al actualizar el producto');
             }
         } catch (error) {
-            toast.error(error.msg || 'Error al actualizar el producto');
+            toast.error(error.message || 'Error al actualizar el producto');
         } finally {
             setSaving(false);
+        }
+    };
+
+    // Update renderSpecificForm without console.logs
+    const renderSpecificForm = () => {
+        switch (formData.categoria) {
+            case 'CARNE':
+                return (
+                    <CarneForm
+                        formData={formData}
+                        handleInputChange={handleInputChange}
+                        mode="edit"
+                    />
+                );
+            case 'ACEITE':
+                return (
+                    <AceiteForm
+                        formData={formData}  // Changed from productData to formData
+                        handleInputChange={handleInputChange}
+                        mode="edit"
+                    />
+                );
+            default:
+                return null;
         }
     };
 
@@ -294,64 +381,47 @@ export const AdminProductEdit = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <BasicInfoSection 
+                    <BasicInfoSection
                         data={formData}
                         onChange={handleInputChange}
+                        mode="edit"
+                        disableCategoryChange={true} // Prevenir cambios de categoría en edición
                     />
-                    
-                    <TagsSection 
-                        data={formData}
-                        onChange={handleInputChange}
-                    />
-                    
-                    <ProductTypeSection 
+
+                    <TagsSection
                         data={formData}
                         onChange={handleInputChange}
                     />
 
-                    {formData.categoria === 'CARNE' ? (
-                        <CarneDetailsSection 
-                            data={formData}
-                            onChange={handleInputChange}
-                        />
-                    ) : formData.categoria === 'ACEITE' ? (
-                        <AceiteDetailsSection 
-                            data={formData}
-                            onChange={handleInputChange}
-                        />
-                    ) : null}
-                    
-                    <DescriptionSection 
-                        data={formData}
-                        onChange={handleInputChange}
-                    />
-                    
-                    <PricingSection 
-                        data={formData}
-                        onChange={handleInputChange}
-                    />
-                    
-                    <InventorySection 
-                        data={formData}
-                        onChange={handleInputChange}
-                    />
-                    
-                    <ConservationSection 
-                        data={formData}
-                        onChange={handleInputChange}
-                    />
-                    
-                    <ImageSection 
-                        data={formData}
-                        onChange={handleInputChange}
-                    />
-                    
-                    <SeoSection 
+                    {/* Renderizar el formulario específico según la categoría */}
+                    {renderSpecificForm()}
+
+                    <PricingSection
                         data={formData}
                         onChange={handleInputChange}
                     />
 
-                    <SubmitButton 
+                    <InventorySection
+                        data={formData}
+                        onChange={handleInputChange}
+                    />
+
+                    <ConservationSection
+                        data={formData}
+                        onChange={handleInputChange}
+                    />
+
+                    <ImageSection
+                        data={formData}
+                        onChange={handleInputChange}
+                    />
+
+                    <SeoSection
+                        data={formData}
+                        onChange={handleInputChange}
+                    />
+
+                    <SubmitButton
                         loading={saving}
                         text="Guardar Cambios"
                     />

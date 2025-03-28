@@ -243,6 +243,45 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
         }, 'coccion');
     };
 
+    const handleAddReceta = () => {
+        const updatedRecetas = [...(formData.coccion?.recetas || []), {
+            nombre: '',
+            url: '',
+            descripcion: ''
+        }];
+        handleInputChange({
+            target: {
+                name: 'recetas',
+                value: updatedRecetas
+            }
+        }, 'coccion');
+    };
+
+    const handleRemoveReceta = (index) => {
+        const updatedRecetas = [...(formData.coccion?.recetas || [])];
+        updatedRecetas.splice(index, 1);
+        handleInputChange({
+            target: {
+                name: 'recetas',
+                value: updatedRecetas
+            }
+        }, 'coccion');
+    };
+
+    const handleRecetaChange = (index, field, value) => {
+        const updatedRecetas = [...(formData.coccion?.recetas || [])];
+        updatedRecetas[index] = {
+            ...updatedRecetas[index],
+            [field]: value
+        };
+        handleInputChange({
+            target: {
+                name: 'recetas',
+                value: updatedRecetas
+            }
+        }, 'coccion');
+    };
+
     return (
         <div className="space-y-6">
             <h2 className="text-lg font-semibold text-slate-200">Información de la Carne</h2>
@@ -369,6 +408,91 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                             Seleccione al menos una textura
                         </p>
                     )}
+                </div>
+            </div>
+
+            {/* Información Nutricional Section */}
+            <div className="border-t border-slate-700 pt-6">
+                <h3 className="text-md font-medium text-slate-300 mb-4">Información Nutricional</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormInput
+                        label="Porción"
+                        name="porcion"
+                        value={formData.infoNutricional?.porcion || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
+                        placeholder="Ej: 100g"
+                    />
+                    
+                    <FormInput
+                        label="Calorías"
+                        type="number"
+                        name="calorias"
+                        value={formData.infoNutricional?.calorias || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
+                        min="0"
+                        step="0.1"
+                        placeholder="kcal"
+                    />
+
+                    <FormInput
+                        label="Proteínas (g)"
+                        type="number"
+                        name="proteinas"
+                        value={formData.infoNutricional?.proteinas || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
+                        min="0"
+                        step="0.1"
+                    />
+
+                    <FormInput
+                        label="Grasa Total (g)"
+                        type="number"
+                        name="grasaTotal"
+                        value={formData.infoNutricional?.grasaTotal || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
+                        min="0"
+                        step="0.1"
+                    />
+
+                    <FormInput
+                        label="Grasa Saturada (g)"
+                        type="number"
+                        name="grasaSaturada"
+                        value={formData.infoNutricional?.grasaSaturada || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
+                        min="0"
+                        step="0.1"
+                    />
+
+                    <FormInput
+                        label="Colesterol (mg)"
+                        type="number"
+                        name="colesterol"
+                        value={formData.infoNutricional?.colesterol || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
+                        min="0"
+                        step="0.1"
+                    />
+
+                    <FormInput
+                        label="Sodio (mg)"
+                        type="number"
+                        name="sodio"
+                        value={formData.infoNutricional?.sodio || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
+                        min="0"
+                        step="0.1"
+                    />
+
+                    <FormInput
+                        label="Carbohidratos (g)"
+                        type="number"
+                        name="carbohidratos"
+                        value={formData.infoNutricional?.carbohidratos || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
+                        min="0"
+                        step="0.1"
+                    />
                 </div>
             </div>
 
@@ -817,6 +941,64 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                     />
                 </div>
                 
+                {/* Recetas Section */}
+                <div className="border-t border-slate-700 pt-6 mb-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-md font-medium text-slate-300">Recetas Recomendadas</h3>
+                        <button
+                            type="button"
+                            onClick={handleAddReceta}
+                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-500"
+                        >
+                            + Añadir Receta
+                        </button>
+                    </div>
+
+                    {(formData.coccion?.recetas || []).map((receta, index) => (
+                        <div key={index} className="bg-slate-700 p-4 rounded-lg mb-4">
+                            <div className="flex justify-between items-start mb-3">
+                                <h4 className="text-sm font-medium text-slate-200">Receta {index + 1}</h4>
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveReceta(index)}
+                                    className="text-red-400 hover:text-red-300"
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 gap-4">
+                                <FormInput
+                                    label="Nombre de la Receta"
+                                    value={receta.nombre || ''}
+                                    onChange={(e) => handleRecetaChange(index, 'nombre', e.target.value)}
+                                    placeholder="Ej: Bife a la Parrilla"
+                                />
+
+                                <FormInput
+                                    label="URL de la Receta"
+                                    value={receta.url || ''}
+                                    onChange={(e) => handleRecetaChange(index, 'url', e.target.value)}
+                                    placeholder="https://..."
+                                />
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                                        Descripción
+                                    </label>
+                                    <textarea
+                                        value={receta.descripcion || ''}
+                                        onChange={(e) => handleRecetaChange(index, 'descripcion', e.target.value)}
+                                        className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-md text-white"
+                                        rows="3"
+                                        placeholder="Breve descripción de la receta..."
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
                 {/* Consejos de cocción */}
                 <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-200 mb-1">
@@ -907,7 +1089,24 @@ CarneForm.propTypes = {
             metodos: PropTypes.arrayOf(PropTypes.string),
             temperaturaIdeal: PropTypes.string,
             tiempoEstimado: PropTypes.string,
-            consejos: PropTypes.arrayOf(PropTypes.string)
+            consejos: PropTypes.arrayOf(PropTypes.string),
+            recetas: PropTypes.arrayOf(
+                PropTypes.shape({
+                    nombre: PropTypes.string,
+                    url: PropTypes.string,
+                    descripcion: PropTypes.string
+                })
+            )
+        }),
+        infoNutricional: PropTypes.shape({
+            porcion: PropTypes.string,
+            calorias: PropTypes.number,
+            proteinas: PropTypes.number,
+            grasaTotal: PropTypes.number,
+            grasaSaturada: PropTypes.number,
+            colesterol: PropTypes.number,
+            sodio: PropTypes.number,
+            carbohidratos: PropTypes.number
         })
     }).isRequired,
     handleInputChange: PropTypes.func.isRequired

@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { FormInput, FormSelect } from '../../common/FormInputs';
+import { FormInput, FormSelect, FormTextarea } from '../../common/FormInputs';
 
-// Define constants or import them from a shared constants file
+// Define constants to match backend schema
 const TIPO_ACEITE = ['MARAVILLA', 'OLIVA', 'CANOLA', 'MIXTO'];
 const TIPO_ENVASE = ['VACIO', 'CAJA', 'BOTELLA', 'BIDON', 'BOLSA'];
 
@@ -14,7 +14,6 @@ const METODOS_PRODUCCION = [
     'FILTRACION_MEMBRANA'
 ];
 
-// Define enums for oil characteristics
 const FILTRACION_TIPOS = [
     'FILTRADO',
     'SIN_FILTRAR'
@@ -37,21 +36,115 @@ const ADITIVOS_COMUNES = [
     'VITAMINA_D'
 ];
 
-export const AceiteForm = ({ formData, handleInputChange }) => {
+const USOS_RECOMENDADOS = [
+    'ENSALADAS',
+    'FRITURAS',
+    'COCINAR',
+    'ADEREZOS',
+    'MARINADOS',
+    'REPOSTERIA',
+    'CONSUMO_DIRECTO',
+    'SALSAS'
+];
+
+// Add this helper function at the top of the file
+const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+};
+
+// Modify the component initialization to properly merge data
+export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }) => {
+    // Remove defaultProps and use direct destructuring with defaults
+    const {
+        caracteristicas = { aditivos: [] },
+        produccion = {},
+        infoNutricional = {},
+        usosRecomendados = [],
+        opcionesVolumen = []
+    } = formData;
+
+    // Update handleChange to properly handle edit mode
+    const handleChange = (e, section) => {
+        const { name, value, type } = e.target;
+        const processedValue = type === 'number' ? Number(value) : value;
+
+        handleInputChange(section, {
+            ...formData[section],
+            [name]: processedValue
+        });
+    };
+
+    // Update handleAditivosChange
     const handleAditivosChange = (e) => {
         const { checked, value } = e.target;
-        const currentAditivos = formData.caracteristicas.aditivos || [];
-        
+        const currentAditivos = caracteristicas?.aditivos || [];
         const updatedAditivos = checked
             ? [...currentAditivos, value]
             : currentAditivos.filter(aditivo => aditivo !== value);
 
-        handleInputChange({
-            target: {
-                name: 'aditivos',
-                value: updatedAditivos
-            }
-        }, 'caracteristicas');
+        handleInputChange('caracteristicas', {
+            ...caracteristicas,
+            aditivos: updatedAditivos
+        });
+    };
+
+    // Update handleOpcionVolumenChange
+    const handleOpcionVolumenChange = (index, field, value) => {
+        const updatedOpciones = [...opcionesVolumen];
+        
+        if (!updatedOpciones[index]) {
+            updatedOpciones[index] = {};
+        }
+        
+        if (field === 'esPredeterminado' && value === true) {
+            updatedOpciones.forEach((opcion, i) => {
+                if (i !== index) opcion.esPredeterminado = false;
+            });
+        }
+        
+        updatedOpciones[index] = {
+            ...updatedOpciones[index],
+            [field]: value
+        };
+
+        handleInputChange('opcionesVolumen', updatedOpciones);
+    };
+
+    // Update handleUsosRecomendadosChange
+    const handleUsosRecomendadosChange = (e) => {
+        const { checked, value } = e.target;
+        const updatedUsos = checked
+            ? [...usosRecomendados, value]
+            : usosRecomendados.filter(uso => uso !== value);
+
+        handleInputChange('usosRecomendados', updatedUsos);
+    };
+
+    // Update addOpcionVolumen
+    const addOpcionVolumen = () => {
+        const newOpcion = {
+            volumen: 0,
+            precio: 0,
+            sku: '',
+            esPredeterminado: opcionesVolumen.length === 0
+        };
+        
+        handleInputChange('opcionesVolumen', [...opcionesVolumen, newOpcion]);
+    };
+
+    // Update removeOpcionVolumen
+    const removeOpcionVolumen = (index) => {
+        const updatedOpciones = [...opcionesVolumen];
+        const removedOpcion = updatedOpciones[index];
+        updatedOpciones.splice(index, 1);
+
+        if (removedOpcion.esPredeterminado && updatedOpciones.length > 0) {
+            updatedOpciones[0].esPredeterminado = true;
+        }
+
+        handleInputChange('opcionesVolumen', updatedOpciones);
     };
 
     const formatEnumLabel = (value) => {
@@ -61,32 +154,7 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
     };
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-lg font-semibold text-slate-200">Información del Aceite</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormSelect
-                    label="Tipo de Aceite"
-                    name="tipo"
-                    value={formData.infoAceite.tipo}
-                    onChange={(e) => handleInputChange(e, 'infoAceite')}
-                    options={TIPO_ACEITE}
-                />
-                <FormInput
-                    label="Volumen (ml)"
-                    name="volumen"
-                    type="number"
-                    value={formData.infoAceite.volumen}
-                    onChange={(e) => handleInputChange(e, 'infoAceite')}
-                    min="0"
-                />
-                <FormSelect
-                    label="Tipo de Envase"
-                    name="envase"
-                    value={formData.infoAceite.envase}
-                    onChange={(e) => handleInputChange(e, 'infoAceite')}
-                    options={TIPO_ENVASE}
-                />
-            </div>
+        <div className="bg-slate-800 rounded-lg p-5 space-y-6">
             <h2 className="text-lg font-semibold text-slate-200">Características del Aceite</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -99,8 +167,8 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                         <input
                             type="number"
                             name="acidez"
-                            value={formData.caracteristicas.acidez || ''}
-                            onChange={(e) => handleInputChange(e, 'caracteristicas')}
+                            value={caracteristicas.acidez || ''}
+                            onChange={(e) => handleChange(e, 'caracteristicas')}
                             step="0.01"
                             min="0"
                             max="100"
@@ -121,8 +189,8 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                     </label>
                     <select
                         name="filtracion"
-                        value={formData.caracteristicas.filtracion || ''}
-                        onChange={(e) => handleInputChange(e, 'caracteristicas')}
+                        value={caracteristicas.filtracion || ''}
+                        onChange={(e) => handleChange(e, 'caracteristicas')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                     >
                         <option value="">Seleccione el tipo de filtración</option>
@@ -141,8 +209,8 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                     </label>
                     <select
                         name="extraccion"
-                        value={formData.caracteristicas.extraccion || ''}
-                        onChange={(e) => handleInputChange(e, 'caracteristicas')}
+                        value={caracteristicas.extraccion || ''}
+                        onChange={(e) => handleChange(e, 'caracteristicas')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                     >
                         <option value="">Seleccione el método de extracción</option>
@@ -166,7 +234,7 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                                     type="checkbox"
                                     id={`aditivo-${aditivo}`}
                                     value={aditivo}
-                                    checked={formData.caracteristicas.aditivos?.includes(aditivo)}
+                                    checked={caracteristicas.aditivos?.includes(aditivo) || false}
                                     onChange={handleAditivosChange}
                                     className="w-4 h-4 text-blue-600 rounded border-gray-500 bg-gray-700"
                                 />
@@ -185,6 +253,138 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                 </div>
             </div>
 
+            {/* Información Nutricional */}
+            <h2 className="text-lg font-semibold text-slate-200 mt-6">Información Nutricional</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Porción
+                    </label>
+                    <input
+                        type="text"
+                        name="porcion"
+                        value={infoNutricional.porcion || ''}
+                        onChange={(e) => handleChange(e, 'infoNutricional')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        placeholder="ej. 15ml (1 cucharada)"
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Calorías (kcal)
+                    </label>
+                    <input
+                        type="number"
+                        name="calorias"
+                        value={infoNutricional.calorias || ''}
+                        onChange={(e) => handleChange(e, 'infoNutricional')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        min="0"
+                        step="0.1"
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Grasa Total (g)
+                    </label>
+                    <input
+                        type="number"
+                        name="grasaTotal"
+                        value={infoNutricional.grasaTotal || ''}
+                        onChange={(e) => handleChange(e, 'infoNutricional')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        min="0"
+                        step="0.1"
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Grasa Saturada (g)
+                    </label>
+                    <input
+                        type="number"
+                        name="grasaSaturada"
+                        value={infoNutricional.grasaSaturada || ''}
+                        onChange={(e) => handleChange(e, 'infoNutricional')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        min="0"
+                        step="0.1"
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Grasa Trans (g)
+                    </label>
+                    <input
+                        type="number"
+                        name="grasaTrans"
+                        value={infoNutricional.grasaTrans || ''}
+                        onChange={(e) => handleChange(e, 'infoNutricional')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        min="0"
+                        step="0.1"
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Grasa Poliinsaturada (g)
+                    </label>
+                    <input
+                        type="number"
+                        name="grasaPoliinsaturada"
+                        value={infoNutricional.grasaPoliinsaturada || ''}
+                        onChange={(e) => handleChange(e, 'infoNutricional')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        min="0"
+                        step="0.1"
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Grasa Monoinsaturada (g)
+                    </label>
+                    <input
+                        type="number"
+                        name="grasaMonoinsaturada"
+                        value={infoNutricional.grasaMonoinsaturada || ''}
+                        onChange={(e) => handleChange(e, 'infoNutricional')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        min="0"
+                        step="0.1"
+                    />
+                </div>
+            </div>
+
+            {/* Usos Recomendados */}
+            <h2 className="text-lg font-semibold text-slate-200 mt-6">Usos Recomendados</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {USOS_RECOMENDADOS.map(uso => (
+                    <div key={uso} className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            id={`uso-${uso}`}
+                            value={uso}
+                            checked={usosRecomendados.includes(uso)}
+                            onChange={handleUsosRecomendadosChange}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-500 bg-gray-700"
+                        />
+                        <label 
+                            htmlFor={`uso-${uso}`}
+                            className="text-sm text-gray-300 cursor-pointer"
+                        >
+                            {formatEnumLabel(uso)}
+                        </label>
+                    </div>
+                ))}
+            </div>
+
+            {/* Producción */}
             <h2 className="text-lg font-semibold text-slate-200 mt-6">Producción</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -193,8 +393,8 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                     </label>
                     <select
                         name="metodo"
-                        value={formData.produccion?.metodo || ''}
-                        onChange={(e) => handleInputChange(e, 'produccion')}
+                        value={produccion.metodo || ''}
+                        onChange={(e) => handleChange(e, 'produccion')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                     >
                         <option value="">Seleccione el método</option>
@@ -214,8 +414,8 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                         <input
                             type="number"
                             name="temperatura"
-                            value={formData.produccion?.temperatura || ''}
-                            onChange={(e) => handleInputChange(e, 'produccion')}
+                            value={produccion.temperatura || ''}
+                            onChange={(e) => handleChange(e, 'produccion')}
                             className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white pr-12"
                             min="0"
                             max="300"
@@ -233,8 +433,8 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                     <input
                         type="date"
                         name="fechaEnvasado"
-                        value={formData.produccion?.fechaEnvasado || ''}
-                        onChange={(e) => handleInputChange(e, 'produccion')}
+                        value={formatDateForInput(produccion.fechaEnvasado)}
+                        onChange={(e) => handleChange(e, 'produccion')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                     />
                 </div>
@@ -246,19 +446,95 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
                     <input
                         type="date"
                         name="fechaVencimiento"
-                        value={formData.produccion?.fechaVencimiento || ''}
-                        onChange={(e) => handleInputChange(e, 'produccion')}
+                        value={formatDateForInput(produccion.fechaVencimiento)}
+                        onChange={(e) => handleChange(e, 'produccion')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
-                        min={formData.produccion?.fechaEnvasado || ''}
+                        min={formatDateForInput(produccion.fechaEnvasado)}
                     />
-                    {formData.produccion?.fechaVencimiento && 
-                     formData.produccion?.fechaEnvasado && 
-                     new Date(formData.produccion.fechaVencimiento) <= new Date(formData.produccion.fechaEnvasado) && (
+                    {produccion.fechaVencimiento && 
+                     produccion.fechaEnvasado && 
+                     new Date(produccion.fechaVencimiento) <= new Date(produccion.fechaEnvasado) && (
                         <p className="text-xs text-red-400 mt-1">
                             La fecha de vencimiento debe ser posterior a la fecha de envasado
                         </p>
                     )}
                 </div>
+            </div>
+
+            {/* Opciones de Volumen */}
+            <h2 className="text-lg font-semibold text-slate-200 mt-6">Opciones de Volumen</h2>
+            <div className="space-y-4">
+                {opcionesVolumen.map((opcion, index) => (
+                    <div key={index} className="bg-slate-700 p-4 rounded-md">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-white font-medium">Opción {index + 1}</h3>
+                            <button
+                                type="button"
+                                onClick={() => removeOpcionVolumen(index)}
+                                className="text-red-400 hover:text-red-300"
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-200 mb-1">
+                                    Volumen (ml)
+                                </label>
+                                <input
+                                    type="number"
+                                    value={opcion.volumen || ''}
+                                    onChange={(e) => handleOpcionVolumenChange(index, 'volumen', Number(e.target.value))}
+                                    className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-md text-white"
+                                    min="0"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-200 mb-1">
+                                    Precio ($)
+                                </label>
+                                <input
+                                    type="number"
+                                    value={opcion.precio || ''}
+                                    onChange={(e) => handleOpcionVolumenChange(index, 'precio', Number(e.target.value))}
+                                    className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-md text-white"
+                                    min="0"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-200 mb-1">
+                                    SKU
+                                </label>
+                                <input
+                                    type="text"
+                                    value={opcion.sku || ''}
+                                    onChange={(e) => handleOpcionVolumenChange(index, 'sku', e.target.value)}
+                                    className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-md text-white"
+                                />
+                            </div>
+                            <div className="flex items-center">
+                                <label className="flex items-center space-x-2 cursor-pointer mt-6">
+                                    <input
+                                        type="checkbox"
+                                        checked={opcion.esPredeterminado || false}
+                                        onChange={(e) => handleOpcionVolumenChange(index, 'esPredeterminado', e.target.checked)}
+                                        className="w-4 h-4 text-blue-600 rounded border-gray-500 bg-gray-700"
+                                    />
+                                    <span className="text-sm text-gray-300">
+                                        Predeterminado
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+                <button
+                    type="button"
+                    onClick={addOpcionVolumen}
+                    className="mt-2 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-colors"
+                >
+                    Agregar Opción de Volumen
+                </button>
             </div>
         </div>
     );
@@ -267,22 +543,39 @@ export const AceiteForm = ({ formData, handleInputChange }) => {
 AceiteForm.propTypes = {
     formData: PropTypes.shape({
         infoAceite: PropTypes.shape({
-            tipo: PropTypes.string.isRequired,
-            volumen: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-            envase: PropTypes.string.isRequired
-        }).isRequired,
+            tipo: PropTypes.string,
+            volumen: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            envase: PropTypes.string
+        }),
         caracteristicas: PropTypes.shape({
             acidez: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             filtracion: PropTypes.string,
             extraccion: PropTypes.string,
             aditivos: PropTypes.arrayOf(PropTypes.string)
-        }).isRequired,
+        }),
+        infoNutricional: PropTypes.shape({
+            porcion: PropTypes.string,
+            calorias: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            grasaTotal: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            grasaSaturada: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            grasaTrans: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            grasaPoliinsaturada: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            grasaMonoinsaturada: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        }),
         produccion: PropTypes.shape({
             metodo: PropTypes.string,
             temperatura: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             fechaEnvasado: PropTypes.string,
             fechaVencimiento: PropTypes.string
-        }).isRequired
-    }).isRequired,
-    handleInputChange: PropTypes.func.isRequired
+        }),
+        usosRecomendados: PropTypes.arrayOf(PropTypes.string),
+        opcionesVolumen: PropTypes.arrayOf(PropTypes.shape({
+            volumen: PropTypes.number,
+            precio: PropTypes.number,
+            sku: PropTypes.string,
+            esPredeterminado: PropTypes.bool
+        }))
+    }),
+    handleInputChange: PropTypes.func.isRequired,
+    mode: PropTypes.oneOf(['create', 'edit'])
 };

@@ -21,8 +21,9 @@ const BaseProductForm = ({
         <div className="space-y-8">
             {/* Sección de información básica */}
             <BasicInfoSection
-                formData={formData}
-                handleInputChange={handleInputChange}
+                data={formData}
+                onChange={handleInputChange}
+                mode="create"
             />
 
             {/* Sección de precios e inventario */}
@@ -55,14 +56,14 @@ const BaseProductForm = ({
 
             {/* Sección de multimedia */}
 
-                <ImageUploader
-                    images={formData.multimedia.imagenes}
-                    onUpload={handleImageUpload}
-                    onDelete={handleImageDelete}
-                    onUpdateAltText={handleUpdateAltText}
-                    onVideoChange={handleVideoChange}
-                    videoUrl={formData.multimedia.video}
-                />
+            <ImageUploader
+                images={formData.multimedia.imagenes}
+                onUpload={handleImageUpload}
+                onDelete={handleImageDelete}
+                onUpdateAltText={handleUpdateAltText}
+                onVideoChange={handleVideoChange}
+                videoUrl={formData.multimedia.video}
+            />
             {/* Sección SEO */}
             <SeoSection
                 formData={formData}
