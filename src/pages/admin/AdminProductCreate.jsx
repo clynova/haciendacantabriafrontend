@@ -10,7 +10,7 @@ import { uploadImageToCloudinary } from '../../services/utilService';
 import { SubmitButton } from '../../components/common/SubmitButton';
 import { ProductTypeSelector } from '../../components/admin/products/ProductTypeSelector';
 import { NutritionalInfoSection } from '../../components/admin/products/NutritionalInfoSection';
-import { TestingTools } from '../../components/admin/products/TestingTools';
+// import { TestingTools } from '../../components/admin/products/TestingTools';
 import BaseProductForm from '../../components/admin/products/create/BaseProductForm';
 
 // Cortes de carne según el modelo del backend
@@ -347,40 +347,40 @@ const AdminProductCreate = () => {
     };
 
     // Manejador para cargar datos de prueba
-    const handleTestDataFill = (testData) => {
-        console.log('Recibiendo datos de prueba:', testData);
+    // const handleTestDataFill = (testData) => {
+    //     console.log('Recibiendo datos de prueba:', testData);
         
-        // Actualizar el tipo y categoría según los datos de prueba
-        if (testData.tipoProducto) {
-            setSelectedType(testData.tipoProducto);
-        }
+    //     // Actualizar el tipo y categoría según los datos de prueba
+    //     if (testData.tipoProducto) {
+    //         setSelectedType(testData.tipoProducto);
+    //     }
         
-        if (testData.categoria) {
-            setSelectedCategoria(testData.categoria);
-        }
+    //     if (testData.categoria) {
+    //         setSelectedCategoria(testData.categoria);
+    //     }
         
-        setFormData(prev => {
-            const updatedForm = {
-                ...prev,
-                ...testData,
-                estado: true,
-                destacado: false,
-                conservacion: {
-                    ...prev.conservacion,
-                    ...testData.conservacion,
-                    requiereRefrigeracion: Boolean(testData.conservacion?.requiereRefrigeracion),
-                    requiereCongelacion: Boolean(testData.conservacion?.requiereCongelacion)
-                },
-                opcionesPeso: {
-                    ...prev.opcionesPeso,
-                    ...testData.opcionesPeso,
-                    esPesoVariable: Boolean(testData.opcionesPeso?.esPesoVariable)
-                }
-            };
-            console.log('Formulario actualizado:', updatedForm);
-            return updatedForm;
-        });
-    };
+    //     setFormData(prev => {
+    //         const updatedForm = {
+    //             ...prev,
+    //             ...testData,
+    //             estado: true,
+    //             destacado: false,
+    //             conservacion: {
+    //                 ...prev.conservacion,
+    //                 ...testData.conservacion,
+    //                 requiereRefrigeracion: Boolean(testData.conservacion?.requiereRefrigeracion),
+    //                 requiereCongelacion: Boolean(testData.conservacion?.requiereCongelacion)
+    //             },
+    //             opcionesPeso: {
+    //                 ...prev.opcionesPeso,
+    //                 ...testData.opcionesPeso,
+    //                 esPesoVariable: Boolean(testData.opcionesPeso?.esPesoVariable)
+    //             }
+    //         };
+    //         console.log('Formulario actualizado:', updatedForm);
+    //         return updatedForm;
+    //     });
+    // };
 
     // Manejador para cambiar tags
     const handleTagChange = (newTags) => {
@@ -705,11 +705,11 @@ const AdminProductCreate = () => {
                     </div>
                 </form>
             </div>
-            <TestingTools 
+            {/* <TestingTools 
                 onTestDataFill={handleTestDataFill} 
                 selectedType={selectedType}
                 selectedCategoria={selectedCategoria}
-            />
+            /> */}
         </div>
     );
 };
