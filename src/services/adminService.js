@@ -9,8 +9,8 @@ const getDashboardStats = async (token) => {
         });
         return response.data;
     } catch (error) {
-        throw error.response?.data || { 
-            success: false, 
+        throw error.response?.data || {
+            success: false,
             msg: 'Error al obtener las estadísticas del dashboard'
         };
     }
@@ -84,7 +84,7 @@ const getAllUsers = async (token) => {
 
 const getUserById = async (userId, token) => {
     try {
-        const response = await api.post('/api/user/perfil', 
+        const response = await api.post('/api/user/perfil',
             { userId }, // Enviar userId en el body
             {
                 headers: {
@@ -119,7 +119,7 @@ const updateUser = async (userId, userData, token) => {
 
 const createUser = async (userData, token) => {
     try {
-        const response = await api.post('/api/user/registrar', 
+        const response = await api.post('/api/user/registrar',
             {
                 firstName: userData.firstName,
                 lastName: userData.lastName,
@@ -364,7 +364,7 @@ export const deleteOrder = async (orderId, token) => {
                 'Authorization': `Bearer ${token}`
             }
         });
-        
+
         return {
             success: true,
             msg: 'Pedido cancelado correctamente'
@@ -380,7 +380,7 @@ export const deleteOrder = async (orderId, token) => {
 // Update order details
 const updateOrder = async (orderId, orderData, token) => {
     try {
-        const response = await api.put(`/api/order/${orderId}`, 
+        const response = await api.put(`/api/order/${orderId}`,
             orderData,
             {
                 headers: {
@@ -468,18 +468,40 @@ export const getShippingMethods = async (token) => {
     }
 };
 
-export { 
-    getDashboardStats, 
-    getTotalSales, 
-    getTopTags, 
+const notificarProductoFavorito = async (_id, token) => {
+    try {
+        const response = await api.post(
+            `/api/product/${_id}/notificar-favoritos`,
+            {},
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al notificar el producto favorito'
+        };
+    }
+}
+
+export {
+    getDashboardStats,
+    getTotalSales,
+    getTopTags,
     getPaymentMethodById,
-    deleteUser, 
-    getAllUsers, 
-    getUserById, 
-    updateUser, 
+    deleteUser,
+    getAllUsers,
+    getUserById,
+    updateUser,
     createUser,
     getAllOrders,
     updateOrderStatus,
     updateOrder,
-    updateOrderShipping
+    updateOrderShipping,
+    notificarProductoFavorito
 };
