@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { HiSearch, HiPlus, HiPencil, HiTrash, HiEye, HiStatusOnline } from 'react-icons/hi';
+import { HiSearch, HiPlus, HiPencil, HiTrash, HiEye, HiStatusOnline, HiBell } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
-import { getAllProducts, updateProductStatus } from '../../services/adminService';
+import { getAllProducts, updateProductStatus, notificarProductoFavorito } from '../../services/adminService';
 
 const AdminProducts = () => {
     const navigate = useNavigate();
@@ -54,6 +54,21 @@ const AdminProducts = () => {
                 toast.error(error.msg || `Error al ${action} el producto`);
             } finally {
                 setLoading(false);
+            }
+        }
+    };
+
+    const handleNotifyFavorites = async (productId, productName) => {
+        if (window.confirm(`¿Desea enviar una notificación a los usuarios que tienen "${productName}" como favorito?`)) {
+            try {
+                const response = await notificarProductoFavorito(productId, token);
+                if (response.success) {
+                    toast.success('Notificación enviada exitosamente');
+                } else {
+                    toast.error(response.msg || 'Error al enviar la notificación');
+                }
+            } catch (error) {
+                toast.error(error.msg || 'Error al enviar la notificación');
             }
         }
     };
@@ -178,6 +193,13 @@ const AdminProducts = () => {
                                                         title={product.estado ? 'Desactivar' : 'Activar'}
                                                     >
                                                         <HiStatusOnline className="h-5 w-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleNotifyFavorites(product._id, product.nombre)}
+                                                        className="text-purple-400 hover:text-purple-300"
+                                                        title="Notificar a favoritos"
+                                                    >
+                                                        <HiBell className="h-5 w-5" />
                                                     </button>
                                                 </div>
                                             </td>
