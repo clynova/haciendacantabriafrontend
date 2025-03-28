@@ -10,7 +10,7 @@ export const DEFAULT_VALUES = {
         tags: [], // Add this line
         descripcion: { corta: '', completa: '' },
         multimedia: { imagenes: [] },
-        precios: { base: 0, descuentos: { regular: 0, transferencia: 0 } },
+        precios: { base: 0, descuentos: { regular: 0} },
         inventario: { stockUnidades: 0, umbralStockBajo: 0 },
         conservacion: {
             requiereRefrigeracion: false,

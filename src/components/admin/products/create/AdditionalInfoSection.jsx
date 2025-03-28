@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { FormInput } from '../../common/FormInputs';
+import { FormInput } from '../../../common/FormInputs';
 
 const CERTIFICACIONES = [
     'HACCP',
@@ -19,7 +19,7 @@ export const AdditionalInfoSection = ({ formData, handleInputChange }) => {
     const handleCertificationChange = (e) => {
         const { checked, value } = e.target;
         const currentCerts = formData.infoAdicional.certificaciones || [];
-        
+
         const updatedCerts = checked
             ? [...currentCerts, value]
             : currentCerts.filter(cert => cert !== value);
@@ -35,15 +35,21 @@ export const AdditionalInfoSection = ({ formData, handleInputChange }) => {
     return (
         <div className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-200">Información Adicional</h2>
-            
+
             <div className="grid grid-cols-1 gap-4">
+                <FormInput
+                    label="Origen del Producto"
+                    name="origen"
+                    value={formData.infoAdicional.origen || ''}
+                    onChange={(e) => handleInputChange(e, 'infoAdicional')}
+                    placeholder="Ej: Argentina"
+                />
                 <FormInput
                     label="Marca del Producto"
                     name="marca"
                     value={formData.infoAdicional.marca || ''}
                     onChange={(e) => handleInputChange(e, 'infoAdicional')}
                     placeholder="Ej: Hacienda Cantabria"
-                    required
                 />
 
                 <div className="space-y-2">
@@ -61,7 +67,7 @@ export const AdditionalInfoSection = ({ formData, handleInputChange }) => {
                                     onChange={handleCertificationChange}
                                     className="w-4 h-4 text-blue-600 rounded border-gray-500 bg-gray-700"
                                 />
-                                <label 
+                                <label
                                     htmlFor={`cert-${cert}`}
                                     className="text-sm text-gray-300 cursor-pointer"
                                 >

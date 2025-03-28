@@ -26,7 +26,6 @@ import { TagsSection } from '../../components/admin/AdminProductEdit/TagsSection
 const getInitialState = (categoria = PRODUCT_TYPES.ACEITE) => ({
     ...DEFAULT_VALUES.common,
     ...(categoria === PRODUCT_TYPES.CARNE ? DEFAULT_VALUES.CARNE : DEFAULT_VALUES.ACEITE),
-    codigo: '',
     sku: '',
     nombre: '',
     descripcion: {
@@ -171,7 +170,6 @@ export const AdminProductEdit = () => {
     const handleCategoryChange = (newCategory) => {
         setFormData(prev => ({
             ...getInitialState(newCategory),
-            codigo: prev.codigo,
             sku: prev.sku,
             nombre: prev.nombre
         }));
@@ -194,7 +192,6 @@ export const AdminProductEdit = () => {
         const errors = [];
     
         // Required fields validation
-        if (!data.codigo?.trim()) errors.push('El código es requerido');
         if (!data.sku?.trim()) errors.push('El SKU es requerido');
         if (!data.nombre?.trim()) errors.push('El nombre es requerido');
         if (!data.categoria) errors.push('La categoría es requerida');

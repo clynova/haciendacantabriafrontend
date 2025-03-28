@@ -21,19 +21,6 @@ export const BasicInfoSection = ({ data, onChange }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-300 mb-1">
-                            Código *
-                        </label>
-                        <input
-                            type="text"
-                            name="codigo"
-                            value={data.codigo || ''}
-                            onChange={handleBasicInfoChange}
-                            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">
                             SKU *
                         </label>
                         <input

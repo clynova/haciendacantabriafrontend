@@ -111,7 +111,7 @@ const AdminProducts = () => {
                             <thead className="bg-slate-700/50">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                                        Código
+                                        SKU
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                                         Nombre
@@ -147,7 +147,7 @@ const AdminProducts = () => {
                                     filteredProducts.map((product) => (
                                         <tr key={product._id} className="hover:bg-slate-700/30">
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                                                {product.codigo}
+                                                {product.sku}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
                                                 {product.nombre}

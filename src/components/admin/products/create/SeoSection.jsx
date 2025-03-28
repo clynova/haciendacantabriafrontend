@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { FormInput } from '../../common/FormInputs';
+import { FormInput } from '../../../common/FormInputs';
 
 export const SeoSection = ({ formData, handleInputChange }) => {
     const handleKeywordsChange = (e) => {
@@ -24,7 +24,6 @@ export const SeoSection = ({ formData, handleInputChange }) => {
                     name="metaTitulo"
                     value={formData.seo.metaTitulo || ''}
                     onChange={(e) => handleInputChange(e, 'seo')}
-                    required
                     maxLength={60}
                     helperText="Máximo 60 caracteres"
                 />
@@ -40,7 +39,6 @@ export const SeoSection = ({ formData, handleInputChange }) => {
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                         rows={3}
                         maxLength={160}
-                        required
                     />
                     <p className="text-xs text-gray-400 mt-1">
                         Máximo 160 caracteres. Descripción que aparecerá en los resultados de búsqueda.
@@ -58,10 +56,27 @@ export const SeoSection = ({ formData, handleInputChange }) => {
                         onChange={handleKeywordsChange}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                         placeholder="Palabra1, Palabra2, Palabra3"
-                        required
                     />
                     <p className="text-xs text-gray-400 mt-1">
                         Separa las palabras clave con comas
+                    </p>
+                </div>
+
+                {/* Añadir campo para slug */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        URL amigable (slug) *
+                    </label>
+                    <input
+                        type="text"
+                        name="slug"
+                        value={formData.seo.slug || ''}
+                        onChange={(e) => handleInputChange(e, 'seo')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        placeholder="nombre-del-producto"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">
+                        Identificador único para la URL del producto. Se genera automáticamente si se deja en blanco.
                     </p>
                 </div>
             </div>
@@ -74,7 +89,8 @@ SeoSection.propTypes = {
         seo: PropTypes.shape({
             metaTitulo: PropTypes.string,
             metaDescripcion: PropTypes.string,
-            palabrasClave: PropTypes.arrayOf(PropTypes.string)
+            palabrasClave: PropTypes.arrayOf(PropTypes.string),
+            slug: PropTypes.string
         }).isRequired
     }).isRequired,
     handleInputChange: PropTypes.func.isRequired
