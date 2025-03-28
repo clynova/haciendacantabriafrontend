@@ -84,7 +84,6 @@ const Policies = () => {
                     </div>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 };
