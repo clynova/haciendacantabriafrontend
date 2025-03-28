@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { HiSearch, HiPlus, HiCheckCircle, HiXCircle } from 'react-icons/hi';
+import { HiSearch, HiPlus, HiRefresh } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import { LoadingSpinner } from '../../components/Loading/LoadingSpinner';
 import { regionesComunas } from '../../data/regiones-comunas';
@@ -28,7 +28,7 @@ const AdminRegionesDeEnvio = () => {
         try {
             setLoading(true);
             const response = await getRegionsAll(token);
-            
+
             if (response && response.success) {
                 setRegions(response.data || []);
             } else {
@@ -46,16 +46,16 @@ const AdminRegionesDeEnvio = () => {
     // Función para manejar el envío del formulario de creación
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!formData.name || !formData.code) {
             toast.error('Por favor complete todos los campos');
             return;
         }
-        
+
         try {
             setLoading(true);
             const response = await createRegion(formData, token);
-            
+
             if (response && response.success) {
                 toast.success('Región creada exitosamente');
                 setIsFormOpen(false);
@@ -75,22 +75,22 @@ const AdminRegionesDeEnvio = () => {
     const handleToggleStatus = async (regionId, currentStatus) => {
         try {
             const newStatus = !currentStatus;
-            
+
             // Optimistic UI update
-            setRegions(prevRegions => 
-                prevRegions.map(region => 
+            setRegions(prevRegions =>
+                prevRegions.map(region =>
                     region._id === regionId ? { ...region, isActive: newStatus } : region
                 )
             );
-            
+
             const response = await updateRegionStatus(regionId, newStatus, token);
-            
+
             if (response && response.success) {
                 toast.success(`Región ${newStatus ? 'activada' : 'desactivada'} exitosamente`);
             } else {
                 // Revert on failure
-                setRegions(prevRegions => 
-                    prevRegions.map(region => 
+                setRegions(prevRegions =>
+                    prevRegions.map(region =>
                         region._id === regionId ? { ...region, isActive: currentStatus } : region
                     )
                 );
@@ -98,8 +98,8 @@ const AdminRegionesDeEnvio = () => {
             }
         } catch (error) {
             // Revert on error
-            setRegions(prevRegions => 
-                prevRegions.map(region => 
+            setRegions(prevRegions =>
+                prevRegions.map(region =>
                     region._id === regionId ? { ...region, isActive: currentStatus } : region
                 )
             );
@@ -174,7 +174,7 @@ const AdminRegionesDeEnvio = () => {
                                 <input
                                     type="text"
                                     value={formData.code}
-                                    onChange={(e) => setFormData({...formData, code: e.target.value.toUpperCase()})}
+                                    onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                                     placeholder="Ej: RM"
                                     className="block w-full rounded-lg border border-slate-600 bg-slate-700/50 
                                              text-slate-200 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -185,7 +185,7 @@ const AdminRegionesDeEnvio = () => {
                                 <input
                                     type="checkbox"
                                     checked={formData.isActive}
-                                    onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                                     className="h-4 w-4 rounded border-slate-600 text-blue-500 focus:ring-blue-500"
                                     id="region-active"
                                 />
@@ -193,7 +193,7 @@ const AdminRegionesDeEnvio = () => {
                                     Región activa para envíos
                                 </label>
                             </div>
-                            
+
                             <div className="flex justify-end space-x-4 pt-2">
                                 <button
                                     type="button"
@@ -277,30 +277,23 @@ const AdminRegionesDeEnvio = () => {
                                             {region.code}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                region.isActive 
-                                                    ? 'bg-green-100 text-green-800' 
-                                                    : 'bg-red-100 text-red-800'
-                                            }`}>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${region.isActive
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-red-100 text-red-800'
+                                                }`}>
                                                 {region.isActive ? 'Activo' : 'Inactivo'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                                            <button
-                                                onClick={() => handleToggleStatus(region._id, region.isActive)}
-                                                className={`inline-flex items-center p-1.5 border border-transparent rounded-full shadow-sm ${
-                                                    region.isActive
-                                                        ? 'hover:bg-red-700 bg-red-600 text-white'
-                                                        : 'hover:bg-green-700 bg-green-600 text-white'
-                                                }`}
-                                                title={region.isActive ? 'Desactivar región' : 'Activar región'}
-                                            >
-                                                {region.isActive ? (
-                                                    <HiXCircle className="h-5 w-5" />
-                                                ) : (
-                                                    <HiCheckCircle className="h-5 w-5" />
-                                                )}
-                                            </button>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div className="flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => handleToggleStatus(region._id, region.isActive)}
+                                                    className={`${region.isActive ? 'text-green-400 hover:text-green-300' : 'text-red-400 hover:text-red-300'}`}
+                                                    title={region.isActive ? 'Desactivar' : 'Activar'}
+                                                >
+                                                    <HiRefresh className="h-5 w-5" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -312,7 +305,7 @@ const AdminRegionesDeEnvio = () => {
                 {/* Información sobre regiones */}
                 <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg text-slate-300 text-sm">
                     <p>
-                        <strong>Nota:</strong> Las regiones activas estarán disponibles para seleccionar durante el proceso de compra. 
+                        <strong>Nota:</strong> Las regiones activas estarán disponibles para seleccionar durante el proceso de compra.
                         Desactive las regiones a las que no desea realizar envíos.
                     </p>
                 </div>
