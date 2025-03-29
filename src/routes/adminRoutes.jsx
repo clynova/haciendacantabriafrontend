@@ -18,6 +18,7 @@ import { AdminQuotationDetails } from "../pages/admin/AdminQuotationDetails";
 import { AdminCategories } from "../pages/admin/AdminCategories";
 import { AdminRegionesDeEnvio } from "../pages/admin/AdminRegionesDeEnvio";
 import { AdminRoute } from "../components/AdminRoute";
+import {AdminCategorieDetails} from "../pages/admin/AdminCategorieDetails";
 
 const adminRoutes = (
   <Route path="/admin" element={<AdminRoute><MainLayout /></AdminRoute>}>
@@ -44,7 +45,10 @@ const adminRoutes = (
         <Route index element={<AdminCotizaciones />} />
         <Route path=":quotationId" element={<AdminQuotationDetails />} />
       </Route>
-      <Route path="categories" element={<AdminCategories />} />
+      <Route path="categories">
+        <Route index element={<AdminCategories />} />
+        <Route path=":tag" element={<AdminCategorieDetails />} />
+      </Route>
       <Route path="shipping-regions" element={<AdminRegionesDeEnvio />} />
     </Route>
   </Route>
