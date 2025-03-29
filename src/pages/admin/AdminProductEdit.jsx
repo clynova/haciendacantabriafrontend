@@ -6,8 +6,6 @@ import { toast } from 'react-hot-toast';
 import { getProductById, updateProduct } from '../../services/adminService';
 
 // Import existing section components
-import { ProductTypeSection } from '../../components/admin/AdminProductEdit/ProductTypeSection';
-import { DescriptionSection } from '../../components/admin/AdminProductEdit/DescriptionSection';
 import { PricingSection } from '../../components/admin/AdminProductEdit/PricingSection';
 import { InventorySection } from '../../components/admin/AdminProductEdit/InventorySection';
 import { ImageSection } from '../../components/admin/AdminProductEdit/ImageSection';
@@ -16,15 +14,13 @@ import { SeoSection } from '../../components/admin/AdminProductEdit/SEOSection';
 import { SubmitButton } from '../../components/common/SubmitButton';
 
 // Add imports
-import { CarneDetailsSection } from '../../components/admin/AdminProductEdit/CarneDetailsSection';
-import { AceiteDetailsSection } from '../../components/admin/AdminProductEdit/AceiteDetailsSection';
 import { PRODUCT_TYPES, DEFAULT_VALUES } from '../../constants/productDefaults';
-import { TagsSection } from '../../components/admin/AdminProductEdit/TagsSection';
 import { BasicInfoSection } from '../../components/admin/products/create/BasicInfoSection';
 
 // Actualizar imports
 import { CarneForm } from '../../components/admin/products/CarneForm';
 import { AceiteForm } from '../../components/admin/products/AceiteForm';
+import { TagsInput } from '../../components/admin/products/create/TagsInput';
 
 // Update the initial state
 const getInitialState = (categoria = PRODUCT_TYPES.ACEITE) => ({
@@ -98,7 +94,7 @@ export const AdminProductEdit = () => {
     const fetchProductDetails = async () => {
         try {
             const response = await getProductById(productId, token);
-            
+
             if (response.success) {
                 const formattedMultimedia = {
                     ...response.product.multimedia,
@@ -144,8 +140,8 @@ export const AdminProductEdit = () => {
                         acidez: response.product.caracteristicas?.acidez || '',
                         filtracion: response.product.caracteristicas?.filtracion || '',
                         extraccion: response.product.caracteristicas?.extraccion || '',
-                        aditivos: Array.isArray(response.product.caracteristicas?.aditivos) 
-                            ? response.product.caracteristicas.aditivos 
+                        aditivos: Array.isArray(response.product.caracteristicas?.aditivos)
+                            ? response.product.caracteristicas.aditivos
                             : []
                     },
                     coccion: {
@@ -196,11 +192,11 @@ export const AdminProductEdit = () => {
     const handleInputChange = (field, value) => {
         setFormData(prev => {
             let newState;
-            
+
             if (typeof field === 'object' && field.target) {
                 const { name, value: eventValue, type, checked } = field.target;
                 const section = value;
-                
+
                 newState = {
                     ...prev,
                     [section]: {
@@ -388,11 +384,13 @@ export const AdminProductEdit = () => {
                         disableCategoryChange={true} // Prevenir cambios de categoría en edición
                     />
 
-                    <TagsSection
-                        data={formData}
-                        onChange={handleInputChange}
+                    <TagsInput
+                        tags={formData.tags || []}
+                        onChange={(newTags) => handleInputChange('tags', newTags)}
+                        placeholder="Agregar etiquetas al producto..."
+                        helperText="Agrega etiquetas relevantes para categorizar el producto"
+                        showSuggestions={true}
                     />
-
                     {/* Renderizar el formulario específico según la categoría */}
                     {renderSpecificForm()}
 

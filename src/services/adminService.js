@@ -489,6 +489,122 @@ const notificarProductoFavorito = async (_id, token) => {
     }
 }
 
+// Add these new functions for tag management
+
+export const getAllTags = async (token) => {
+    try {
+        const response = await api.get('/api/tags', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al obtener las categorías'
+        };
+    }
+};
+
+export const createTag = async (tag, token) => {
+    try {
+        const response = await api.post('/api/tags', 
+            { tag },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al crear la categoría'
+        };
+    }
+};
+
+export const deleteTag = async (tag, token) => {
+    try {
+        const response = await api.delete(`/api/tags/${tag}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al eliminar la categoría'
+        };
+    }
+};
+
+export const renameTag = async (oldTag, newTag, token) => {
+    try {
+        const response = await api.put('/api/tags/rename', 
+            { oldTag, newTag },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al renombrar la categoría'
+        };
+    }
+};
+
+export const findProductsByTags = async (tags, matchAll = true, page = 1, limit = 10, exact = false, token) => {
+    try {
+        const queryParams = new URLSearchParams({
+            tags: Array.isArray(tags) ? tags.join(',') : tags,
+            matchAll: String(matchAll),
+            page: String(page),
+            limit: String(limit),
+            exact: String(exact)
+        });
+
+        const response = await api.get(`/api/tags/products?${queryParams}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al buscar productos por categorías'
+        };
+    }
+};
+
+export const removeTagFromProduct = async (productId, tag, token) => {
+    try {
+        const response = await api.delete(`/api/tags/product/${productId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            data: { tags: [tag] }  // Send data with DELETE request
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al eliminar la categoría del producto'
+        };
+    }
+};
+
 export {
     getDashboardStats,
     getTotalSales,
