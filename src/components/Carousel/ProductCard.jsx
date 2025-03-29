@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables';
 
 const ProductCard = ({ product }) => {
+    const navigate = useNavigate();
     const [imageError, setImageError] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -44,7 +45,7 @@ const ProductCard = ({ product }) => {
         if (e.target.closest('button')) {
             return;
         }
-        window.location.href = `/product/${product._id}`;
+        navigate(`/product/${product._id}`);
     };
 
     return (
