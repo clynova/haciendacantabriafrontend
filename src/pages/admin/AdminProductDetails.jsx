@@ -23,6 +23,138 @@ const formatValue = (value, type = 'text') => {
     }
 };
 
+// Add missing fields for base products
+const renderBaseProductInfo = (product) => (
+    <div className="space-y-4">
+        {/* Existing base info... */}
+        
+        {/* Add Metadata section */}
+        {product.metadatos && product.metadatos.size > 0 && (
+            <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-slate-200">Metadatos</h2>
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                    {Array.from(product.metadatos).map(([key, value]) => (
+                        <p key={key} className="text-slate-300">
+                            <span className="text-slate-400">{key}:</span> {value}
+                        </p>
+                    ))}
+                </div>
+            </div>
+        )}
+    </div>
+);
+
+// Update renderProductTypeSpecificInfo for Meat Products
+const renderMeatInfo = (product) => (
+    <>
+        {/* Existing meat info... */}
+        
+        {/* Add missing Cocción section */}
+        <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-slate-200">Recetas y Consejos</h2>
+            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
+                {product.coccion?.recetas?.length > 0 && (
+                    <div>
+                        <h3 className="text-slate-300 font-medium mb-2">Recetas</h3>
+                        <ul className="space-y-2">
+                            {product.coccion.recetas.map((receta, index) => (
+                                <li key={index} className="text-slate-300">
+                                    <p className="font-medium">{receta.nombre}</p>
+                                    <p className="text-sm text-slate-400">{receta.descripcion}</p>
+                                    {receta.url && (
+                                        <a href={receta.url} 
+                                           target="_blank" 
+                                           rel="noopener noreferrer"
+                                           className="text-blue-400 hover:text-blue-300 text-sm">
+                                            Ver receta
+                                        </a>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {product.coccion?.consejos?.length > 0 && (
+                    <div>
+                        <h3 className="text-slate-300 font-medium mb-2">Consejos de Cocción</h3>
+                        <ul className="list-disc list-inside">
+                            {product.coccion.consejos.map((consejo, index) => (
+                                <li key={index} className="text-slate-300">{consejo}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </div>
+        </div>
+
+        {/* Add Pesos Estándar section */}
+        {product.opcionesPeso?.pesosEstandar?.length > 0 && (
+            <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-slate-200">Pesos Estándar</h2>
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {product.opcionesPeso.pesosEstandar.map((peso, index) => (
+                            <div key={index} className="p-3 bg-slate-600/50 rounded">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Peso:</span> {peso.peso}{peso.unidad}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Precio:</span> ${peso.precio}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">SKU:</span> {peso.sku}
+                                </p>
+                                {peso.esPredeterminado && (
+                                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded mt-2 inline-block">
+                                        Predeterminado
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )}
+    </>
+);
+
+// Update renderProductTypeSpecificInfo for Oil Products
+const renderOilInfo = (product) => (
+    <>
+        {/* Existing oil info... */}
+
+        {/* Add Opciones de Volumen section */}
+        {product.opcionesVolumen?.length > 0 && (
+            <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-slate-200">Opciones de Volumen</h2>
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {product.opcionesVolumen.map((opcion, index) => (
+                            <div key={index} className="p-3 bg-slate-600/50 rounded">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Volumen:</span> {opcion.volumen}ml
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Precio:</span> ${opcion.precio}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">SKU:</span> {opcion.sku}
+                                </p>
+                                {opcion.esPredeterminado && (
+                                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded mt-2 inline-block">
+                                        Predeterminado
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )}
+    </>
+);
+
 const AdminProductDetails = () => {
     const { productId } = useParams();
     const navigate = useNavigate();
@@ -246,6 +378,194 @@ const AdminProductDetails = () => {
                                 </p>
                             </div>
                         </div>
+
+                        {/* Add missing Cocción section */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Recetas y Consejos</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
+                                {product.coccion?.recetas?.length > 0 && (
+                                    <div>
+                                        <h3 className="text-slate-300 font-medium mb-2">Recetas</h3>
+                                        <ul className="space-y-2">
+                                            {product.coccion.recetas.map((receta, index) => (
+                                                <li key={index} className="text-slate-300">
+                                                    <p className="font-medium">{receta.nombre}</p>
+                                                    <p className="text-sm text-slate-400">{receta.descripcion}</p>
+                                                    {receta.url && (
+                                                        <a href={receta.url} 
+                                                           target="_blank" 
+                                                           rel="noopener noreferrer"
+                                                           className="text-blue-400 hover:text-blue-300 text-sm">
+                                                            Ver receta
+                                                        </a>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {product.coccion?.consejos?.length > 0 && (
+                                    <div>
+                                        <h3 className="text-slate-300 font-medium mb-2">Consejos de Cocción</h3>
+                                        <ul className="list-disc list-inside">
+                                            {product.coccion.consejos.map((consejo, index) => (
+                                                <li key={index} className="text-slate-300">{consejo}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Add Pesos Estándar section */}
+                        {product.opcionesPeso?.pesosEstandar?.length > 0 && (
+                            <div className="space-y-4">
+                                <h2 className="text-lg font-semibold text-slate-200">Pesos Estándar</h2>
+                                <div className="bg-slate-700/50 p-4 rounded-lg">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {product.opcionesPeso.pesosEstandar.map((peso, index) => (
+                                            <div key={index} className="p-3 bg-slate-600/50 rounded">
+                                                <p className="text-slate-300">
+                                                    <span className="text-slate-400">Peso:</span> {peso.peso}{peso.unidad}
+                                                </p>
+                                                <p className="text-slate-300">
+                                                    <span className="text-slate-400">Precio:</span> ${peso.precio}
+                                                </p>
+                                                <p className="text-slate-300">
+                                                    <span className="text-slate-400">SKU:</span> {peso.sku}
+                                                </p>
+                                                {peso.esPredeterminado && (
+                                                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded mt-2 inline-block">
+                                                        Predeterminado
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Añadir sección de Maduración */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Maduración</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Tipo:</span> {product.maduracion?.tipo || 'No especificado'}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Días:</span> {product.maduracion?.dias || 0}
+                                </p>
+                                {product.maduracion?.notas && (
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Notas:</span> {product.maduracion.notas}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Añadir sección de Corte */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Detalle del Corte</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Corte:</span> {product.infoCarne?.corte}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Descripción:</span> {product.corte?.descripcion || 'No especificada'}
+                                </p>
+                                {product.corte?.parteCorporal && (
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Parte Corporal:</span> {product.corte.parteCorporal}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Actualizar sección de Cocción con temperaturas */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Cocción y Temperaturas</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
+                                {product.coccion?.temperaturaTerminado && (
+                                    <div>
+                                        <h3 className="text-slate-300 font-medium mb-2">Temperaturas por Punto</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {Object.entries(product.coccion.temperaturaTerminado).map(([punto, temp]) => (
+                                                <div key={punto} className="bg-slate-600/50 p-3 rounded">
+                                                    <p className="text-slate-300">
+                                                        <span className="text-slate-400">{punto}:</span> {temp}°C
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {/* ...existing cocción content... */}
+                                {product.coccion?.metodos?.length > 0 && (
+                                    <div>
+                                        <span className="text-slate-400 block mb-1">Métodos de Cocción:</span>
+                                        <ul className="list-disc list-inside">
+                                            {product.coccion.metodos.map((metodo, index) => (
+                                                <li key={index} className="text-slate-300">{metodo}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Temperatura Ideal:</span> {product.coccion?.temperaturaIdeal}
+                                </p>
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Tiempo Estimado:</span> {product.coccion?.tiempoEstimado}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Añadir sección de Disponibilidad */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Disponibilidad</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                {product.disponibilidad?.temporada && (
+                                    <>
+                                        <p className="text-slate-300">
+                                            <span className="text-slate-400">Temporada:</span> {product.disponibilidad.temporada}
+                                        </p>
+                                        {product.disponibilidad.mesesDisponibilidad && (
+                                            <div>
+                                                <span className="text-slate-400 block mb-2">Meses disponibles:</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {product.disponibilidad.mesesDisponibilidad.map((mes, index) => (
+                                                        <span key={index} className="px-3 py-1 bg-slate-600 text-slate-200 rounded-full text-sm">
+                                                            {mes}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Añadir sección de Trazabilidad */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-slate-200">Trazabilidad</h2>
+                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
+                                <p className="text-slate-300">
+                                    <span className="text-slate-400">Lote:</span> {product.trazabilidad?.lote || 'No especificado'}
+                                </p>
+                                {product.trazabilidad?.establecimiento && (
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Establecimiento:</span> {product.trazabilidad.establecimiento}
+                                    </p>
+                                )}
+                                {product.trazabilidad?.numeroGuia && (
+                                    <p className="text-slate-300">
+                                        <span className="text-slate-400">Número de Guía:</span> {product.trazabilidad.numeroGuia}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </>
                 );
 
@@ -336,12 +656,73 @@ const AdminProductDetails = () => {
                                 </p>
                             </div>
                         </div>
+
+                        {/* Add Opciones de Volumen section */}
+                        {product.opcionesVolumen?.length > 0 && (
+                            <div className="space-y-4">
+                                <h2 className="text-lg font-semibold text-slate-200">Opciones de Volumen</h2>
+                                <div className="bg-slate-700/50 p-4 rounded-lg">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {product.opcionesVolumen.map((opcion, index) => (
+                                            <div key={index} className="p-3 bg-slate-600/50 rounded">
+                                                <p className="text-slate-300">
+                                                    <span className="text-slate-400">Volumen:</span> {opcion.volumen}ml
+                                                </p>
+                                                <p className="text-slate-300">
+                                                    <span className="text-slate-400">Precio:</span> ${opcion.precio}
+                                                </p>
+                                                <p className="text-slate-300">
+                                                    <span className="text-slate-400">SKU:</span> {opcion.sku}
+                                                </p>
+                                                {opcion.esPredeterminado && (
+                                                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded mt-2 inline-block">
+                                                        Predeterminado
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </>
                 );
 
             default:
                 return null;
         }
+    };
+
+    const renderMetadataSection = () => {
+        if (!product.metadatos || Object.keys(product.metadatos).length === 0) {
+            return null;
+        }
+    
+        return (
+            <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-slate-200">Metadatos del Producto</h2>
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(product.metadatos).map(([key, value], index) => (
+                            <div 
+                                key={index} 
+                                className="p-3 bg-slate-600/50 rounded flex justify-between items-start"
+                            >
+                                <div>
+                                    <span className="text-slate-400 text-sm">{key}:</span>
+                                    <div className="text-slate-300 break-words">
+                                        {typeof value === 'object' 
+                                            ? JSON.stringify(value, null, 2) 
+                                            : String(value)
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     if (loading) {
@@ -485,6 +866,9 @@ const AdminProductDetails = () => {
                                 </p>
                             </div>
                         </div>
+
+                        {/* Add Metadata Section here */}
+                        {renderMetadataSection()}
 
                         {/* SEO Information - Added Section */}
                         <div className="space-y-4">
