@@ -45,7 +45,7 @@ const ProductCard = ({ product }) => {
         if (e.target.closest('button')) {
             return;
         }
-        navigate(`/product/${product._id}`);
+        navigate(`/product/${product.slug || product._id}`);
     };
 
     return (

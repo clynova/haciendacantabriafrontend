@@ -63,9 +63,9 @@ const ProductProvider = ({ children }) => {
     };
   }, []);
 
-  const getProductById = useCallback(async (_id) => {
+  const getProductById = useCallback(async (idOrSlug) => {
     try {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/product/${_id}`);
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/product/${idOrSlug}`);
       return data;
     } catch (err) {
       setError(err.response?.data?.message || 'Producto no encontrado');

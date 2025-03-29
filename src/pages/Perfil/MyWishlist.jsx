@@ -92,7 +92,7 @@ const MyWishlist = () => {
                             key={product._id} 
                             className="border dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
                         >
-                            <Link to={`/product/${product._id}`}>
+                            <Link to={`/product/${product.slug || product._id}`}>
                                 <img 
                                     src={getImageUrl(product.multimedia?.imagenes?.[0]?.url)}
                                     alt={product.nombre}
@@ -105,7 +105,7 @@ const MyWishlist = () => {
                                 />
                             </Link>
                             <div className="p-4">
-                                <Link to={`/product/${product._id}`}>
+                                <Link to={`/product/${product.slug || product._id}`}>
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                                         {product.nombre}
                                     </h3>

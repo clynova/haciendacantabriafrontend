@@ -1,12 +1,14 @@
 import api from "./api";
 
-const getProductById = async (_Id) => {
+const getProductById = async (_IdOrSlug) => {
     try {
         // Si el ID es un objeto, intentar extraer el _id
-        const productId = typeof _Id === 'object' ? _Id._id : _Id;
+        const productId = typeof _IdOrSlug === 'object' ? _IdOrSlug._id : _IdOrSlug;
         
+        console.log(_IdOrSlug)
+
         if (!productId) {
-            throw new Error('ID de producto inválido');
+            throw new Error('ID o slug de producto inválido');
         }
 
         const response = await api.get(`/api/product/${productId}`);

@@ -78,7 +78,7 @@ const ProductGrid = () => {
         <div key={product._id}
           className="group relative h-[400px] overflow-hidden shadow-lg hover:shadow-2xl 
                    transition-all duration-300  ">
-          <Link to={`/product/${product._id}`} className="block h-full">
+          <Link to={`/product/${product.slug || product._id}`} className="block h-full">
             {/* Image Background with Zoom Effect */}
             <div className="absolute inset-0 overflow-hidden">
               <img

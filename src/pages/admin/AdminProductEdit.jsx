@@ -128,7 +128,7 @@ export const AdminProductEdit = () => {
                     palabrasClave: Array.isArray(response.product.seo?.palabrasClave)
                         ? response.product.seo.palabrasClave
                         : [],
-                    slug: response.product.seo?.slug || generateSlug(response.product.nombre)
+                    slug: response.product.slug || generateSlug(response.product.nombre)
                 };
 
                 const formattedData = {
