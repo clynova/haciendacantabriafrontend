@@ -26,7 +26,6 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
                         className="h-full w-full object-cover transition-transform hover:scale-110"
                     />
                 </div>
-                {console.log(item)}
                 <div>
                     <Link to={`/product/${item.slug}`} className="font-medium text-lg text-gray-800 hover:text-blue-600 transition-colors">
                         {item.nombre}

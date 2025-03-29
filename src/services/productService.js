@@ -4,8 +4,6 @@ const getProductById = async (_IdOrSlug) => {
     try {
         // Si el ID es un objeto, intentar extraer el _id
         const productId = typeof _IdOrSlug === 'object' ? _IdOrSlug._id : _IdOrSlug;
-        
-        console.log(_IdOrSlug)
 
         if (!productId) {
             throw new Error('ID o slug de producto inválido');
