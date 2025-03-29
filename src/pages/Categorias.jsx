@@ -39,6 +39,7 @@ const Categorias = () => {
         metodoCoccion: '',
         tipoEnvase: ''
     });
+    const [retryCount, setRetryCount] = useState(0);
 
     // Function to format category name based on specific rules
     const formatCategoryName = (name) => {
@@ -182,7 +183,12 @@ const Categorias = () => {
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
                 <button 
-                    onClick={() => window.location.reload()}
+                    onClick={() => {
+                        setError(null);
+                        setLoading(true);
+                        setRetryCount(prev => prev + 1);
+                        fetchProducts(); // Re-fetch without page reload
+                    }}
                     className="text-blue-600 hover:text-blue-700 dark:text-blue-400 
                              dark:hover:text-blue-300 transition-colors"
                 >
