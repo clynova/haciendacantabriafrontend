@@ -10,7 +10,7 @@ import { formatCurrency } from '../utils/funcionesReutilizables';
 import toast from 'react-hot-toast';
 
 const ProductDetails2 = () => {
-  const { _id } = useParams();
+  const { _id, slug } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -24,8 +24,18 @@ const ProductDetails2 = () => {
       try {
         setLoading(true);
         setError(null);
-        const fetchedProduct = await getProductById(_id);
-        setProduct(fetchedProduct.product);
+        const fetchedProduct = await getProductById(_id || slug);
+        
+        if (fetchedProduct.success) {
+          setProduct(fetchedProduct.product);
+          
+          // Redirect to slug URL if we're on ID URL
+          if (_id && fetchedProduct.product.slug && !window.location.pathname.includes('/product/')) {
+            navigate(`/product/${fetchedProduct.product.seo.slug}`, { replace: true });
+          }
+        } else {
+          throw new Error(fetchedProduct.msg || 'Error al cargar el producto');
+        }
       } catch (err) {
         setError('No se pudo cargar el producto. Por favor, intente nuevamente.');
         toast.error('Error al cargar el producto');
@@ -34,7 +44,7 @@ const ProductDetails2 = () => {
       }
     };
     fetchProduct();
-  }, [_id]);
+  }, [_id, slug, navigate]);
 
   useEffect(() => {
     if (product) {

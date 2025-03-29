@@ -234,7 +234,7 @@ const Categorias = () => {
                                 {sortedProducts.map((product) => (
                                     <Link
                                         key={product._id}
-                                        to={`/product/${product._id}`}
+                                        to={`/product/${product.slug || product._id}`}
                                         className="group bg-white dark:bg-gray-800 rounded-lg shadow-sm 
                                                  hover:shadow-md transition-all duration-300"
                                     >
