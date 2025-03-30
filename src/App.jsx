@@ -3,6 +3,7 @@ import { PageTitle } from "./components/PageTitle";
 import { Toaster } from 'react-hot-toast';
 import { toasterConfig } from './config/toasterConfig';
 import { AppProviders } from './components/Providers/AppProviders';
+import { ScrollToTop } from './components/ScrollToTop';
 import appRoutes from './routes/index.jsx';
 
 const App = () => {
@@ -12,6 +13,7 @@ const App = () => {
     <AppProviders>
       <PageTitle />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           {/* Rutas de Home */}
           {homeRoutes}
