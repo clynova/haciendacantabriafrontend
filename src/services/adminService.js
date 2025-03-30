@@ -146,6 +146,23 @@ const createUser = async (userData, token) => {
     }
 };
 
+const getOrderStats = async (token) => {
+    try {
+        const response = await api.get('/api/util/order-stats', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al obtener las estadísticas de pedidos'
+        };
+    }
+};
+
+
 export const getAllProducts = async (token, filters = {}) => {
     try {
         const queryParams = new URLSearchParams();
@@ -619,5 +636,6 @@ export {
     updateOrderStatus,
     updateOrder,
     updateOrderShipping,
-    notificarProductoFavorito
+    notificarProductoFavorito, 
+    getOrderStats
 };
