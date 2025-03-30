@@ -21,7 +21,8 @@ const OrderItem = ({ order, formatDate, getStatusBadgeColor }) => {
                         <h3 className="font-medium text-gray-900 dark:text-gray-100">Pedido #{order._id.slice(-6)}</h3>
                         <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadgeColor(order.status)}`}>
                             {order.status === 'completed' ? 'Completado' : 
-                             order.status === 'pending' ? 'Pendiente' : 'Cancelado'}
+                             order.status === 'pending' ? 'Pendiente' : 
+                             order.status === 'finalized' ? 'Finalizado' : 'Cancelado'}
                         </span>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">

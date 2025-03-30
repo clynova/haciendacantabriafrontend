@@ -75,7 +75,7 @@ const Header = () => {
         </div>
         <div className="flex flex-col space-y-4">
           <Navigation links={navLinks} onMobileClick={() => setIsMenuOpen(false)} />
-          <AboutDropdown /> {/* Add this line */}
+          <AboutDropdown />
         </div>
         <div className="border-t border-slate-800 pt-4">
           {user ? (
@@ -87,6 +87,15 @@ const Header = () => {
               >
                 Mi Perfil
               </Link>
+              {user.roles?.includes('admin') && (
+                <Link
+                  to="/admin"
+                  className="block w-full text-center text-slate-300 hover:text-white px-4 py-2 text-lg font-medium mb-3 transition-colors duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Panel Admin
+                </Link>
+              )}
               <button
                 onClick={() => {
                   logout();
@@ -128,7 +137,7 @@ const Header = () => {
               {!isSearchExpanded ? (
                 <div className="flex space-x-8">
                   <Navigation links={navLinks} />
-                  <AboutDropdown /> {/* Add this line */}
+                  <AboutDropdown />
                 </div>
               ) : (
                 <div className="w-full max-w-xl px-4">

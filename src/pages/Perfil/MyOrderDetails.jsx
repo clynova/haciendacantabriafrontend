@@ -75,10 +75,12 @@ const MyOrderDetails = () => {
                         <span className={`px-2 py-1 rounded-full text-sm ${
                             order.status === 'completed' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
                             order.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' :
+                            order.status === 'finalized' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400' :
                             'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
                         }`}>
                             {order.status === 'completed' ? 'Completado' :
-                             order.status === 'pending' ? 'Pendiente' : 'Cancelado'}
+                             order.status === 'pending' ? 'Pendiente' : 
+                             order.status === 'finalized' ? 'Finalizado' : 'Cancelado'}
                         </span>
                     </div>
                     <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600">
