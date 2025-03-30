@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FiBox, FiUsers, FiList, FiTag, FiDollarSign } from 'react-icons/fi';
+import { FiBox, FiUsers, FiList, FiTag, FiDollarSign, FiCheckCircle, FiXCircle, FiClock, FiFlag } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getDashboardStats, getTopTags, getTotalSales, getPaymentMethodById } from '../../services/adminService';
+import { getDashboardStats, getTopTags, getTotalSales, getPaymentMethodById, getOrderStats } from '../../services/adminService';
 import { formatCurrencyBoletas } from '../../utils/funcionesReutilizables';
 
 const AdminDashboard = () => {
@@ -20,6 +20,14 @@ const AdminDashboard = () => {
         avgOrderValue: 0,
         paymentMethods: [],
         monthlySales: []
+    });
+    const [orderStats, setOrderStats] = useState({
+        pending: { count: 0, total: 0 },
+        completed: { count: 0, total: 0 },
+        finalized: { count: 0, total: 0 },
+        canceled: { count: 0, total: 0 },
+        totalOrders: 0,
+        totalAmount: 0
     });
     const [paymentMethodsData, setPaymentMethodsData] = useState({});
     const [loading, setLoading] = useState(true);
@@ -64,6 +72,17 @@ const AdminDashboard = () => {
                     
                     await Promise.all(methodsPromises);
                     setPaymentMethodsData(methodsData);
+                }
+
+                // Obtener estadísticas de órdenes
+                const orderStatsResponse = await getOrderStats(token);
+                if (orderStatsResponse.success) {
+                    const { byStatus, totalOrders, totalAmount } = orderStatsResponse.data;
+                    setOrderStats({
+                        ...byStatus,
+                        totalOrders,
+                        totalAmount
+                    });
                 }
             } catch (err) {
                 setError(err.msg || 'Error al cargar las estadísticas');
@@ -323,6 +342,165 @@ const AdminDashboard = () => {
                             </div>
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* Sección de estadísticas de órdenes */}
+            <div className="grid grid-cols-1 gap-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                        Estadísticas de Órdenes
+                    </h2>
+                    
+                    {/* Resumen general */}
+                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-lg mb-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium opacity-80">Resumen General</p>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mt-2">
+                                    <div>
+                                        <p className="text-xs opacity-70">Total de Órdenes</p>
+                                        <p className="text-2xl font-bold">{orderStats.totalOrders}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <FiList className="w-12 h-12 opacity-80" />
+                        </div>
+                    </div>
+
+                    {/* Estadísticas de órdenes por estado */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+                        {/* Estadísticas de órdenes pendientes */}
+                        <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg p-4 text-white shadow-sm">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <FiClock className="h-5 w-5" />
+                                        <h3 className="font-medium">Pendientes</h3>
+                                    </div>
+                                    <p className="text-3xl font-bold mt-2">{orderStats.pending.count}</p>
+                                    <p className="text-sm mt-1 opacity-90">{formatCurrencyBoletas(orderStats.pending.total)}</p>
+                                </div>
+                                <div className="bg-white/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                    <span className="text-lg font-semibold">
+                                        {orderStats.totalOrders ? 
+                                            Math.round(orderStats.pending.count / orderStats.totalOrders * 100) : 0}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Estadísticas de órdenes completadas */}
+                        <div className="bg-gradient-to-br from-green-400 to-green-500 rounded-lg p-4 text-white shadow-sm">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <FiCheckCircle className="h-5 w-5" />
+                                        <h3 className="font-medium">Completadas</h3>
+                                    </div>
+                                    <p className="text-3xl font-bold mt-2">{orderStats.completed.count}</p>
+                                    <p className="text-sm mt-1 opacity-90">{formatCurrencyBoletas(orderStats.completed.total)}</p>
+                                </div>
+                                <div className="bg-white/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                    <span className="text-lg font-semibold">
+                                        {orderStats.totalOrders ? 
+                                            Math.round(orderStats.completed.count / orderStats.totalOrders * 100) : 0}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Estadísticas de órdenes finalizadas */}
+                        <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg p-4 text-white shadow-sm">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <FiFlag className="h-5 w-5" />
+                                        <h3 className="font-medium">Finalizadas</h3>
+                                    </div>
+                                    <p className="text-3xl font-bold mt-2">{orderStats.finalized.count}</p>
+                                    <p className="text-sm mt-1 opacity-90">{formatCurrencyBoletas(orderStats.finalized.total)}</p>
+                                </div>
+                                <div className="bg-white/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                    <span className="text-lg font-semibold">
+                                        {orderStats.totalOrders ? 
+                                            Math.round(orderStats.finalized.count / orderStats.totalOrders * 100) : 0}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Estadísticas de órdenes canceladas */}
+                        <div className="bg-gradient-to-br from-red-400 to-red-500 rounded-lg p-4 text-white shadow-sm">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <FiXCircle className="h-5 w-5" />
+                                        <h3 className="font-medium">Canceladas</h3>
+                                    </div>
+                                    <p className="text-3xl font-bold mt-2">{orderStats.canceled.count}</p>
+                                    <p className="text-sm mt-1 opacity-90">{formatCurrencyBoletas(orderStats.canceled.total)}</p>
+                                </div>
+                                <div className="bg-white/20 rounded-full h-12 w-12 flex items-center justify-center">
+                                    <span className="text-lg font-semibold">
+                                        {orderStats.totalOrders ? 
+                                            Math.round(orderStats.canceled.count / orderStats.totalOrders * 100) : 0}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Visualización gráfica de la distribución de órdenes */}
+                    <div>
+                        <h3 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                            Distribución de Órdenes
+                        </h3>
+                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex">
+                            {orderStats.totalOrders > 0 && (
+                                <>
+                                    <div 
+                                        className="h-full bg-yellow-400" 
+                                        style={{ width: `${(orderStats.pending.count / orderStats.totalOrders) * 100}%` }}
+                                        title={`Pendientes: ${orderStats.pending.count} órdenes`}
+                                    />
+                                    <div 
+                                        className="h-full bg-green-400" 
+                                        style={{ width: `${(orderStats.completed.count / orderStats.totalOrders) * 100}%` }}
+                                        title={`Completadas: ${orderStats.completed.count} órdenes`}
+                                    />
+                                    <div 
+                                        className="h-full bg-blue-400" 
+                                        style={{ width: `${(orderStats.finalized.count / orderStats.totalOrders) * 100}%` }}
+                                        title={`Finalizadas: ${orderStats.finalized.count} órdenes`}
+                                    />
+                                    <div 
+                                        className="h-full bg-red-400" 
+                                        style={{ width: `${(orderStats.canceled.count / orderStats.totalOrders) * 100}%` }}
+                                        title={`Canceladas: ${orderStats.canceled.count} órdenes`}
+                                    />
+                                </>
+                            )}
+                        </div>
+                        <div className="flex justify-center mt-4 flex-wrap gap-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                                <span className="text-xs text-gray-600 dark:text-gray-400">Pendientes</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                                <span className="text-xs text-gray-600 dark:text-gray-400">Completadas</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+                                <span className="text-xs text-gray-600 dark:text-gray-400">Finalizadas</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                                <span className="text-xs text-gray-600 dark:text-gray-400">Canceladas</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
