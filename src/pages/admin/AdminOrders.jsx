@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getAllOrders, updateOrderStatus } from '../../services/adminService';
-import { HiSearch, HiDownload, HiRefresh, HiEye, HiCheckCircle, HiXCircle } from 'react-icons/hi';
+import { HiSearch, HiDownload, HiRefresh, HiEye, HiCheckCircle, HiXCircle, HiMail } from 'react-icons/hi';
 import { formatCurrency } from '../../utils/funcionesReutilizables';
 import { toast } from 'react-hot-toast';
+import { enviarEmailConfirmacionOrden } from '../../services/utilService';
 
 const AdminOrders = () => {
     const navigate = useNavigate();
@@ -16,6 +17,24 @@ const AdminOrders = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+    const [sendingEmail, setSendingEmail] = useState(false);
+
+    const handleSendEmail = async (orderId) => {
+        if (!window.confirm('¿Deseas enviar los detalles de esta orden por correo electrónico al cliente?')) {
+            return;
+        }
+
+        try {
+            setSendingEmail(true);
+            await enviarEmailConfirmacionOrden(orderId, token);
+            toast.success('Correo enviado correctamente al cliente');
+        } catch (error) {
+            toast.error('Error al enviar el correo');
+            console.error('Error al enviar correo:', error);
+        } finally {
+            setSendingEmail(false);
+        }
+    };
 
     const fetchOrders = async () => {
         try {
@@ -285,6 +304,14 @@ const AdminOrders = () => {
                                                     </button>
                                                 </>
                                             )}
+                                            <button
+                                                onClick={() => handleSendEmail(order._id)}
+                                                disabled={sendingEmail}
+                                                className="text-blue-400 hover:text-blue-300"
+                                                title="Enviar detalles por correo al cliente"
+                                            >
+                                                <HiMail className="h-5 w-5" />
+                                            </button>
                                             <button
                                                 onClick={() => navigate(`/admin/orders/${order._id}`)}
                                                 className="text-blue-400 hover:text-blue-300"

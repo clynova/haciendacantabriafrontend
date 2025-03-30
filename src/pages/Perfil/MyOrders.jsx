@@ -3,6 +3,9 @@ import { getOrders } from "../../services/userService";
 import { useAuth } from "../../context/AuthContext";
 import { Pagination } from "../../components/Pagination";
 import { OrderItem } from "../../components/Orders/OrderItem";
+import { enviarEmailConfirmacionOrden } from "../../services/utilService";
+import { HiMail } from "react-icons/hi";
+import { toast } from "react-hot-toast";
 
 const MyOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -13,6 +16,7 @@ const MyOrders = () => {
     const { token } = useAuth();
     const [sortOrder, setSortOrder] = useState('desc');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [sendingEmail, setSendingEmail] = useState(false);
 
     const statusOptions = {
         all: 'Todos',
@@ -99,6 +103,23 @@ const MyOrders = () => {
         );
     }
 
+    const handleSendEmail = async (orderId) => {
+        if (!window.confirm('¿Deseas recibir los detalles de esta orden por correo electrónico?')) {
+            return;
+        }
+
+        try {
+            setSendingEmail(true);
+            await enviarEmailConfirmacionOrden(orderId, token);
+            toast.success('Correo enviado correctamente');
+        } catch (error) {
+            toast.error('Error al enviar el correo');
+            console.error('Error al enviar correo:', error);
+        } finally {
+            setSendingEmail(false);
+        }
+    };
+
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -138,12 +159,21 @@ const MyOrders = () => {
             ) : (
                 <div className="space-y-4">
                     {currentOrders.map((order) => (
-                        <OrderItem
-                            key={order._id}
-                            order={order}
-                            formatDate={formatDate}
-                            getStatusBadgeColor={getStatusBadgeColor}
-                        />
+                        <div key={order._id} className="relative">
+                            <OrderItem
+                                order={order}
+                                formatDate={formatDate}
+                                getStatusBadgeColor={getStatusBadgeColor}
+                            />
+                            <button
+                                onClick={() => handleSendEmail(order._id)}
+                                disabled={sendingEmail}
+                                className="absolute bottom-4 right-4 p-2 text-gray-600 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 transition-colors duration-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                                title="Enviar detalles por correo"
+                            >
+                                <HiMail className="h-5 w-5" />
+                            </button>
+                        </div>
                     ))}
                 </div>
             )}

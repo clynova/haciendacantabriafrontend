@@ -1,46 +1,59 @@
 import axios from 'axios';
-
-// Fix: Make sure the API_URL is defined correctly and has a fallback
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+import api from "./api";
 
 const uploadImageToCloudinary = async (file) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "hacienda_cantabria"); // Custom upload preset name
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "hacienda_cantabria"); // Custom upload preset name
 
-    try {
-        const res = await fetch("https://api.cloudinary.com/v1_1/djgegk8jp/image/upload", {
-            method: "POST",
-            body: formData,
-        });
+  try {
+    const res = await fetch("https://api.cloudinary.com/v1_1/djgegk8jp/image/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-        const data = await res.json();
-        console.log(data)
-        if (data.error) {
-            console.error("Error de Cloudinary:", data.error.message);
-            return null;
-        }
-        return data.secure_url;
-    } catch (error) {
-        console.error("Error subiendo la imagen:", error);
-        return null;
+    const data = await res.json();
+    console.log(data)
+    if (data.error) {
+      console.error("Error de Cloudinary:", data.error.message);
+      return null;
     }
+    return data.secure_url;
+  } catch (error) {
+    console.error("Error subiendo la imagen:", error);
+    return null;
+  }
 };
 
 
-export const sendContactForm = async (formData) => {
+const sendContactForm = async (formData) => {
   try {
-    
-    const response = await axios.post(`${API_URL}/api/util/contact`, formData, {
+
+    const response = await api.post(`/api/util/contact`, formData, {
       headers: {
         'Content-Type': 'application/json'
       }
     });
-    
+
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
   }
 };
 
-export { uploadImageToCloudinary };
+
+const enviarEmailConfirmacionOrden = async (orderId, token) => {
+  try {
+    const response = await api.get(`/api/util/send-emailOrder/${orderId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+}
+
+
+export { uploadImageToCloudinary, enviarEmailConfirmacionOrden, sendContactForm };
