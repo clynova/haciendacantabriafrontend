@@ -1,13 +1,41 @@
 import api from "./api";
 
-const getProductsByTags = async (tags, matchAll = true) => {
+export const getAllTags = async () => {
   try {
-    const response = await api.get(`/api/tags/products?tags=${tags}&matchAll=${matchAll}`);
-    return response.data;
+    const response = await api.get('/api/tags');
+    return {
+      success: true,
+      tags: response.data.tags || []
+    };
   } catch (error) {
-    console.error('Error fetching products by tags:', error);
-    return null;
+    return {
+      success: false,
+      tags: [],
+      error: error.response?.data?.message || 'Error al obtener etiquetas'
+    };
   }
-}
+};
 
-export { getProductsByTags };
+export const getProductsByTags = async (tags, matchAll = true) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (Array.isArray(tags)) {
+      tags.forEach(tag => queryParams.append('tags', tag));
+    } else {
+      queryParams.append('tags', tags);
+    }
+    queryParams.append('matchAll', matchAll);
+
+    const response = await api.get(`/api/tags/products?${queryParams.toString()}`);
+    return {
+      success: true,
+      products: response.data.products || []
+    };
+  } catch (error) {
+    return {
+      success: false,
+      products: [],
+      error: error.response?.data?.message || 'Error al buscar productos por etiquetas'
+    };
+  }
+};
