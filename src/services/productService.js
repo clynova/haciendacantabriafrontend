@@ -34,15 +34,32 @@ export const searchProducts = async (filters = {}) => {
     try {
         const queryParams = new URLSearchParams();
         
-        // Add filters to query params if they exist
+        // Add filters to query params
         if (filters.categoria) {
             queryParams.append('categoria', filters.categoria);
         }
+        
+        // Always get active products
+        queryParams.append('estado', 'active');
 
-        const response = await api.get(`/api/product?${queryParams.toString()}`);
-        return response.data;
+        const response = await api.get(`/api/product/active?${queryParams.toString()}`);
+        
+        if (!response.data) {
+            throw new Error('No se recibieron datos del servidor');
+        }
+
+        return {
+            success: true,
+            products: response.data.products || [],
+            total: response.data.total || 0
+        };
     } catch (error) {
-        throw error.response?.data || error;
+        return {
+            success: false,
+            products: [],
+            total: 0,
+            error: error.response?.data?.message || error.message || 'Error al buscar productos'
+        };
     }
 };
 
