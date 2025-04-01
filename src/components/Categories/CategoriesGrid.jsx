@@ -1,5 +1,3 @@
-
-import { motion } from 'framer-motion';
 import { CategoryCard } from './CategoryCard';
 import imgCarne from '../../images/categories/Carne.webp';
 import imgDestino from '../../images/categories/destino.webp';
@@ -7,85 +5,74 @@ import imgAceite from '../../images/categories/Aceite.webp';
 
 const categories = [
   {
-    title: "Carnes Premium",
-    description: "Descubre nuestra selección de cortes argentinos de la más alta calidad",
+    title: "Carnes",
+    description: "Las mejores carnes, con garantía de calidad y sabor excepcional",
     image: imgCarne,
     href: "/categoria/carne",
-    color: "from-red-500/20 to-red-900/40",
-    featured: true
+    color: "",
+    featured: true // Add this to mark as featured
   },
   {
-    title: "Aceites Gourmet",
-    description: "Aceites seleccionados para realzar el sabor de tus comidas",
+    title: "Aceites",
+    description: "Aceites de oliva y otros aceites premium para tus comidas",
     image: imgAceite,
     href: "/categoria/aceite",
     color: "from-green-500/20 to-green-900/40"
   },
   {
-    title: "Accesorios Premium",
-    description: "Todo lo necesario para una experiencia culinaria perfecta",
+    title: "Accesorios",
+    description: "Encuentra los mejores accesorios para tu cocina y parrilla",
     image: imgDestino,
     href: "/categoria/accesorios",
     color: "from-purple-500/20 to-purple-900/40"
   }
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut"
-    }
-  }
-};
-
 const CategoriesGrid = () => {
   const featuredCategory = categories.find(cat => cat.featured);
   const regularCategories = categories.filter(cat => !cat.featured);
 
   return (
-    <motion.div 
-      className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
       {/* Featured Category */}
-      <motion.div 
-        className="transform transition-all duration-500 hover:scale-[1.02] h-[500px] md:h-full
-                   rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl"
-        variants={itemVariants}
+      <div 
+        className="transform transition-all duration-300 hover:scale-[1.02] h-[400px] md:h-full"
+        style={{ 
+          animation: 'fadeInUp 0.6s ease-out forwards'
+        }}
       >
         <CategoryCard {...featuredCategory} className="h-full w-full" />
-      </motion.div>
+      </div>
 
       {/* Regular Categories Column */}
-      <div className="grid grid-cols-1 gap-6 md:gap-8">
+      <div className="grid grid-cols-1 gap-4 md:gap-6">
         {regularCategories.map((category, index) => (
-          <motion.div 
+          <div 
             key={category.title}
-            className="transform transition-all duration-500 hover:scale-[1.02] h-[240px]
-                     rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl"
-            variants={itemVariants}
+            className="transform transition-all duration-300 hover:scale-[1.02] h-[300px]"
+            style={{ 
+              animationDelay: `${(index + 1) * 150}ms`,
+              animation: 'fadeInUp 0.6s ease-out forwards'
+            }}
           >
             <CategoryCard {...category} className="h-full w-full" />
-          </motion.div>
+          </div>
         ))}
       </div>
-    </motion.div>
+
+      <style jsx="true">{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+    </div>
   );
 };
 
