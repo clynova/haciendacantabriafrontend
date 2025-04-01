@@ -342,13 +342,16 @@ const ProductDetails2 = () => {
       </nav>
 
       <div className="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
-        {/* Galería de imágenes */}
-        <ImageGallery
-          images={product.multimedia.imagenes}
-          selectedImage={selectedImage}
-          setSelectedImage={setSelectedImage}
-        />
+        {/* Galería de imágenes - Agregar sticky */}
+        <div className="lg:sticky lg:top-20">
+          <ImageGallery
+            images={product.multimedia.imagenes}
+            selectedImage={selectedImage}
+            setSelectedImage={setSelectedImage}
+          />
+        </div>
 
+        {/* Columna de información - Sin cambios */}
         <div className="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
             {product.nombre}

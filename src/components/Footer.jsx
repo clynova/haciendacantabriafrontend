@@ -7,7 +7,7 @@ import {
   FaCreditCard,
   FaPaypal,
 } from 'react-icons/fa';
-import { SiMercadopago } from 'react-icons/si';
+import { SiWebmoney } from 'react-icons/si'; // Add SiWebmoney for Webpay
 import logo from '/images/logo.png'; // Update this path to match your logo location
 
 export const Footer = () => {
@@ -17,9 +17,9 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Logo Column */}
           <div className="flex flex-col items-center md:items-start">
-            <img 
-              src={logo} 
-              alt="Hacienda Cantabria Logo" 
+            <img
+              src={logo}
+              alt="Hacienda Cantabria Logo"
               className="h-18 w-18 object-contain mb-4"
             />
             <h2 className="text-white font-bold text-xl text-center md:text-left">Cohesa</h2>
@@ -88,9 +88,10 @@ export const Footer = () => {
             <div>
               <h3 className="text-lg font-semibold text-white mb-4">Medios de Pago</h3>
               <div className="grid grid-cols-3 gap-4">
-                <FaCreditCard className="text-3xl" />
-                <FaPaypal className="text-3xl" />
-                <SiMercadopago className="text-3xl" />
+                <FaCreditCard className="text-3xl" title="Tarjetas de Crédito/Débito" />
+                <div className="flex items-center text-sm">
+                  <span>Webpay</span>
+                </div>
               </div>
             </div>
           </div>

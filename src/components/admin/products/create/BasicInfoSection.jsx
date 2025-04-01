@@ -22,33 +22,23 @@ export const BasicInfoSection = ({
             setSkuVerified(false);
         }
 
-        if (mode === 'create') {
-            // Patrón para AdminProductCreate
-            if (section) {
-                onChange({
-                    target: {
-                        name: field,
-                        value
-                    }
-                }, section);
-            } else {
-                onChange({
-                    target: {
-                        name: field,
-                        value
-                    }
-                });
-            }
+        // Unified change handling for both create and edit modes
+        if (section) {
+            onChange({
+                target: {
+                    name: field,
+                    value
+                }
+            }, section);
         } else {
-            // Patrón para AdminProductEdit
-            if (section) {
-                onChange(section, {
-                    ...data[section],
-                    [field]: value
-                });
-            } else {
-                onChange(field, value);
-            }
+            onChange({
+                target: {
+                    name: field,
+                    value: field === 'estado' || field === 'destacado' 
+                        ? value === 'true' || value === true
+                        : value
+                }
+            });
         }
     };
 
@@ -92,14 +82,10 @@ export const BasicInfoSection = ({
 
     return (
         <div className="bg-slate-800 rounded-lg p-5">
-            {/* Título de la sección */}
-            {(mode === 'edit' || displayFields.includes('title')) && (
-                <h2 className="text-xl font-semibold text-white mb-4">Información Básica</h2>
-            )}
+            <h2 className="text-xl font-semibold text-white mb-4">Información Básica</h2>
             
-            {/* Contenedor flexible para campos principales */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                {/* SKU Field con verificación */}
+                {/* SKU Field */}
                 {displayFields.includes('sku') && (
                     <div className="col-span-1">
                         <div className="space-y-2">
@@ -153,7 +139,7 @@ export const BasicInfoSection = ({
                             label="Estado"
                             name="estado"
                             value={data.estado}
-                            onChange={(e) => handleChange('estado', e.target.value === 'true')}
+                            onChange={(e) => handleChange('estado', e.target.value)}
                             options={[
                                 { value: true, label: 'Activo' },
                                 { value: false, label: 'Inactivo' }
@@ -169,7 +155,7 @@ export const BasicInfoSection = ({
                             label="Destacado"
                             name="destacado"
                             value={data.destacado}
-                            onChange={(e) => handleChange('destacado', e.target.value === 'true')}
+                            onChange={(e) => handleChange('destacado', e.target.value)}
                             options={[
                                 { value: false, label: 'No' },
                                 { value: true, label: 'Sí' }
@@ -179,33 +165,26 @@ export const BasicInfoSection = ({
                 )}
             </div>
 
-            {/* Sección de descripción - ocupa todo el ancho */}
+            {/* Descripción */}
             {displayFields.includes('descripcion') && (
                 <div className="mt-6">
-                    {mode !== 'edit' && (
-                        <h3 className="text-lg font-semibold text-slate-200 mb-3">Descripción</h3>
-                    )}
                     <div className="grid grid-cols-1 gap-4">
-                        <div>
-                            <FormInput
-                                label="Descripción Corta"
-                                name="corta"
-                                value={data.descripcion?.corta || ''}
-                                onChange={(e) => handleChange('corta', e.target.value, 'descripcion')}
-                                maxLength={160}
-                                hint="Máximo 160 caracteres. Se mostrará en resultados de búsqueda."
-                            />
-                        </div>
-                        <div>
-                            <FormTextarea
-                                label="Descripción Completa"
-                                name="completa"
-                                value={data.descripcion?.completa || ''}
-                                onChange={(e) => handleChange('completa', e.target.value, 'descripcion')}
-                                rows={mode === 'edit' ? 4 : 3}
-                                hint="Descripción detallada del producto que se mostrará en su página."
-                            />
-                        </div>
+                        <FormInput
+                            label="Descripción Corta"
+                            name="descripcion.corta"
+                            value={data.descripcion?.corta || ''}
+                            onChange={(e) => handleChange('corta', e.target.value, 'descripcion')}
+                            maxLength={160}
+                            hint="Máximo 160 caracteres. Se mostrará en resultados de búsqueda."
+                        />
+                        <FormTextarea
+                            label="Descripción Completa"
+                            name="descripcion.completa"
+                            value={data.descripcion?.completa || ''}
+                            onChange={(e) => handleChange('completa', e.target.value, 'descripcion')}
+                            rows={4}
+                            hint="Descripción detallada del producto que se mostrará en su página."
+                        />
                     </div>
                 </div>
             )}
