@@ -124,7 +124,11 @@ const AdminOrderDetails = () => {
                         </div>
                         <div className="flex gap-2">
                             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusBadgeColor(order.status)}`}>
-                                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                {order.status === 'completed' ? 'En curso' :
+                                 order.status === 'pending' ? 'Pendiente' :
+                                 order.status === 'finalized' ? 'Finalizado' :
+                                 order.status === 'canceled' ? 'Cancelado' :
+                                 order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                             </span>
                         </div>
                     </div>
@@ -267,7 +271,10 @@ const AdminOrderDetails = () => {
                                                 : 'bg-blue-500 text-white hover:bg-blue-600'
                                         }`}
                                     >
-                                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                                        {status === 'completed' ? 'En Curso' :
+                                         status === 'pending' ? 'Pendiente' :
+                                         status === 'finalized' ? 'Finalizado' :
+                                         'Cancelado'}
                                     </button>
                                 ))}
                             </div>

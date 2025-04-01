@@ -17,9 +17,6 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
     });
 
     const [selectedRegion, setSelectedRegion] = useState("");
-    const [addressSuggestions, setAddressSuggestions] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [isSearching, setIsSearching] = useState(false);
 
     // Efecto para inicializar la región si hay datos iniciales
     useEffect(() => {
@@ -33,61 +30,6 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
             }
         }
     }, [initialData]);
-
-    // Función para buscar direcciones usando OpenStreetMap
-    const searchAddresses = async (query) => {
-        if (!query || query.length < 3) {
-            setAddressSuggestions([]);
-            return;
-        }
-
-        setIsSearching(true);
-        try {
-            // Construir la consulta incluyendo la comuna y región seleccionadas
-            const searchQuery = `${query}, ${formData.state}, ${selectedRegion}, Chile`;
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=cl&limit=5&addressdetails=1&accept-language=es`,
-                {
-                    headers: {
-                        'Accept': 'application/json',
-                        'User-Agent': 'HaciendaCantabria Frontend'
-                    }
-                }
-            );
-            
-            if (!response.ok) {
-                throw new Error('Error en la búsqueda de direcciones');
-            }
-            
-            const results = await response.json();
-            
-            const formattedResults = results.map(result => {
-                const addr = result.address;
-                const street = [
-                    addr?.road || addr?.pedestrian || addr?.street || addr?.path || addr?.footway,
-                    addr?.house_number
-                ].filter(Boolean).join(' ');
-
-                return {
-                    display_name: `${street}, ${formData.state}, ${selectedRegion}`,
-                    structured: {
-                        street,
-                        commune: formData.state,
-                        city: formData.state,
-                        region: selectedRegion,
-                        postal_code: addr?.postcode || ''
-                    }
-                };
-            }).filter(result => result.structured.street);
-
-            setAddressSuggestions(formattedResults);
-        } catch (error) {
-            console.error('Error al buscar direcciones:', error);
-            toast.error("Error al buscar direcciones");
-        } finally {
-            setIsSearching(false);
-        }
-    };
 
     // Función para manejar el cambio de región
     const handleRegionChange = (e) => {
@@ -109,39 +51,6 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
             city: selectedRegion
         }));
     };
-
-    // Función para manejar la selección de una dirección sugerida
-    const handleAddressSelection = (address) => {
-        try {
-            const { structured } = address;
-            
-            setFormData(prev => ({
-                ...prev,
-                street: structured.street.trim(),
-                city: structured.city.trim(),
-                state: structured.commune.trim(),
-                zipCode: structured.postal_code || '',
-                country: "Chile"
-            }));
-            
-            setSearchQuery(address.display_name);
-            setAddressSuggestions([]);
-        } catch (error) {
-            console.error('Error al procesar la dirección:', error);
-            toast.error('Error al procesar la dirección seleccionada');
-        }
-    };
-
-    // Efecto para debounce de la búsqueda
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            if (searchQuery && formData.state) { // Solo buscar si hay comuna seleccionada
-                searchAddresses(searchQuery);
-            }
-        }, 500);
-
-        return () => clearTimeout(timeoutId);
-    }, [searchQuery, formData.state]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -192,37 +101,6 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
                     </select>
                 </div>
 
-                {/* Campo de búsqueda de calle (solo habilitado si hay comuna seleccionada) */}
-                <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Buscar calle
-                    </label>
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        disabled={!formData.state}
-                        className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        placeholder={formData.state ? "Comienza a escribir para buscar una calle..." : "Selecciona una comuna primero"}
-                    />
-                    {isSearching && (
-                        <div className="mt-2 text-sm text-gray-500">Buscando...</div>
-                    )}
-                    {addressSuggestions.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border rounded-md shadow-lg max-h-60 overflow-auto">
-                            {addressSuggestions.map((suggestion, index) => (
-                                <div
-                                    key={index}
-                                    onClick={() => handleAddressSelection(suggestion)}
-                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
-                                >
-                                    {suggestion.display_name}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
                 {/* Campo de calle */}
                 <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -234,6 +112,7 @@ const AddressForm = ({ onSubmit, initialData = null, onCancel = null }) => {
                         value={formData.street}
                         onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
                         className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        placeholder="Ingresa calle y número"
                     />
                 </div>
 

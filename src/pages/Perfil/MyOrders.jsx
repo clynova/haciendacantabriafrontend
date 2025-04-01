@@ -21,7 +21,7 @@ const MyOrders = () => {
     const statusOptions = {
         all: 'Todos',
         pending: 'Pendiente',
-        completed: 'Completado',
+        completed: 'En Curso',
         finalized: 'Finalizado',
         canceled: 'Cancelado'
     };

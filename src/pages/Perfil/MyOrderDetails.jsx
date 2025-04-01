@@ -78,7 +78,7 @@ const MyOrderDetails = () => {
                             order.status === 'finalized' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400' :
                             'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
                         }`}>
-                            {order.status === 'completed' ? 'Completado' :
+                            {order.status === 'completed' ? 'En Curso' :
                              order.status === 'pending' ? 'Pendiente' : 
                              order.status === 'finalized' ? 'Finalizado' : 'Cancelado'}
                         </span>
