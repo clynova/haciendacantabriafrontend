@@ -204,7 +204,7 @@ const AdminDashboard = () => {
                         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white shadow-lg">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium opacity-80">Total de Pedidos</p>
+                                    <p className="text-sm font-medium opacity-80">Total de Pedidos Finalizados</p>
                                     <p className="text-2xl font-bold mt-1">{salesData.totalOrders}</p>
                                 </div>
                                 <FiList className="w-10 h-10 opacity-80" />
@@ -396,7 +396,7 @@ const AdminDashboard = () => {
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <FiCheckCircle className="h-5 w-5" />
-                                        <h3 className="font-medium">Completadas</h3>
+                                        <h3 className="font-medium">En Curso</h3>
                                     </div>
                                     <p className="text-3xl font-bold mt-2">{orderStats.completed.count}</p>
                                     <p className="text-sm mt-1 opacity-90">{formatCurrencyBoletas(orderStats.completed.total)}</p>
@@ -489,7 +489,7 @@ const AdminDashboard = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                                <span className="text-xs text-gray-600 dark:text-gray-400">Completadas</span>
+                                <span className="text-xs text-gray-600 dark:text-gray-400">En Curso</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 bg-blue-400 rounded-full"></div>

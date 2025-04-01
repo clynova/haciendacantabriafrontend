@@ -56,7 +56,7 @@ const logout = async (token) => {
 
 const requestPasswordReset = async (email) => {
   try {
-    const response = await api.post('/api/user/reset', { email });
+    const response = await api.post('/api/user/reset-password', { email });
     return response.data;
   } catch (error) {
     throw error.response.data;
