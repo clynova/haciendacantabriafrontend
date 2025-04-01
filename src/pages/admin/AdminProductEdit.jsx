@@ -94,7 +94,7 @@ export const AdminProductEdit = () => {
     const fetchProductDetails = async () => {
         try {
             const response = await getProductById(productId, token);
-
+            
             if (response.success) {
                 const formattedMultimedia = {
                     ...response.product.multimedia,
@@ -176,7 +176,13 @@ export const AdminProductEdit = () => {
                     opcionesVolumen: Array.isArray(response.product.opcionesVolumen)
                         ? response.product.opcionesVolumen
                         : [],
-                    seo: formattedSeo
+                    seo: formattedSeo,
+                    caracteristicasAceite: {
+                        aditivos: response.product.caracteristicasAceite?.aditivos || [],
+                        acidez: response.product.caracteristicasAceite?.acidez || '',
+                        filtracion: response.product.caracteristicasAceite?.filtracion || '',
+                        extraccion: response.product.caracteristicasAceite?.extraccion || ''
+                    }
                 };
 
                 setFormData(formattedData);
@@ -189,43 +195,42 @@ export const AdminProductEdit = () => {
     };
 
     // Replace the existing handleInputChange function
-    const handleInputChange = (field, value) => {
-        setFormData(prev => {
-            let newState;
-
-            if (typeof field === 'object' && field.target) {
-                const { name, value: eventValue, type, checked } = field.target;
-                const section = value;
-
-                newState = {
+    const handleInputChange = (e, section) => {
+        if (typeof e === 'object' && e.target) {
+            const { name, value, type, checked } = e.target;
+            
+            setFormData(prev => {
+                if ((section === 'caracteristicas' || section === 'caracteristicasAceite') 
+                    && name === 'aditivos') {
+                    return {
+                        ...prev,
+                        caracteristicas: {
+                            ...prev.caracteristicas,
+                            aditivos: value
+                        },
+                        caracteristicasAceite: {
+                            ...prev.caracteristicasAceite,
+                            aditivos: value
+                        }
+                    };
+                }
+                
+                if (section) {
+                    return {
+                        ...prev,
+                        [section]: {
+                            ...prev[section],
+                            [name]: Array.isArray(value) ? value : 
+                                   type === 'checkbox' ? checked : value
+                        }
+                    };
+                }
+                return {
                     ...prev,
-                    [section]: {
-                        ...(prev[section] || {}),
-                        [name]: type === 'checkbox' ? checked : eventValue
-                    }
+                    [name]: type === 'checkbox' ? checked : value
                 };
-            } else if (typeof value === 'object' && !Array.isArray(value)) {
-                newState = {
-                    ...prev,
-                    [field]: {
-                        ...(prev[field] || {}),
-                        ...value
-                    }
-                };
-            } else if (Array.isArray(value)) {
-                newState = {
-                    ...prev,
-                    [field]: value
-                };
-            } else {
-                newState = {
-                    ...prev,
-                    [field]: value
-                };
-            }
-
-            return newState;
-        });
+            });
+        }
     };
 
     const validateProductData = (data) => {

@@ -184,35 +184,25 @@ const AdminProductCreate = () => {
         inventario: {
             stockUnidades: '',
             umbralStockBajo: ''
-        }
+        },
+        usosRecomendados: []
     });
 
     // Update handleInputChange function
-    const handleInputChange = (e, section, subsection) => {
-        if (typeof e === 'object' && e.target) {
-            const { name, value, type, checked } = e.target;
-            
-            setFormData(prev => {
-                // Handle direct (top-level) fields
-                if (!section) {
-                    return {
-                        ...prev,
-                        [name]: type === 'checkbox' ? checked : value
-                    };
-                }
+    const handleInputChange = (e, section) => {
+        const { name, value, type, checked } = e.target;
+        
+        setFormData(prev => {
+            // Handle direct array updates (like usosRecomendados)
+            if (name === 'usosRecomendados') {
+                return {
+                    ...prev,
+                    [name]: value // value is already an array here
+                };
+            }
 
-                // Handle numeric inputs for infoNutricional
-                if (section === 'infoNutricional' && type === 'number') {
-                    return {
-                        ...prev,
-                        [section]: {
-                            ...prev[section],
-                            [name]: value === '' ? 0 : Number(value)
-                        }
-                    };
-                }
-
-                // Handle nested fields
+            // Handle other cases...
+            if (section) {
                 return {
                     ...prev,
                     [section]: {
@@ -220,17 +210,13 @@ const AdminProductCreate = () => {
                         [name]: type === 'checkbox' ? checked : value
                     }
                 };
-            });
-        } else {
-            // Handle direct value updates
-            setFormData(prev => ({
+            }
+
+            return {
                 ...prev,
-                [section]: subsection ? {
-                    ...prev[section],
-                    [subsection]: e
-                } : e
-            }));
-        }
+                [name]: type === 'checkbox' ? checked : value
+            };
+        });
     };
 
     // Manejador para cambio de tipo de producto
@@ -483,14 +469,15 @@ const AdminProductCreate = () => {
                     },
                     caracteristicas: formData.caracteristicasAceite,
                     produccion: formData.produccion,
+                    usosRecomendados: formData.usosRecomendados || [], // Asegurarse de incluir esto
                     infoNutricional: {
                         ...formData.infoNutricional,
                         calorias: Number(formData.infoNutricional.calorias) || 0,
                         grasaTotal: Number(formData.infoNutricional.grasaTotal) || 0,
                         grasaSaturada: Number(formData.infoNutricional.grasaSaturada) || 0,
-                        grasaTrans: formData.infoNutricional.grasaTrans || '',
-                        grasaPoliinsaturada: formData.infoNutricional.grasaPoliinsaturada || '',
-                        grasaMonoinsaturada: formData.infoNutricional.grasaMonoinsaturada || ''
+                        grasaTrans: Number(formData.infoNutricional.grasaTrans) || 0,
+                        grasaPoliinsaturada: Number(formData.infoNutricional.grasaPoliinsaturada) || 0,
+                        grasaMonoinsaturada: Number(formData.infoNutricional.grasaMonoinsaturada) || 0
                     }
                 };
             } else if (selectedType === 'ProductoCarne') {
@@ -670,12 +657,13 @@ const AdminProductCreate = () => {
                         {/* Formularios específicos basados en el tipo de producto */}
                         {selectedType === 'ProductoAceite' && (
                             <AceiteForm
-                                formData={{
-                                    ...formData,
-                                    caracteristicas: formData.caracteristicasAceite
-                                }}
-                                handleInputChange={handleInputChange}
-                            />
+                            formData={{
+                                ...formData,
+                                caracteristicas: formData.caracteristicasAceite,
+                                infoNutricional: formData.infoNutricional || {}
+                            }}
+                            handleInputChange={handleInputChange}
+                        />
                         )}
 
                         {selectedType === 'ProductoCarne' && (
