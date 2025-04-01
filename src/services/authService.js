@@ -64,29 +64,4 @@ const requestPasswordReset = async (email) => {
 }
 
 
-///api/user/reset-password/validar-token
-
-const requestPasswordResetConfirmToken = async (token, email) => {
-  try {
-    const response = await api.post('/api/user/reset-password/validar-token', { token, email });
-    return response.data;
-  } catch (error) {
-    throw error.response.data;
-  }
-}
-
-
-// api/user//reset-password/validar-nuevoPass
-
-const requestPasswordResetConfirmNewPass = async (token, email, password, confirmPassword) => {
-  try {
-    const response = await api.post('/api/user/reset-password/validar-nuevoPass', { token, email, password, confirmPassword });
-    return response.data;
-  } catch (error) {
-    throw error.response.data;
-  }
-}
-
-
-
-export { register, login, validarToken, reenviarToken, logout, requestPasswordReset, requestPasswordResetConfirmToken, requestPasswordResetConfirmNewPass };
+export { register, login, validarToken, reenviarToken, logout, requestPasswordReset };

@@ -50,16 +50,15 @@ const ForgotPassword = () => {
         setIsLoading(true);
         try {
             await requestPasswordReset(email);
-            toast.success('Se ha enviado un código de verificación a tu correo', {
+            setEmailSent(true);
+            toast.success('Se ha enviado un enlace de recuperación a tu correo', {
                 icon: '✉️',
                 duration: 5000,
             });
-            // Redirigir a la página de validación de token en lugar de mostrar el mensaje de éxito
-            navigate('/auth/password-reset-validate', { state: { email } });
         } catch (error) {
             const errorMessage = error.response?.status === 404
                 ? 'No existe una cuenta con este correo electrónico'
-                : 'Hubo un problema al enviar el código de verificación. Por favor, intenta nuevamente.';
+                : 'Hubo un problema al enviar el enlace de recuperación. Por favor, intenta nuevamente.';
             
             toast.error(errorMessage, {
                 icon: '❌',
@@ -77,17 +76,10 @@ const ForgotPassword = () => {
                     <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">¡Correo Enviado!</h1>
                     <div className="bg-green-100 dark:bg-green-900/50 p-6 rounded-lg mb-6 max-w-md">
                         <p className="text-green-700 dark:text-green-300 text-center">
-                            Hemos enviado un código de verificación a <strong>{email}</strong>. 
+                            Hemos enviado un enlace de recuperación a <strong>{email}</strong>. 
                             Por favor, revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.
                         </p>
                     </div>
-                    <button
-                        onClick={() => navigate('/auth/password-reset-validate', { state: { email } })}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 
-                                 text-white rounded-lg font-semibold transition-all duration-300 mb-4"
-                    >
-                        Continuar con la verificación
-                    </button>
                     <button
                         onClick={() => navigate('/auth')}
                         className="text-blue-600 hover:text-blue-700 font-medium"
@@ -105,7 +97,7 @@ const ForgotPassword = () => {
             <div className="flex flex-col items-center justify-center p-12 w-full lg:w-1/2">
                 <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Recuperar Contraseña</h1>
                 <p className="text-gray-600 dark:text-gray-400 mb-8 text-center max-w-md">
-                    Ingresa tu correo electrónico y te enviaremos un código de verificación para restablecer tu contraseña.
+                    Ingresa tu correo electrónico y te enviaremos las instrucciones para restablecer tu contraseña.
                 </p>
 
                 <form className="w-full max-w-md space-y-6" onSubmit={handleSubmit}>
@@ -143,7 +135,7 @@ const ForgotPassword = () => {
                                 Enviando...
                             </>
                         ) : (
-                            'Enviar código de verificación'
+                            'Enviar instrucciones'
                         )}
                     </button>
 
