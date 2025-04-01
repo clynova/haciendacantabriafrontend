@@ -46,14 +46,7 @@ const TEXTURAS_CARNE = [
     'GRANULADA'
 ];
 
-const TIPO_ENVASE = [
-    'BANDEJA',
-    'VACIO',
-    'CAJA',
-    'GRANEL',
-    'FILM',
-    'MALLA'
-];
+const TIPO_ENVASE = ['VACIO', 'CAJA', 'BOTELLA', 'BIDON', 'BOLSA'];
 
 const RAZAS_VACUNO = [
     'ANGUS',
@@ -100,7 +93,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                 name: 'textura',
                 value: updatedTexturas
             }
-        }, 'caracteristicas');
+        }, 'caracteristicasCarne');
     };
 
     const formatEnumLabel = (value) => {
@@ -340,7 +333,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                         name="porcentajeGrasa"
                         type="number"
                         value={formData.caracteristicas.porcentajeGrasa}
-                        onChange={(e) => handleInputChange(e, 'caracteristicas')}
+                        onChange={(e) => handleInputChange(e, 'caracteristicasCarne')}
                         min="0"
                         max="100"
                     />
@@ -349,7 +342,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                         name="marmoleo"
                         type="number"
                         value={formData.caracteristicas.marmoleo}
-                        onChange={(e) => handleInputChange(e, 'caracteristicas')}
+                        onChange={(e) => handleInputChange(e, 'caracteristicasCarne')}
                         min="1"
                         max="5"
                     />
@@ -366,7 +359,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                     <select
                         name="color"
                         value={formData.caracteristicas.color || ''}
-                        onChange={(e) => handleInputChange(e, 'caracteristicas')}
+                        onChange={(e) => handleInputChange(e, 'caracteristicasCarne')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                     >
                         <option value="">Seleccione el color</option>

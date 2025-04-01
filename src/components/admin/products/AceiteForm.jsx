@@ -56,38 +56,60 @@ const formatDateForInput = (dateString) => {
 
 // Modify the component initialization to properly merge data
 export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }) => {
-    // Remove defaultProps and use direct destructuring with defaults
+    // Asegurarnos de que caracteristicasAceite existe y tiene un array de aditivos
     const {
-        caracteristicas = { aditivos: [] },
+        caracteristicasAceite = {},
+        caracteristicas = {}, // Añadir esto
         produccion = {},
         infoNutricional = {},
         usosRecomendados = [],
         opcionesVolumen = []
     } = formData;
 
-    // Update handleChange to properly handle edit mode
+    // Usar el objeto correcto dependiendo del modo
+    const aditivosData = mode === 'edit' ? caracteristicas : caracteristicasAceite;
+    const aditivos = aditivosData?.aditivos || [];
+
+    // Update the handleChange function
     const handleChange = (e, section) => {
         const { name, value, type } = e.target;
-        const processedValue = type === 'number' ? Number(value) : value;
+        
+        // Special handling for infoNutricional
+        if (section === 'infoNutricional') {
+            handleInputChange({
+                target: {
+                    name,
+                    value: type === 'number' ? Number(value) || 0 : value
+                }
+            }, 'infoNutricional');
+            return;
+        }
 
-        handleInputChange(section, {
-            ...formData[section],
-            [name]: processedValue
-        });
+        // Handle other sections as before
+        handleInputChange({
+            target: {
+                name,
+                value: type === 'number' ? Number(value) : value
+            }
+        }, section);
     };
 
-    // Update handleAditivosChange
+    // Actualizar handleAditivosChange
     const handleAditivosChange = (e) => {
         const { checked, value } = e.target;
-        const currentAditivos = caracteristicas?.aditivos || [];
         const updatedAditivos = checked
-            ? [...currentAditivos, value]
-            : currentAditivos.filter(aditivo => aditivo !== value);
+            ? [...aditivos, value]
+            : aditivos.filter(aditivo => aditivo !== value);
 
-        handleInputChange('caracteristicas', {
-            ...caracteristicas,
-            aditivos: updatedAditivos
-        });
+        // En modo edición, usar 'caracteristicas', de lo contrario usar 'caracteristicasAceite'
+        const targetSection = mode === 'edit' ? 'caracteristicas' : 'caracteristicasAceite';
+
+        handleInputChange({
+            target: {
+                name: 'aditivos',
+                value: updatedAditivos
+            }
+        }, targetSection);
     };
 
     // Update handleOpcionVolumenChange
@@ -112,14 +134,22 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
         handleInputChange('opcionesVolumen', updatedOpciones);
     };
 
-    // Update handleUsosRecomendadosChange
+    // Corregir handleUsosRecomendadosChange
     const handleUsosRecomendadosChange = (e) => {
         const { checked, value } = e.target;
+        const currentUsos = formData.usosRecomendados || [];
+        
         const updatedUsos = checked
-            ? [...usosRecomendados, value]
-            : usosRecomendados.filter(uso => uso !== value);
+            ? [...currentUsos, value]
+            : currentUsos.filter(uso => uso !== value);
 
-        handleInputChange('usosRecomendados', updatedUsos);
+        // Actualizar directamente en la raíz del formData
+        handleInputChange({
+            target: {
+                name: 'usosRecomendados',
+                value: updatedUsos
+            }
+        });
     };
 
     // Update addOpcionVolumen
@@ -167,8 +197,8 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                         <input
                             type="number"
                             name="acidez"
-                            value={caracteristicas.acidez || ''}
-                            onChange={(e) => handleChange(e, 'caracteristicas')}
+                            value={caracteristicasAceite.acidez || ''}
+                            onChange={(e) => handleChange(e, 'caracteristicasAceite')}
                             step="0.01"
                             min="0"
                             max="100"
@@ -189,8 +219,8 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     </label>
                     <select
                         name="filtracion"
-                        value={caracteristicas.filtracion || ''}
-                        onChange={(e) => handleChange(e, 'caracteristicas')}
+                        value={caracteristicasAceite.filtracion || ''}
+                        onChange={(e) => handleChange(e, 'caracteristicasAceite')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                     >
                         <option value="">Seleccione el tipo de filtración</option>
@@ -209,8 +239,8 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     </label>
                     <select
                         name="extraccion"
-                        value={caracteristicas.extraccion || ''}
-                        onChange={(e) => handleChange(e, 'caracteristicas')}
+                        value={caracteristicasAceite.extraccion || ''}
+                        onChange={(e) => handleChange(e, 'caracteristicasAceite')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                     >
                         <option value="">Seleccione el método de extracción</option>
@@ -234,7 +264,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                                     type="checkbox"
                                     id={`aditivo-${aditivo}`}
                                     value={aditivo}
-                                    checked={caracteristicas.aditivos?.includes(aditivo) || false}
+                                    checked={aditivos.includes(aditivo)}
                                     onChange={handleAditivosChange}
                                     className="w-4 h-4 text-blue-600 rounded border-gray-500 bg-gray-700"
                                 />
@@ -370,7 +400,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                             type="checkbox"
                             id={`uso-${uso}`}
                             value={uso}
-                            checked={usosRecomendados.includes(uso)}
+                            checked={formData.usosRecomendados?.includes(uso) || false}
                             onChange={handleUsosRecomendadosChange}
                             className="w-4 h-4 text-blue-600 rounded border-gray-500 bg-gray-700"
                         />
