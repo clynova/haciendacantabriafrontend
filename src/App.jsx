@@ -15,7 +15,7 @@ const App = () => {
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
-          {/* Rutas de Home */}
+          {/* Rutas de Home  v2*/}
           {homeRoutes}
           
           {/* Rutas de autenticación */}
