@@ -132,7 +132,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
 
     // Update handleOpcionVolumenChange
     const handleOpcionVolumenChange = (index, field, value) => {
-        const updatedOpciones = [...opcionesVolumen];
+        const updatedOpciones = [...(formData.opcionesVolumen || [])];
         
         if (!updatedOpciones[index]) {
             updatedOpciones[index] = {};
@@ -149,7 +149,12 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
             [field]: value
         };
 
-        handleInputChange('opcionesVolumen', updatedOpciones);
+        handleInputChange({
+            target: {
+                name: 'opcionesVolumen',
+                value: updatedOpciones
+            }
+        });
     };
 
     // Corregir handleUsosRecomendadosChange
@@ -172,19 +177,25 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
 
     // Update addOpcionVolumen
     const addOpcionVolumen = () => {
+        const currentOpciones = formData.opcionesVolumen || [];
         const newOpcion = {
-            volumen: 0,
-            precio: 0,
+            volumen: '',
+            precio: '',
             sku: '',
-            esPredeterminado: opcionesVolumen.length === 0
+            esPredeterminado: currentOpciones.length === 0
         };
         
-        handleInputChange('opcionesVolumen', [...opcionesVolumen, newOpcion]);
+        handleInputChange({
+            target: {
+                name: 'opcionesVolumen',
+                value: [...currentOpciones, newOpcion]
+            }
+        });
     };
 
     // Update removeOpcionVolumen
     const removeOpcionVolumen = (index) => {
-        const updatedOpciones = [...opcionesVolumen];
+        const updatedOpciones = [...(formData.opcionesVolumen || [])];
         const removedOpcion = updatedOpciones[index];
         updatedOpciones.splice(index, 1);
 
@@ -192,7 +203,12 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
             updatedOpciones[0].esPredeterminado = true;
         }
 
-        handleInputChange('opcionesVolumen', updatedOpciones);
+        handleInputChange({
+            target: {
+                name: 'opcionesVolumen',
+                value: updatedOpciones
+            }
+        });
     };
 
     const formatEnumLabel = (value) => {
@@ -587,7 +603,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
             {/* Opciones de Volumen */}
             <h2 className="text-lg font-semibold text-slate-200 mt-6">Opciones de Volumen</h2>
             <div className="space-y-4">
-                {opcionesVolumen.map((opcion, index) => (
+                {(formData.opcionesVolumen || []).map((opcion, index) => (
                     <div key={index} className="bg-slate-700 p-4 rounded-md">
                         <div className="flex justify-between items-center mb-3">
                             <h3 className="text-white font-medium">Opción {index + 1}</h3>
