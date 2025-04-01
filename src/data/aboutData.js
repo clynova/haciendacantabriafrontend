@@ -1,43 +1,56 @@
 export const aboutData = {
     hero: {
-        title: "Hacienda Cantabria: Excelencia en Carnes Premium",
-        description: "Líderes en la importación y distribución de carnes argentinas de primera calidad, pollo premium y aceites selectos. Comprometidos con la excelencia y el sabor en cada producto."
+        title: "COHESA: Nutriendo el Futuro",
+        description: "Líderes en la comercialización de granos y subproductos para la industria de alimentación animal y humana, comprometidos con la calidad, la innovación y el crecimiento sostenible."
     },
     overview: {
         image: "../images/about/about-hero.webp",
         title: "Nuestra Historia",
         paragraphs: [
-            "Hacienda Cantabria nace de una tradición familiar con más de dos décadas de experiencia en la importación y distribución de carnes premium. Comenzamos con la importación de los mejores cortes argentinos, y hemos expandido nuestra experiencia para incluir pollo de primera calidad y aceites selectos.",
-            "Nuestra pasión por la calidad y el servicio nos ha permitido establecer alianzas estratégicas con los mejores productores de Argentina, garantizando así la mejor selección de carnes premium para nuestros clientes. Esta misma dedicación la aplicamos en la selección de nuestro pollo premium y aceites de alta calidad."
+            "COHESA nace de la pasión y una vasta experiencia en el sector agrícola, con raíces profundas en Chile y Argentina. Esta empresa fue fundada por la familia Balza, reconocidos agricultores y comerciantes argentinos con casi un siglo de trayectoria a través de Cantabria SA.",
+            "A ellos se unieron ejecutivos con basta experiencia en la industria del trading, Rodrigo Mazuela y Santiago de la Orden, quienes aportan una visión estratégica y única en la originación, comercialización y logística de granos y subproductos para industria alimentaria animal y humana."
         ]
     },
     content: {
         mission: {
-            title: "Nuestro Compromiso",
-            description: "Nos dedicamos a ofrecer los mejores cortes de carne argentina, pollo premium y aceites selectos, garantizando la calidad en cada producto. Mantenemos rigurosos estándares de selección y control de calidad, asegurando que cada producto cumpla con las expectativas de nuestros exigentes clientes.",
+            title: "Nuestro Enfoque",
+            description: "En COHESA, somos más que proveedores; somos socios estratégicos. Nos dedicamos a proporcionar soluciones integrales y a medida para las industrias de alimentación animal y humana, anticipando tendencias y adaptándonos rápidamente a los cambios del mercado.",
             image: "../images/about/mission.webp"
         },
         vision: {
-            title: "Nuestros Productos",
-            description: "Ofrecemos una cuidadosa selección de:\n• Cortes premium argentinos: desde el tradicional bife de chorizo hasta el exclusivo ojo de bife\n• Pollo premium: criado bajo los más altos estándares de calidad\n• Aceite Maravilla: seleccionado por su pureza y calidad superior",
+            title: "Nuestros Servicios",
+            description: "Ofrecemos una gama completa de servicios, desde la selección cuidadosa de granos y subproductos hasta soluciones logísticas integrales. Nuestro enfoque en la calidad se refleja en cada etapa del proceso, garantizando los más altos estándares.",
             image: "../images/about/vision.webp"
         }
     },
     values: [
         {
-            icon: "🥩",
-            title: "Calidad Premium",
-            description: "Seleccionamos cuidadosamente cada corte de carne y producto, trabajando directamente con los mejores productores para garantizar la más alta calidad."
-        },
-        {
-            icon: "🌡️",
-            title: "Control de Calidad",
-            description: "Mantenemos una rigurosa cadena de frío y control de calidad en todos nuestros productos, desde el origen hasta su entrega."
+            icon: "🌾",
+            title: "Aliados Estratégicos",
+            description: "La fortaleza de COHESA reside en nuestras alianzas estratégicas. Colaboramos con Cantabria S.A. en Argentina y Transgesa en logística, lo que nos permite ofrecer soluciones eficientes y flexibles en toda la cadena de suministro."
         },
         {
             icon: "🤝",
-            title: "Servicio Personalizado",
-            description: "Ofrecemos asesoría experta en la selección de cortes y productos, adaptándonos a las necesidades específicas de cada cliente."
+            title: "Compromiso",
+            description: "Nos comprometemos a ser un socio confiable y sostenible en la cadena de suministro agrícola. Continuaremos innovando, creciendo y adaptándonos para satisfacer las necesidades cambiantes de nuestros clientes."
+        },
+        {
+            icon: "🌱",
+            title: "Sostenibilidad",
+            description: "Contribuimos al desarrollo de una industria alimentaria más eficiente y responsable, con un enfoque en prácticas sostenibles y respetuosas con el medio ambiente."
         }
+    ],
+    contact: {
+        office: "Oficina 811 - 812, Reñaca Norte N° 265, Concon",
+        phone: "+56942734373",
+        email: "Team@cohesaspa.com"
+    },
+    collaborators: [
+        "Cantabria S.A.",
+        "Transgesa USA",
+        "Transgesa Chile"
+    ],
+    producers: [
+        "Don Manuel S.A."
     ]
 };

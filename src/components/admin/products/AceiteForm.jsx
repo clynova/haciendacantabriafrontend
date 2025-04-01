@@ -47,11 +47,28 @@ const USOS_RECOMENDADOS = [
     'SALSAS'
 ];
 
+// Add this with the other constants at the top
+const UNIDADES_VOLUMEN = ['ml', 'litros'];
+
 // Add this helper function at the top of the file
 const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toISOString().split('T')[0];
+};
+
+// Add this helper function at the top of the file
+const parseVolumeString = (volumeValue) => {
+    if (!volumeValue) return { value: '', unit: 'ml' };
+    if (typeof volumeValue === 'number') return { value: volumeValue.toString(), unit: 'ml' };
+    if (typeof volumeValue === 'string') {
+        const parts = volumeValue.split(' ');
+        return {
+            value: parts[0] || '',
+            unit: parts[1] || 'ml'
+        };
+    }
+    return { value: '', unit: 'ml' };
 };
 
 // Modify the component initialization to properly merge data
@@ -76,20 +93,21 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
         
         // Special handling for infoNutricional
         if (section === 'infoNutricional') {
+            const numberValue = type === 'number' ? parseFloat(value) : value;
             handleInputChange({
                 target: {
                     name,
-                    value: type === 'number' ? Number(value) || 0 : value
+                    value: numberValue === 0 ? 0 : (numberValue || '')
                 }
             }, 'infoNutricional');
             return;
         }
 
-        // Handle other sections as before
+        // Handle other sections
         handleInputChange({
             target: {
                 name,
-                value: type === 'number' ? Number(value) : value
+                value: type === 'number' ? (value === '' ? '' : Number(value)) : value
             }
         }, section);
     };
@@ -186,7 +204,66 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
     return (
         <div className="bg-slate-800 rounded-lg p-5 space-y-6">
             <h2 className="text-lg font-semibold text-slate-200">Características del Aceite</h2>
-            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Tipo de Aceite */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Tipo de Aceite
+                    </label>
+                    <select
+                        name="tipo"
+                        value={formData.infoAceite?.tipo || ''}
+                        onChange={(e) => handleChange(e, 'infoAceite')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                    >
+                        <option value="">Seleccione el tipo de aceite</option>
+                        {TIPO_ACEITE.map(tipo => (
+                            <option key={tipo} value={tipo}>
+                                {formatEnumLabel(tipo)}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Envase */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Tipo de Envase
+                    </label>
+                    <select
+                        name="envase"
+                        value={formData.infoAceite?.envase || ''}
+                        onChange={(e) => handleChange(e, 'infoAceite')}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                    >
+                        <option value="">Seleccione el tipo de envase</option>
+                        {TIPO_ENVASE.map(tipo => (
+                            <option key={tipo} value={tipo}>
+                                {formatEnumLabel(tipo)}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Volumen Base */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Volumen Base (ml)
+                    </label>
+                    <div className="relative">
+                        <input
+                            type="number"
+                            name="volumen"
+                            value={formData.infoAceite?.volumen || ''}
+                            onChange={(e) => handleChange(e, 'infoAceite')}
+                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white pr-12"
+                            min="0"
+                            step="1"
+                        />
+                        <span className="absolute right-3 top-2 text-gray-400">ml</span>
+                    </div>
+                </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Acidez */}
                 <div>
@@ -290,14 +367,30 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     <label className="block text-sm font-medium text-gray-200 mb-1">
                         Porción
                     </label>
-                    <input
-                        type="text"
-                        name="porcion"
-                        value={infoNutricional.porcion || ''}
-                        onChange={(e) => handleChange(e, 'infoNutricional')}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
-                        placeholder="ej. 15ml (1 cucharada)"
-                    />
+                    <div className="relative">
+                        <input
+                            type="number"
+                            name="porcion"
+                            value={infoNutricional.porcion?.split(' ')[0] || ''}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                handleChange({
+                                    target: {
+                                        name: 'porcion',
+                                        value: `${value} ml`
+                                    }
+                                }, 'infoNutricional');
+                            }}
+                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white pr-12"
+                            min="0"
+                            step="1"
+                            placeholder="15"
+                        />
+                        <span className="absolute right-3 top-2 text-gray-400">ml</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                        Ingrese la porción en mililitros (ml)
+                    </p>
                 </div>
                 
                 <div>
@@ -307,7 +400,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     <input
                         type="number"
                         name="calorias"
-                        value={infoNutricional.calorias || ''}
+                        value={infoNutricional.calorias === 0 ? '0' : (infoNutricional.calorias || '')}
                         onChange={(e) => handleChange(e, 'infoNutricional')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                         min="0"
@@ -322,7 +415,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     <input
                         type="number"
                         name="grasaTotal"
-                        value={infoNutricional.grasaTotal || ''}
+                        value={infoNutricional.grasaTotal === 0 ? '0' : (infoNutricional.grasaTotal || '')}
                         onChange={(e) => handleChange(e, 'infoNutricional')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                         min="0"
@@ -337,7 +430,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     <input
                         type="number"
                         name="grasaSaturada"
-                        value={infoNutricional.grasaSaturada || ''}
+                        value={infoNutricional.grasaSaturada === 0 ? '0' : (infoNutricional.grasaSaturada || '')}
                         onChange={(e) => handleChange(e, 'infoNutricional')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                         min="0"
@@ -352,7 +445,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     <input
                         type="number"
                         name="grasaTrans"
-                        value={infoNutricional.grasaTrans || ''}
+                        value={infoNutricional.grasaTrans === 0 ? '0' : (infoNutricional.grasaTrans || '')}
                         onChange={(e) => handleChange(e, 'infoNutricional')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                         min="0"
@@ -367,7 +460,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     <input
                         type="number"
                         name="grasaPoliinsaturada"
-                        value={infoNutricional.grasaPoliinsaturada || ''}
+                        value={infoNutricional.grasaPoliinsaturada === 0 ? '0' : (infoNutricional.grasaPoliinsaturada || '')}
                         onChange={(e) => handleChange(e, 'infoNutricional')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                         min="0"
@@ -382,7 +475,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     <input
                         type="number"
                         name="grasaMonoinsaturada"
-                        value={infoNutricional.grasaMonoinsaturada || ''}
+                        value={infoNutricional.grasaMonoinsaturada === 0 ? '0' : (infoNutricional.grasaMonoinsaturada || '')}
                         onChange={(e) => handleChange(e, 'infoNutricional')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                         min="0"
@@ -511,13 +604,16 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                                 <label className="block text-sm font-medium text-gray-200 mb-1">
                                     Volumen (ml)
                                 </label>
-                                <input
-                                    type="number"
-                                    value={opcion.volumen || ''}
-                                    onChange={(e) => handleOpcionVolumenChange(index, 'volumen', Number(e.target.value))}
-                                    className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-md text-white"
-                                    min="0"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        value={opcion.volumen || ''}
+                                        onChange={(e) => handleOpcionVolumenChange(index, 'volumen', Number(e.target.value))}
+                                        className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-md text-white pr-12"
+                                        min="0"
+                                    />
+                                    <span className="absolute right-3 top-2 text-gray-400">ml</span>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-200 mb-1">
@@ -573,10 +669,10 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
 AceiteForm.propTypes = {
     formData: PropTypes.shape({
         infoAceite: PropTypes.shape({
-            tipo: PropTypes.string,
+            tipo: PropTypes.oneOf(TIPO_ACEITE),
             volumen: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-            envase: PropTypes.string
-        }),
+            envase: PropTypes.oneOf(TIPO_ENVASE)
+        }).isRequired,
         caracteristicas: PropTypes.shape({
             acidez: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             filtracion: PropTypes.string,

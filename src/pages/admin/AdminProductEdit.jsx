@@ -194,27 +194,34 @@ export const AdminProductEdit = () => {
         }
     };
 
-    // Replace the existing handleInputChange function
+    // Update the handleInputChange function
     const handleInputChange = (e, section) => {
+        // Handle tags separately since they come directly as an array
+        if (section === 'tags') {
+            setFormData(prev => ({
+                ...prev,
+                tags: e
+            }));
+            return;
+        }
+
         if (typeof e === 'object' && e.target) {
             const { name, value, type, checked } = e.target;
             
             setFormData(prev => {
-                if ((section === 'caracteristicas' || section === 'caracteristicasAceite') 
-                    && name === 'aditivos') {
+                // Handle nested fields
+                if (name.includes('.')) {
+                    const [parent, child] = name.split('.');
                     return {
                         ...prev,
-                        caracteristicas: {
-                            ...prev.caracteristicas,
-                            aditivos: value
-                        },
-                        caracteristicasAceite: {
-                            ...prev.caracteristicasAceite,
-                            aditivos: value
+                        [parent]: {
+                            ...prev[parent],
+                            [child]: value
                         }
                     };
                 }
                 
+                // Handle section-based updates
                 if (section) {
                     return {
                         ...prev,
@@ -225,6 +232,8 @@ export const AdminProductEdit = () => {
                         }
                     };
                 }
+
+                // Handle direct field updates
                 return {
                     ...prev,
                     [name]: type === 'checkbox' ? checked : value
@@ -391,7 +400,7 @@ export const AdminProductEdit = () => {
 
                     <TagsInput
                         tags={formData.tags || []}
-                        onChange={(newTags) => handleInputChange('tags', newTags)}
+                        onChange={(newTags) => handleInputChange(newTags, 'tags')}
                         placeholder="Agregar etiquetas al producto..."
                         helperText="Agrega etiquetas relevantes para categorizar el producto"
                         showSuggestions={true}
