@@ -17,10 +17,10 @@ const OrderItem = ({ order, formatDate, getStatusBadgeColor }) => {
         >
             <div className="flex flex-col sm:flex-row justify-between gap-4 p-4">
                 <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-gray-900 dark:text-gray-100">Pedido #{order._id.slice(-6)}</h3>
+                    <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium text-gray-900 dark:text-white">Pedido #{order._id.slice(-6)}</h3>
                         <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadgeColor(order.status)}`}>
-                            {order.status === 'completed' ? 'Completado' : 
+                            {order.status === 'completed' ? 'En Curso' : 
                              order.status === 'pending' ? 'Pendiente' : 
                              order.status === 'finalized' ? 'Finalizado' : 'Cancelado'}
                         </span>

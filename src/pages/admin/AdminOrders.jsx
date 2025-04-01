@@ -101,6 +101,21 @@ const AdminOrders = () => {
         }
     }, []);
 
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case 'pending':
+                return 'Pendiente';
+            case 'completed':
+                return 'En curso';
+            case 'canceled':
+                return 'Cancelado';
+            case 'finalized':
+                return 'Finalizado';
+            default:
+                return status;
+        }
+    };
+
     const filteredOrders = orders.filter(order => {
         const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
         const matchesSearch = searchTerm === '' || 
@@ -198,7 +213,7 @@ const AdminOrders = () => {
                     >
                         <option value="all">Todos los estados</option>
                         <option value="pending">Pendientes</option>
-                        <option value="completed">Completados</option>
+                        <option value="completed">En Curso</option>
                         <option value="canceled">Cancelados</option>
                         <option value="finalized">Finalizados</option>
                     </select>
@@ -266,7 +281,7 @@ const AdminOrders = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status)}`}>
-                                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                            {getStatusLabel(order.status)}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
@@ -291,7 +306,7 @@ const AdminOrders = () => {
                                                     <button
                                                         onClick={() => handleStatusUpdate(order._id, 'completed')}
                                                         className="text-green-400 hover:text-green-300"
-                                                        title="Completar"
+                                                        title="En Curso"
                                                     >
                                                         <HiCheckCircle className="h-5 w-5" />
                                                     </button>
