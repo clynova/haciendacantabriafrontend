@@ -73,7 +73,13 @@ const getAllUsers = async (token) => {
                 Authorization: `Bearer ${token}`
             }
         });
-        return response.data;
+        return {
+            success: true,
+            data: response.data.data.map(user => ({
+                ...user,
+                estado: user.estado !== false // Default to true if undefined
+            }))
+        };
     } catch (error) {
         throw error.response?.data || {
             success: false,
@@ -618,6 +624,27 @@ export const removeTagFromProduct = async (productId, tag, token) => {
         throw error.response?.data || {
             success: false,
             msg: 'Error al eliminar la categoría del producto'
+        };
+    }
+};
+
+export const updateUserStatus = async (userId, status, token) => {
+    try {
+        const response = await api.put(
+            `/api/user/status/${userId}`,
+            { estado: status },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || {
+            success: false,
+            msg: 'Error al actualizar el estado del usuario'
         };
     }
 };

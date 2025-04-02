@@ -15,7 +15,7 @@ const MyProfile = () => {
   });
 
   useEffect(() => {
-    setPageTitle('Mi Perfil | LynFront');
+    setPageTitle('Mi Perfil | Cohesa');
     if (user) {
       setFormData({
         firstName: user.firstName || '',

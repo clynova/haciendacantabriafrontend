@@ -5,7 +5,7 @@ const GlobalContext = createContext();
 
 export const GlobalProvider = ({ children }) => {
   const [pageName, setPageName] = useState('');
-  const [pageTitle, setPageTitle] = useState('LynFront');
+  const [pageTitle, setPageTitle] = useState('Cohesa');
 
   // Actualizar el título del documento cuando cambie pageTitle
   useEffect(() => {
