@@ -34,9 +34,14 @@ const getImageSrc = (multimedia) => {
 const CartItem = ({ item }) => {
   const { updateQuantity, removeFromCart } = useCart();
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
   const handleRemove = async () => {
+    if (isPending) {
+      return;
+    }
     try {
+      setIsPending(true);
       setIsRemoving(true);
       await removeFromCart(item._id);
     } catch (error) {
@@ -44,9 +49,27 @@ const CartItem = ({ item }) => {
       console.error('Error al eliminar el producto:', error);
     } finally {
       setIsRemoving(false);
+      setIsPending(false);
     }
   };
-  
+
+  const handleQuantityUpdate = async (newQuantity) => {
+    if (isPending) {
+      console.log(`Operación en curso para el producto ${item._id}, ignorando clic adicional`);
+      return;
+    }
+
+    try {
+      setIsPending(true);
+      await updateQuantity(item._id, newQuantity);
+    } catch (error) {
+      console.error('Error al actualizar cantidad:', error);
+      toast.error('Error al actualizar cantidad');
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   // Verificar si el inventario tiene stockUnidades, usar un valor predeterminado si no
   const stockUnidades = item.inventario?.stockUnidades !== undefined ? 
     item.inventario.stockUnidades : (item.inventario?.stock || 250);
@@ -64,17 +87,17 @@ const CartItem = ({ item }) => {
         <p className="text-sm text-slate-400">{formatCurrency(item.precioFinal)}</p>
         <div className="flex items-center mt-2">
           <button
-            onClick={() => updateQuantity(item._id, item.quantity - 1)}
-            className="p-1 text-slate-400 hover:text-slate-200"
-            disabled={isRemoving}
+            onClick={() => handleQuantityUpdate(item.quantity - 1)}
+            className="p-1 text-slate-400 hover:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isPending || item.quantity <= 1}
           >
             <HiMinus className="h-4 w-4" />
           </button>
           <span className="mx-2 text-slate-300">{item.quantity}</span>
           <button
-            onClick={() => updateQuantity(item._id, item.quantity + 1)}
-            className="p-1 text-slate-400 hover:text-slate-200"
-            disabled={isRemoving || item.quantity >= stockUnidades}
+            onClick={() => handleQuantityUpdate(item.quantity + 1)}
+            className="p-1 text-slate-400 hover:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isPending || item.quantity >= stockUnidades}
           >
             <HiPlus className="h-4 w-4" />
           </button>
@@ -82,8 +105,8 @@ const CartItem = ({ item }) => {
       </div>
       <button
         onClick={handleRemove}
-        disabled={isRemoving}
-        className="p-2 text-slate-400 hover:text-red-400 disabled:opacity-50"
+        disabled={isPending}
+        className="p-2 text-slate-400 hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <HiX className="h-5 w-5" />
       </button>
