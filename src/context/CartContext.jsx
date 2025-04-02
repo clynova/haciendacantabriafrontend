@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
@@ -27,6 +27,8 @@ function CartProvider({ children }) {
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  // Mapa para rastrear operaciones en curso por ID de producto
+  const pendingOperations = useRef(new Map());
 
   const [shippingInfo, setShippingInfo] = useState(() => {
     try {
@@ -278,11 +280,23 @@ function CartProvider({ children }) {
   };
 
   const addToCart = async (product, showNotification = true) => {
+    // Verificar si ya existe una operación pendiente para este producto
+    const productId = product._id;
+    if (pendingOperations.current.has(productId)) {
+      // Si ya hay una operación en curso, no hacemos nada
+      console.log(`Operación en curso para el producto ${productId}, ignorando clic adicional`);
+      return;
+    }
+
+    // Marcar que hay una operación en curso para este producto
+    pendingOperations.current.set(productId, true);
+    
     try {
       const existingItem = cartItems.find(item => item._id === product._id);
       const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
 
       if (!validateStock(product, newQuantity)) {
+        pendingOperations.current.delete(productId); // Liberar el bloqueo
         return;
       }
       
@@ -350,6 +364,7 @@ function CartProvider({ children }) {
           setCartItems(curr => curr.filter(item => item._id !== product._id));
           console.error("Error al sincronizar con el servidor:", error);
           toast.error(error.msg || 'Error al sincronizar con el servidor');
+          pendingOperations.current.delete(productId); // Liberar el bloqueo
           return;
         }
       }
@@ -363,6 +378,9 @@ function CartProvider({ children }) {
     } catch (error) {
       toast.error('Error al agregar al carrito');
       console.error('Error in addToCart:', error);
+    } finally {
+      // Siempre liberar el bloqueo al finalizar
+      pendingOperations.current.delete(productId);
     }
   };
 
