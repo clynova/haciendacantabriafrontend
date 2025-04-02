@@ -87,7 +87,8 @@ ImageUploader.propTypes = {
         url: PropTypes.string.isRequired,
         nombre: PropTypes.string.isRequired,
         textoAlternativo: PropTypes.string,
-        esPrincipal: PropTypes.bool
+        esPrincipal: PropTypes.bool,
+        id: PropTypes.string
     })).isRequired,
     onUpload: PropTypes.func.isRequired,
     onDelete: PropTypes.func.isRequired,
