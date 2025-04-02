@@ -1,7 +1,7 @@
 import { useCart } from '../../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getCart } from '../../services/paymentService';
 import { getProductById } from '../../services/productService';
@@ -12,6 +12,99 @@ import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables'
 
 // Componente para el producto en el carrito
 const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
+    // Referencia para controlar las operaciones pendientes por ID de producto
+    const pendingOperation = useRef(false);
+    // Estado para controlar la edición manual de cantidad
+    const [isEditing, setIsEditing] = useState(false);
+    const [inputQuantity, setInputQuantity] = useState(item.quantity);
+    // Referencia para el input de cantidad
+    const inputRef = useRef(null);
+
+    // Efecto para enfocar el input cuando se activa la edición
+    useEffect(() => {
+        if (isEditing && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isEditing]);
+
+    // Actualizar el inputQuantity cuando cambia la cantidad del item
+    useEffect(() => {
+        setInputQuantity(item.quantity);
+    }, [item.quantity]);
+
+    // Función para manejar el incremento/decremento con mecanismo de bloqueo
+    const handleQuantityUpdate = (productId, newQuantity) => {
+        // Si hay una operación pendiente, ignorar el clic adicional
+        if (pendingOperation.current) {
+            console.log(`Operación en curso para el producto ${productId}, ignorando clic adicional`);
+            return;
+        }
+
+        // Validar que la cantidad no exceda el stock
+        if (newQuantity > item.inventario.stockUnidades) {
+            toast.error(`Solo hay ${item.inventario.stockUnidades} unidades disponibles`);
+            return;
+        }
+
+        // Validar que la cantidad sea al menos 1
+        if (newQuantity < 1) {
+            newQuantity = 1;
+        }
+
+        // Establecer el bloqueo
+        pendingOperation.current = true;
+
+        // Actualizar la cantidad
+        updateQuantity(productId, newQuantity)
+            .finally(() => {
+                // Asegurar que el bloqueo siempre se libera cuando termina la operación
+                setTimeout(() => {
+                    pendingOperation.current = false;
+                }, 300); // Pequeño retraso para prevenir doble clic muy rápido
+            });
+    };
+
+    // Función para manejar el cambio en el input
+    const handleInputChange = (e) => {
+        // Permitir solo números
+        const value = e.target.value.replace(/[^0-9]/g, '');
+        setInputQuantity(value === '' ? '' : parseInt(value, 10) || 0);
+    };
+
+    // Función para confirmar la cantidad ingresada
+    const handleQuantityConfirm = () => {
+        let newQuantity = inputQuantity;
+        
+        // Si está vacío o es 0, establecer a 1
+        if (newQuantity === '' || newQuantity < 1) {
+            newQuantity = 1;
+        }
+        
+        // Si excede el stock, limitar al stock disponible
+        if (newQuantity > item.inventario.stockUnidades) {
+            newQuantity = item.inventario.stockUnidades;
+            toast.error(`La cantidad ha sido ajustada al stock disponible: ${item.inventario.stockUnidades}`);
+        }
+        
+        // Actualizar solo si la cantidad cambió
+        if (newQuantity !== item.quantity) {
+            handleQuantityUpdate(item._id, newQuantity);
+        }
+        
+        setInputQuantity(newQuantity);
+        setIsEditing(false);
+    };
+
+    // Manejar la tecla Enter para confirmar y Escape para cancelar
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleQuantityConfirm();
+        } else if (e.key === 'Escape') {
+            setInputQuantity(item.quantity);
+            setIsEditing(false);
+        }
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -40,17 +133,37 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
             <div className="flex items-center space-x-6">
                 <div className="flex items-center space-x-2">
                     <button
-                        onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                        onClick={() => handleQuantityUpdate(item._id, item.quantity - 1)}
                         className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100"
-                        disabled={item.quantity <= 1}
+                        disabled={item.quantity <= 1 || pendingOperation.current}
                     >
                         -
                     </button>
-                    <span className="w-12 text-center">{item.quantity}</span>
+                    
+                    {isEditing ? (
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={inputQuantity}
+                            onChange={handleInputChange}
+                            onBlur={handleQuantityConfirm}
+                            onKeyDown={handleKeyDown}
+                            className="w-12 text-center border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+                            disabled={pendingOperation.current}
+                        />
+                    ) : (
+                        <span 
+                            className="w-12 text-center cursor-pointer hover:bg-gray-100 py-1 rounded-md"
+                            onClick={() => !pendingOperation.current && setIsEditing(true)}
+                        >
+                            {item.quantity}
+                        </span>
+                    )}
+                    
                     <button
-                        onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                        onClick={() => handleQuantityUpdate(item._id, item.quantity + 1)}
                         className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-r-md bg-gray-50 hover:bg-gray-100"
-                        disabled={item.quantity >= item.inventario.stockUnidades}
+                        disabled={item.quantity >= item.inventario.stockUnidades || pendingOperation.current}
                     >
                         +
                     </button>
@@ -64,6 +177,7 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
                     onClick={() => removeFromCart(item._id)}
                     className="ml-2 text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
                     aria-label="Eliminar producto"
+                    disabled={pendingOperation.current}
                 >
                     <FiTrash2 size={18} />
                 </button>
