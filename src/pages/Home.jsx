@@ -89,7 +89,7 @@ const Home = () => {
             Únete a nuestra comunidad de amantes de la buena carne y descubre el auténtico sabor de la calidad premium
           </p>
           <a 
-            href="/auth/signup" 
+            href="/productos" 
             className="inline-block bg-white text-blue-600 px-8 py-3 rounded-full 
                      font-semibold hover:bg-gray-100 transition-all duration-300
                      transform hover:scale-105 active:scale-95"

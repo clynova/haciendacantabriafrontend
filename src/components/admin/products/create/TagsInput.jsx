@@ -80,13 +80,13 @@ export const TagsInput = ({ tags = [], onChange, placeholder, helperText, showSu
                 {tags.map((tag, index) => (
                     <div 
                         key={tag}
-                        className="flex items-center bg-blue-600/40 text-blue-100 px-3 py-1 rounded-full text-sm group"
+                        className="flex items-center bg-blue-600/40 text-blue-100 px-3 py-1 rounded-full text-sm"
                     >
                         <span>{tag}</span>
                         <button
                             type="button"
                             onClick={() => removeTag(tag)}
-                            className="ml-2 text-blue-200 hover:text-white focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="ml-2 text-blue-200 hover:text-white focus:outline-none"
                         >
                             ×
                         </button>
