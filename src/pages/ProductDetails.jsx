@@ -35,7 +35,7 @@ const ProductDetails = () => {
 
   useEffect(() => {
     if (product) {
-      setPageTitle(`${product.nombre} | LynFront`);
+      setPageTitle(`${product.nombre} | Cohesa`);
     }
   }, [setPageTitle, product]);
 

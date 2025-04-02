@@ -298,7 +298,7 @@ const MyPaymentMethods = () => {
     const [showAddForm, setShowAddForm] = useState(false);
 
     useEffect(() => {
-        setPageTitle('Métodos de Pago | LynFront');
+        setPageTitle('Métodos de Pago | Cohesa');
         fetchPaymentMethods();
     }, [setPageTitle, token]);
 

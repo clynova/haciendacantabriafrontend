@@ -7,7 +7,7 @@ const NotFound = () => {
     const { setPageTitle } = useGlobal();
 
     useEffect(() => {
-        setPageTitle('Página no encontrada | LynFront');
+        setPageTitle('Página no encontrada | Cohesa');
     }, [setPageTitle]);
 
     return (

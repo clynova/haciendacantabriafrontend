@@ -31,8 +31,20 @@ const LoginForm = ({
                 <SocialAuth onSocialLogin={onSocialLogin} isLoading={isLoading} />
 
                 {errors.general && (
-                    <div className="p-4 text-sm rounded-lg bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400">
+                    <div className={`p-4 text-sm rounded-lg ${
+                        errors.general.includes('suspendida') 
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-400'
+                            : 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
+                    }`}>
                         <p>{errors.general}</p>
+                        {errors.general.includes('suspendida') && (
+                            <a 
+                                href="mailto:soporte@haciendacantabria.com"
+                                className="inline-block mt-2 text-blue-600 hover:underline dark:text-blue-400"
+                            >
+                                Contactar soporte
+                            </a>
+                        )}
                     </div>
                 )}
 

@@ -2,27 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 export const PricingSection = ({ data, onChange }) => {
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        const numericValue = value === '' ? 0 : Number(value);
-
-        if (name.includes('.')) {
-            const [section, field] = name.split('.');
-            onChange('precios', {
-                ...data.precios,
-                [section]: {
-                    ...data.precios[section],
-                    [field]: numericValue
-                }
-            });
-        } else {
-            onChange('precios', {
-                ...data.precios,
-                [name]: numericValue
-            });
-        }
-    };
-
     return (
         <div className="bg-slate-800 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Precios</h2>
@@ -37,7 +16,7 @@ export const PricingSection = ({ data, onChange }) => {
                             type="number"
                             name="base"
                             value={data.precios?.base || ''}
-                            onChange={handleChange}
+                            onChange={(e) => onChange(e, 'precios')}
                             className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-8 pr-3 py-2 text-white"
                             min="0"
                             step="0.01"
@@ -53,13 +32,13 @@ export const PricingSection = ({ data, onChange }) => {
                     <div className="relative">
                         <input
                             type="number"
-                            name="descuentos.regular"
+                            name="regular"
                             value={data.precios?.descuentos?.regular || ''}
-                            onChange={handleChange}
-                            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
+                            onChange={(e) => onChange(e, 'precios', 'descuentos')}
+                            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 pr-12 text-white"
                             min="0"
                             max="100"
-                            step="0.1"
+                            step="1"
                         />
                         <span className="absolute right-3 top-2 text-slate-400">%</span>
                     </div>

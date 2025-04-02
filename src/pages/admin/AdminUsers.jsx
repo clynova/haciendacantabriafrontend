@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { HiOutlineSearch, HiTrash, HiChevronLeft, HiChevronRight, HiUserAdd, HiEye } from 'react-icons/hi';
-import { deleteUser, getAllUsers } from '../../services/adminService';
+import { HiOutlineSearch, HiChevronLeft, HiChevronRight, HiUserAdd, HiEye, HiStatusOnline, HiStatusOffline } from 'react-icons/hi';
+import { getAllUsers, updateUserStatus } from '../../services/adminService';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -41,19 +41,22 @@ const AdminUsers = () => {
         }
     };
 
-    // Función para eliminar usuario
-    const handleDeleteUser = async (userId) => {
+    // Función para activar/desactivar usuario
+    const handleToggleUserStatus = async (userId, currentStatus) => {
         if (!userId) return;
 
-        if (window.confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
+        const action = currentStatus ? 'desactivar' : 'activar';
+        if (window.confirm(`¿Estás seguro de que deseas ${action} este usuario?`)) {
             try {
-                const response = await deleteUser(userId, token);
+                const response = await updateUserStatus(userId, !currentStatus, token);
                 if (response.success) {
-                    setUsers(prev => prev.filter(user => user._id !== userId));
-                    toast.success('Usuario eliminado correctamente');
+                    setUsers(prev => prev.map(user => 
+                        user._id === userId ? { ...user, estado: !currentStatus } : user
+                    ));
+                    toast.success(`Usuario ${action}do correctamente`);
                 }
             } catch (error) {
-                toast.error(error.msg || 'Error al eliminar el usuario');
+                toast.error(error.msg || `Error al ${action} el usuario`);
             }
         }
     };
@@ -164,11 +167,19 @@ const AdminUsers = () => {
                                                 <HiEye className="h-5 w-5" />
                                             </Link>
                                             <button
-                                                onClick={() => handleDeleteUser(user._id)}
-                                                className="p-1.5 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors duration-200"
-                                                title="Eliminar"
+                                                onClick={() => handleToggleUserStatus(user._id, user.estado)}
+                                                className={`p-1.5 rounded-lg transition-colors duration-200 ${
+                                                    user.estado 
+                                                        ? 'text-green-400 hover:bg-green-500/20' 
+                                                        : 'text-red-400 hover:bg-red-500/20'
+                                                }`}
+                                                title={user.estado ? 'Desactivar usuario' : 'Activar usuario'}
                                             >
-                                                <HiTrash className="h-5 w-5" />
+                                                {user.estado ? (
+                                                    <HiStatusOnline className="h-5 w-5" />
+                                                ) : (
+                                                    <HiStatusOffline className="h-5 w-5" />
+                                                )}
                                             </button>
                                         </td>
                                     </tr>

@@ -17,6 +17,7 @@ const AdminUserCreate = () => {
         repPassword: '', // Changed from passwordConfirm to repPassword
         roles: ['customer'],
         confirmado: true,
+        estado: true, // Add estado field
         addresses: []
     });
 
@@ -121,7 +122,8 @@ const AdminUserCreate = () => {
                 password: formData.password,
                 repPassword: formData.repPassword,
                 roles: formData.roles,
-                confirmado: true
+                confirmado: true,
+                estado: true // Include estado in API call
             };
 
             const response = await createUser(userData, token);
