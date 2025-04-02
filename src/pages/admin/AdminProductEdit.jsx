@@ -8,7 +8,7 @@ import { getProductById, updateProduct } from '../../services/adminService';
 // Import existing section components
 import { PricingSection } from '../../components/admin/AdminProductEdit/PricingSection';
 import { InventorySection } from '../../components/admin/AdminProductEdit/InventorySection';
-import { ImageSection } from '../../components/admin/AdminProductEdit/ImageSection';
+import { ImageUploader } from '../../components/admin/products/create/ImageUploader';
 import { ConservationSection } from '../../components/admin/AdminProductEdit/ConservationSection';
 import { SeoSection } from '../../components/admin/AdminProductEdit/SEOSection';
 import { SubmitButton } from '../../components/common/SubmitButton';
@@ -21,6 +21,7 @@ import { BasicInfoSection } from '../../components/admin/products/create/BasicIn
 import { CarneForm } from '../../components/admin/products/CarneForm';
 import { AceiteForm } from '../../components/admin/products/AceiteForm';
 import { TagsInput } from '../../components/admin/products/create/TagsInput';
+import { uploadImageToCloudinary } from '../../services/utilService';
 
 // Update the initial state
 const getInitialState = (categoria = PRODUCT_TYPES.ACEITE) => ({
@@ -94,7 +95,7 @@ export const AdminProductEdit = () => {
     const fetchProductDetails = async () => {
         try {
             const response = await getProductById(productId, token);
-            
+
             if (response.success) {
                 const formattedMultimedia = {
                     ...response.product.multimedia,
@@ -207,7 +208,7 @@ export const AdminProductEdit = () => {
 
         if (typeof e === 'object' && e.target) {
             const { name, value, type, checked } = e.target;
-            
+
             setFormData(prev => {
                 // Handle nested fields
                 if (name.includes('.')) {
@@ -220,15 +221,15 @@ export const AdminProductEdit = () => {
                         }
                     };
                 }
-                
+
                 // Handle section-based updates
                 if (section) {
                     return {
                         ...prev,
                         [section]: {
                             ...prev[section],
-                            [name]: Array.isArray(value) ? value : 
-                                   type === 'checkbox' ? checked : value
+                            [name]: Array.isArray(value) ? value :
+                                type === 'checkbox' ? checked : value
                         }
                     };
                 }
@@ -372,6 +373,99 @@ export const AdminProductEdit = () => {
         }
     };
 
+    // Add these handler functions inside AdminProductEdit component
+    const handleImageUpload = async (e) => {
+        const files = Array.from(e.target.files);
+
+        try {
+            const uploadPromises = files.map(async (file) => {
+                const cloudinaryUrl = await uploadImageToCloudinary(file);
+                if (!cloudinaryUrl) {
+                    throw new Error(`Error al subir ${file.name}`);
+                }
+                
+                // Ensure all required properties are present
+                return {
+                    url: cloudinaryUrl,
+                    nombre: file.name || 'Imagen sin nombre', // Ensure nombre is always present
+                    tipo: file.type,
+                    textoAlternativo: file.name || 'Imagen sin descripción',
+                    esPrincipal: false,
+                    id: Date.now().toString()
+                };
+            });
+
+            const uploadedImages = await Promise.all(uploadPromises);
+
+            setFormData(prev => {
+                const currentImages = prev.multimedia?.imagenes || [];
+                const newImages = uploadedImages.map((img, idx) => ({
+                    ...img,
+                    esPrincipal: currentImages.length === 0 && idx === 0
+                }));
+
+                return {
+                    ...prev,
+                    multimedia: {
+                        ...prev.multimedia,
+                        imagenes: [...currentImages, ...newImages]
+                    }
+                };
+            });
+
+            toast.success(`${uploadedImages.length} imágenes subidas exitosamente`);
+        } catch (error) {
+            console.error('Error al procesar imágenes:', error);
+            toast.error('Error al subir las imágenes');
+        }
+    };
+
+    const handleImageDelete = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            multimedia: {
+                ...prev.multimedia,
+                imagenes: prev.multimedia.imagenes.filter((_, i) => i !== index)
+            }
+        }));
+        toast.success('Imagen eliminada');
+    };
+
+    const handleAltTextUpdate = (index, newAltText, setPrincipal = false) => {
+        setFormData(prev => {
+            const updatedImages = [...prev.multimedia.imagenes];
+
+            if (setPrincipal) {
+                updatedImages.forEach((img, i) => {
+                    img.esPrincipal = i === index;
+                });
+            } else {
+                updatedImages[index] = {
+                    ...updatedImages[index],
+                    textoAlternativo: newAltText || updatedImages[index].nombre // Fallback to nombre if empty
+                };
+            }
+
+            return {
+                ...prev,
+                multimedia: {
+                    ...prev.multimedia,
+                    imagenes: updatedImages
+                }
+            };
+        });
+    };
+
+    const handleVideoChange = (videoUrl) => {
+        setFormData(prev => ({
+            ...prev,
+            multimedia: {
+                ...prev.multimedia,
+                video: videoUrl
+            }
+        }));
+    };
+
     if (loading) {
         return <div className="p-6">Cargando...</div>;
     }
@@ -423,11 +517,13 @@ export const AdminProductEdit = () => {
                         onChange={handleInputChange}
                     />
 
-                    <ImageSection
-                        data={formData}
-                        onChange={handleInputChange}
+                    <ImageUploader
+                        images={formData.multimedia?.imagenes || []}
+                        onUpload={handleImageUpload}
+                        onDelete={handleImageDelete}
+                        onUpdateAltText={handleAltTextUpdate}
+                        onVideoChange={handleVideoChange}
                     />
-
                     <SeoSection
                         data={formData}
                         onChange={handleInputChange}
