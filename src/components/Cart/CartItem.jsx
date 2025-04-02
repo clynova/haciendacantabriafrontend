@@ -46,10 +46,10 @@ const CartItem = ({ item }) => {
       setIsRemoving(false);
     }
   };
-
+  
   // Verificar si el inventario tiene stockUnidades, usar un valor predeterminado si no
   const stockUnidades = item.inventario?.stockUnidades !== undefined ? 
-    item.inventario.stockUnidades : 10;
+    item.inventario.stockUnidades : (item.inventario?.stock || 250);
 
   return (
     <div className="flex items-start p-4">

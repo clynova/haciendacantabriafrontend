@@ -170,17 +170,42 @@ function CartProvider({ children }) {
           // Si productId es un objeto completo, ya tenemos toda la información
           if (typeof item.productId === 'object' && item.productId.nombre) {
             const product = item.productId;
-            // Crear objeto de carrito completo con la estructura requerida
-            serverCartItems.push({
-              _id: product._id,
-              nombre: product.nombre,
-              precioFinal: product.precioFinal || 0,
-              precioTransferencia: product.precioTransferencia || 0,
-              multimedia: product.multimedia || { imagenes: [] },
-              quantity: item.quantity || 1,
-              inventario: product.inventario || { stockUnidades: 10 },
-              ...product
-            });
+            
+            // Asegurarnos de obtener el stock actualizado
+            try {
+              const freshProductData = await getProductById(product._id);
+              if (freshProductData.success && freshProductData.product) {
+                // Usar el stock más actualizado del producto
+                const stockUnidades = freshProductData.product.inventario?.stockUnidades;
+                
+                serverCartItems.push({
+                  _id: product._id,
+                  nombre: product.nombre,
+                  precioFinal: product.precioFinal || 0,
+                  precioTransferencia: product.precioTransferencia || 0,
+                  multimedia: product.multimedia || { imagenes: [] },
+                  quantity: Math.min(item.quantity || 1, stockUnidades || 250),
+                  inventario: {
+                    ...freshProductData.product.inventario,
+                    stockUnidades: stockUnidades || freshProductData.product.stock || 250
+                  },
+                  ...product
+                });
+              }
+            } catch (error) {
+              console.error(`Error al obtener stock actualizado para ${product._id}:`, error);
+              // Si falla la obtención del stock actualizado, usar los datos que ya teníamos
+              serverCartItems.push({
+                _id: product._id,
+                nombre: product.nombre,
+                precioFinal: product.precioFinal || 0,
+                precioTransferencia: product.precioTransferencia || 0,
+                multimedia: product.multimedia || { imagenes: [] },
+                quantity: item.quantity || 1,
+                inventario: product.inventario || { stockUnidades: product.stock || 250 },
+                ...product
+              });
+            }
           } else {
             // Si solo tenemos el ID, necesitamos obtener los detalles del producto
             try {
@@ -195,15 +220,20 @@ function CartProvider({ children }) {
                   continue;
                 }
                 
-                // Crear objeto de carrito completo
+                // Usar el stock más actualizado
+                const stockUnidades = product.inventario?.stockUnidades;
+                
                 serverCartItems.push({
                   _id: productId,
                   nombre: product.nombre,
                   precioFinal: product.precioFinal || 0,
                   precioTransferencia: product.precioTransferencia || 0,
-                  quantity: item.quantity || 1,
+                  quantity: Math.min(item.quantity || 1, stockUnidades || 250),
                   multimedia: product.multimedia || { imagenes: [] },
-                  inventario: product.inventario || { stockUnidades: 10 },
+                  inventario: {
+                    ...product.inventario,
+                    stockUnidades: stockUnidades || product.stock || 250
+                  },
                   ...product
                 });
               }
@@ -269,7 +299,9 @@ function CartProvider({ children }) {
 
   const validateStock = (product, requestedQuantity) => {
     if (!product.inventario) {
-      product.inventario = { stockUnidades: 10 }; // Valor por defecto
+      product.inventario = { stockUnidades: product.stock || 250 }; // Valor más realista por defecto
+    } else if (product.inventario.stockUnidades === undefined) {
+      product.inventario.stockUnidades = product.inventario.stock || 250; // Usar stock o valor alto por defecto
     }
     
     if (requestedQuantity > product.inventario.stockUnidades) {
@@ -314,7 +346,7 @@ function CartProvider({ children }) {
         const safeProduct = {
           ...product,
           multimedia: product.multimedia || { imagenes: [] },
-          inventario: product.inventario || { stockUnidades: 10 },
+          inventario: product.inventario || { stockUnidades: product.stock || 250 },
           quantity: 1
         };
         
