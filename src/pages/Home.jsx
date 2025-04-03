@@ -4,6 +4,7 @@ import ProductSlider from '../components/ProductSlider';
 import { CategoriesGrid } from '../components/Categories/CategoriesGrid';
 import ProductGrid from '../components/ProductGrid';
 import BestSellersCarousel from '../components/Carousel/BestSellersCarousel';
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const { setPageTitle } = useGlobal();
@@ -31,9 +32,9 @@ const Home = () => {
                 Descubre nuestra selección de cortes argentinos premium, pollo de primera calidad y aceite Maravilla
               </p>
             </div>
-            <a href="/categorias" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+            <Link to="/categorias" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
               Ver todas las categorías →
-            </a>
+            </Link>
           </div>
           <CategoriesGrid />
         </div>
@@ -72,9 +73,9 @@ const Home = () => {
               Explora nuestra selección premium de cortes argentinos, pollo fresco y aceite de la mejor calidad
             </p>
           </div>
-          <a href="/productos" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+          <Link to="/productos" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
             Ver todo el catálogo →
-          </a>
+          </Link>
         </div>
         <ProductGrid />
       </section>
@@ -88,14 +89,14 @@ const Home = () => {
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             Únete a nuestra comunidad de amantes de la buena carne y descubre el auténtico sabor de la calidad premium
           </p>
-          <a 
-            href="/productos" 
+          <Link 
+            to="/productos" 
             className="inline-block bg-white text-blue-600 px-8 py-3 rounded-full 
                      font-semibold hover:bg-gray-100 transition-all duration-300
                      transform hover:scale-105 active:scale-95"
           >
             Comprar ahora
-          </a>
+          </Link>
         </div>
       </section>
     </div>
