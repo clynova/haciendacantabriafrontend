@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../utils/funcionesReutilizables';
 import { CategoryFilters } from '../components/Categories/CategoryFilters';
+import { CategoryBanner } from '../components/Categories/CategoryBanner';
 import { getAllTags, getProductsByTags } from '../services/tagsService';
 import { motion, AnimatePresence } from 'framer-motion';
 import imgCarne from '../images/categories/Carne.webp';
@@ -125,17 +126,17 @@ const Categorias = () => {
         }
     };
 
-    const getHeroClass = () => {
+    const getCategoryDescription = () => {
         const category = nombre.toLowerCase();
         
         if (category.includes('vacuno') || category.includes('carne')) {
-            return 'from-red-900/80 to-red-700/60';
+            return "Explora nuestra selección premium de cortes argentinos de la más alta calidad";
         } else if (category.includes('aceite')) {
-            return 'from-green-900/80 to-green-700/60';
+            return "Descubre nuestros aceites gourmet, perfectos para realzar tus platos";
         } else if (category === OFFERS_CATEGORY) {
-            return 'from-yellow-900/80 to-yellow-700/60';
+            return "Las mejores ofertas y promociones especiales seleccionadas para ti";
         } else {
-            return 'from-blue-900/80 to-blue-700/60';
+            return "Todo lo que necesitas para complementar tu experiencia culinaria";
         }
     };
 
@@ -535,25 +536,12 @@ const Categorias = () => {
     return (
         <div>
             {/* Hero Banner */}
-            <div className="relative min-h-[180px] md:min-h-[280px] mb-8">
-                <div className="absolute inset-0 overflow-hidden">
-                    <img 
-                        src={getCategoryBanner()} 
-                        alt={categoryName}
-                        className="w-full h-full object-cover"
-                    />
-                    <div className={`absolute inset-0 bg-gradient-to-r ${getHeroClass()}`}></div>
-                </div>
-                
-                <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24 flex flex-col justify-center h-full">
-                    <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 drop-shadow-lg">
-                        {categoryName}
-                    </h1>
-                    <p className="text-white/90 text-lg max-w-2xl">
-                        {filteredProducts.length} productos encontrados
-                    </p>
-                </div>
-            </div>
+            <CategoryBanner 
+                title={categoryName}
+                description={getCategoryDescription()}
+                imageUrl={getCategoryBanner()}
+                productsCount={filteredProducts.length}
+            />
             
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {/* Mobile filter toggle */}
