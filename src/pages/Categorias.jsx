@@ -9,6 +9,10 @@ import { formatCurrency } from '../utils/funcionesReutilizables';
 import { CategoryFilters } from '../components/Categories/CategoryFilters';
 import { getAllTags, getProductsByTags } from '../services/tagsService';
 import { motion, AnimatePresence } from 'framer-motion';
+import imgCarne from '../images/categories/Carne.webp';
+import imgAceite from '../images/categories/Aceite.webp';
+import imgDestino from '../images/categories/destino.webp';
+import imgAccesorios from '../images/categories/destino.webp';
 
 const CORTES_VACUNO = [
     'BIFE_ANCHO', 'BIFE_ANGOSTO', 'BIFE_DE_PALETA', 'BIFE_DE_VACIO',
@@ -111,13 +115,13 @@ const Categorias = () => {
         const category = nombre.toLowerCase();
         
         if (category.includes('vacuno') || category.includes('carne')) {
-            return '/images/categories/banner-carne.webp';
+            return imgCarne;
         } else if (category.includes('aceite')) {
-            return '/images/categories/banner-aceite.webp';
+            return imgAceite;
         } else if (category === OFFERS_CATEGORY) {
-            return '/images/categories/banner-ofertas.webp';
+            return imgDestino;
         } else {
-            return '/images/categories/banner-default.webp';
+            return imgAccesorios;
         }
     };
 
