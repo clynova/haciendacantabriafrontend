@@ -35,7 +35,7 @@ const Register = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        setPageTitle('Registro | LynFront');
+        setPageTitle('Registro | Cohesa');
     }, [setPageTitle]);
 
     const validateNombre = (value) => value ? '' : 'El nombre es requerido';

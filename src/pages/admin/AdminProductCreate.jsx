@@ -188,11 +188,26 @@ const AdminProductCreate = () => {
         usosRecomendados: []
     });
 
-    // Update handleInputChange function
+    // Update the handleInputChange function to handle discounts correctly
     const handleInputChange = (e, section) => {
         const { name, value, type, checked } = e.target;
         
         setFormData(prev => {
+            // Handle special case for discounts
+            if (section === 'precios' && name === 'regular') {
+                const discountValue = Math.min(Math.max(Number(value) || 0, 0), 100); // Clamp between 0 and 100
+                return {
+                    ...prev,
+                    precios: {
+                        ...prev.precios,
+                        descuentos: {
+                            ...prev.precios.descuentos,
+                            regular: discountValue
+                        }
+                    }
+                };
+            }
+
             // Handle direct array updates (like usosRecomendados)
             if (name === 'usosRecomendados') {
                 return {
@@ -435,7 +450,7 @@ const AdminProductCreate = () => {
                     ...formData.precios,
                     base: Number(formData.precios.base) || 0,
                     descuentos: {
-                        regular: Number(formData.precios.descuentos.regular) / 100 || 0
+                        regular: Number(formData.precios.descuentos.regular) || 0 // Convert to number here
                     }
                 },
                 multimedia: formData.multimedia,

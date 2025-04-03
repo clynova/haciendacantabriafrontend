@@ -195,8 +195,8 @@ export const AdminProductEdit = () => {
         }
     };
 
-    // Update the handleInputChange function
-    const handleInputChange = (e, section) => {
+    // Update handleInputChange function
+    const handleInputChange = (e, section, subsection) => {
         // Handle tags separately since they come directly as an array
         if (section === 'tags') {
             setFormData(prev => ({
@@ -210,7 +210,33 @@ export const AdminProductEdit = () => {
             const { name, value, type, checked } = e.target;
 
             setFormData(prev => {
-                // Handle nested fields
+                // Handle pricing and discounts
+                if (section === 'precios') {
+                    if (subsection === 'descuentos') {
+                        // Ensure discount is between 0 and 100
+                        const discountValue = Math.min(Math.max(Number(value) || 0, 0), 100);
+                        return {
+                            ...prev,
+                            precios: {
+                                ...prev.precios,
+                                descuentos: {
+                                    ...prev.precios?.descuentos,
+                                    [name]: discountValue
+                                }
+                            }
+                        };
+                    }
+                    // Handle other precio fields
+                    return {
+                        ...prev,
+                        precios: {
+                            ...prev.precios,
+                            [name]: type === 'number' ? Number(value) : value
+                        }
+                    };
+                }
+
+                // Rest of the existing logic
                 if (name.includes('.')) {
                     const [parent, child] = name.split('.');
                     return {

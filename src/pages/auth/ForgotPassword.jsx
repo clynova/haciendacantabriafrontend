@@ -18,7 +18,7 @@ const ForgotPassword = () => {
     const [emailSent, setEmailSent] = useState(false);
 
     useEffect(() => {
-        setPageTitle('Recuperar Contraseña | LynFront');
+        setPageTitle('Recuperar Contraseña | Cohesa');
     }, [setPageTitle]);
 
     const validateEmail = (value) => {

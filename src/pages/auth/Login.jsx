@@ -91,6 +91,7 @@ const Login = () => {
       const errorMessage = 
         error.response?.status === 401 ? 'Credenciales incorrectas' :
         error.response?.status === 403 ? 'Tu cuenta no está verificada. Por favor, verifica tu correo electrónico.' :
+        error.response?.status === 423 ? 'Tu cuenta ha sido suspendida por romper con las políticas de la tienda. Si crees que es un error, ponte en contacto con nosotros.' :
         'Error al iniciar sesión. Por favor, intenta nuevamente.';
       
       toast.error(errorMessage);
@@ -119,7 +120,7 @@ const Login = () => {
   };
 
   useEffect(() => {
-    setPageTitle('Ingresar | LynFront');
+    setPageTitle('Ingresar | Cohesa');
   }, [setPageTitle]);
 
   return (
