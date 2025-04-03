@@ -15,16 +15,6 @@ import imgAceite from '../images/categories/Aceite.webp';
 import imgDestino from '../images/categories/destino.webp';
 import imgAccesorios from '../images/categories/destino.webp';
 
-const CORTES_VACUNO = [
-    'BIFE_ANCHO', 'BIFE_ANGOSTO', 'BIFE_DE_PALETA', 'BIFE_DE_VACIO',
-    'BOLA_DE_LOMO', 'BRAZUELO', 'CARNAZA_DE_CUADRADA', 'CARNAZA_PALETA',
-    'CHINGOLO', 'COGOTE', 'COLITA_DE_CUADRIL', 'CORAZON_DE_CUADRIL',
-    'ENTRAÑA_FINA', 'FALDA_DESHUESADA', 'GARRON', 'HUACHALOMO',
-    'LOMO', 'MARUCHA', 'NALGA_DE_ADENTRO', 'PECETO',
-    'PECHO', 'SOBRECOSTILLA', 'TAPA_DE_BIFE_ANCHO', 'TAPA_DE_CUADRIL',
-    'TORTUGUITA', 'VACIO'
-];
-
 const TIPOS_ACEITE = ['OLIVA', 'GIRASOL', 'MAIZ', 'MEZCLA'];
 const METODOS_COCCION = ['PARRILLA', 'HORNO', 'SARTEN', 'PLANCHA'];
 const TIPOS_ENVASE = ['BOTELLA', 'BIDON', 'LATA'];
