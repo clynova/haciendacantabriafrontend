@@ -10,6 +10,7 @@ const SearchBar = ({ isExpanded, onToggle }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState([]);
   const searchRef = useRef(null);
+  const inputRef = useRef(null);
   
   // Implementar debounce para evitar búsquedas innecesarias
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -55,35 +56,38 @@ const SearchBar = ({ isExpanded, onToggle }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [handleCloseSearch]);
 
-  // Evitar renderizado condicional completo basado en loading/error
-  // para prevenir remontaje del componente
-  const renderContent = () => {
-    if (loading && !debouncedSearchTerm) {
-      return <div className="flex justify-center py-2 px-4">Cargando...</div>;
+  // Focus en el input cuando se expande
+  useEffect(() => {
+    if (isExpanded && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current.focus();
+      }, 100);
     }
-    if (error) {
-      return <div className="text-red-500 py-2 px-4">Error: {error}</div>;
-    }
-    return null;
-  };
+  }, [isExpanded]);
 
-  const handleSearch = (value) => {
-    setSearchTerm(value);
+  // Función para manejar la entrada del usuario sin perder el foco
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
   };
 
   return (
     <div ref={searchRef} className="relative flex-grow max-w-2xl">
-      {renderContent()}
+      {loading && debouncedSearchTerm.length >= 2 && (
+        <div className="flex justify-center py-2 px-4">Cargando...</div>
+      )}
+      {error && (
+        <div className="text-red-500 py-2 px-4">Error: {error}</div>
+      )}
       
       {isExpanded ? (
         <div className="relative">
           <input
+            ref={inputRef}
             type="text"
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={handleSearch}
             placeholder="Buscar productos..."
             className="w-full bg-slate-800/50 text-slate-200 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            autoFocus
           />
           <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
           
@@ -103,10 +107,10 @@ const SearchBar = ({ isExpanded, onToggle }) => {
       ) : (
         <button
           onClick={() => onToggle(true)}
-          className="p-2 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800/50 transition-colors duration-200"
-          aria-label="Buscar productos"
+          className="flex items-center justify-center w-10 h-10 bg-slate-800/50 rounded-full hover:bg-slate-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+          aria-label="Buscar"
         >
-          <HiSearch className="h-5 w-5" />
+          <HiSearch className="text-slate-400 h-5 w-5" />
         </button>
       )}
     </div>
@@ -115,7 +119,7 @@ const SearchBar = ({ isExpanded, onToggle }) => {
 
 SearchBar.propTypes = {
   isExpanded: PropTypes.bool.isRequired,
-  onToggle: PropTypes.func.isRequired,
+  onToggle: PropTypes.func.isRequired
 };
 
-export { SearchBar };
+export default SearchBar;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { HiMenuAlt3, HiX, HiSearch, HiShoppingCart } from "react-icons/hi";
-import { SearchBar } from "./SearchBar/SearchBar";
+import  SearchBar  from "./SearchBar/SearchBar";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { CartDrawer } from "./Cart/CartDrawer";

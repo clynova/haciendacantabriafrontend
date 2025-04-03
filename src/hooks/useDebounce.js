@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 /**
  * Hook para debounce de valores
@@ -6,20 +6,28 @@ import { useState, useEffect } from 'react';
  * @param {number} delay - El delay en milisegundos
  * @returns {any} - El valor debounced
  */
-export const useDebounce = (value, delay) => {
+export function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
-    // Configurar un timer para actualizar el valor debounced después del delay
-    const timer = setTimeout(() => {
+    // Limpiar el timeout anterior si existe
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Establecer nuevo timeout
+    timeoutRef.current = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
-    // Limpiar el timer si el valor cambia antes del delay
+    // Cleanup cuando el componente se desmonte o value/delay cambien
     return () => {
-      clearTimeout(timer);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, [value, delay]);
 
   return debouncedValue;
-};
+}
