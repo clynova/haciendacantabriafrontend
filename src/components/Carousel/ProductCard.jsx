@@ -18,6 +18,10 @@ const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
     const fallbackImage = '/images/placeholder.png';
 
+    const hasAvailableStock = product.opcionesPeso?.pesosEstandar?.some(
+        option => option.stockDisponible > 0
+    );
+
     const handleImageError = () => {
         setImageError(true);
     };
@@ -169,13 +173,13 @@ const ProductCard = ({ product }) => {
                             e.stopPropagation();
                             handleAddToCart();
                         }}
-                        disabled={!product.inventario.stockUnidades}
+                        disabled={!hasAvailableStock}
                         className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium
                                  hover:bg-blue-700 transition-colors duration-200 
                                  disabled:bg-gray-400 disabled:cursor-not-allowed
                                  hover:shadow-lg z-10"
                     >
-                        {product.inventario.stockUnidades ? 'Agregar al carrito' : 'Agotado'}
+                        {hasAvailableStock ? 'Agregar al carrito' : 'Agotado'}
                     </button>
                 </div>
             </div>
@@ -191,9 +195,13 @@ ProductCard.propTypes = {
         precios: PropTypes.shape({
             base: PropTypes.number,
         }),
-        inventario: PropTypes.shape({
-            stockUnidades: PropTypes.number.isRequired,
-        }).isRequired,
+        opcionesPeso: PropTypes.shape({
+            pesosEstandar: PropTypes.arrayOf(PropTypes.shape({
+                peso: PropTypes.number.isRequired,
+                unidad: PropTypes.string.isRequired,
+                stockDisponible: PropTypes.number.isRequired
+            }))
+        }),
         multimedia: PropTypes.shape({
             imagenes: PropTypes.arrayOf(PropTypes.shape({
                 url: PropTypes.string,
