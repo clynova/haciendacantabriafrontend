@@ -8,7 +8,8 @@ import {
   FaPaypal,
 } from 'react-icons/fa';
 import { SiWebmoney } from 'react-icons/si'; // Add SiWebmoney for Webpay
-import logo from '/images/logo.png'; // Update this path to match your logo location
+import logo from '/images/logo.png';
+import webpay from  '/images/logo-web-pay-plus.png'// Update this path to match your logo location
 
 export const Footer = () => {
   return (
@@ -94,8 +95,8 @@ export const Footer = () => {
               <h3 className="text-lg font-semibold text-white mb-4">Medios de Pago</h3>
               <div className="flex justify-center">
                 <img 
-                  src="src\images\logo-web-pay-plus.png" 
-                  alt="Webpay" 
+                  src={webpay}
+                  alt="Webpay plus" 
                   className="h-12 object-contain"
                 />
               </div>
