@@ -23,138 +23,82 @@ const formatValue = (value, type = 'text') => {
     }
 };
 
-// Add missing fields for base products
-const renderBaseProductInfo = (product) => (
-    <div className="space-y-4">
-        {/* Existing base info... */}
-        
-        {/* Add Metadata section */}
-        {product.metadatos && product.metadatos.size > 0 && (
-            <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-slate-200">Metadatos</h2>
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                    {Array.from(product.metadatos).map(([key, value]) => (
-                        <p key={key} className="text-slate-300">
-                            <span className="text-slate-400">{key}:</span> {value}
-                        </p>
-                    ))}
-                </div>
-            </div>
-        )}
+const baseStyles = {
+  text: {
+    primary: "text-slate-900 dark:text-slate-100",
+    secondary: "text-slate-700 dark:text-slate-300",
+    muted: "text-slate-600 dark:text-slate-400"
+  },
+  background: {
+    primary: "bg-white dark:bg-slate-800",
+    secondary: "bg-slate-50 dark:bg-slate-700/50",
+    highlight: "bg-slate-100 dark:bg-slate-600/50"
+  },
+  card: {
+    base: "bg-white/5 dark:bg-slate-800/50 backdrop-blur-sm",
+    header: "border-b border-slate-200 dark:border-slate-700"
+  },
+  border: "border-slate-200 dark:border-slate-700",
+  gradient: "bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20"
+};
+
+// Componente de tarjeta reutilizable para información
+const InfoCard = ({ title, children, className = "" }) => (
+    <div className={`space-y-4 ${className}`}>
+        <h2 className={`text-lg font-semibold ${baseStyles.text.primary}`}>{title}</h2>
+        <div className={`p-4 rounded-lg ${baseStyles.background.secondary}`}>
+            {children}
+        </div>
     </div>
 );
 
-// Update renderProductTypeSpecificInfo for Meat Products
-const renderMeatInfo = (product) => (
-    <>
-        {/* Existing meat info... */}
-        
-        {/* Add missing Cocción section */}
-        <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-200">Recetas y Consejos</h2>
-            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
-                {product.coccion?.recetas?.length > 0 && (
-                    <div>
-                        <h3 className="text-slate-300 font-medium mb-2">Recetas</h3>
-                        <ul className="space-y-2">
-                            {product.coccion.recetas.map((receta, index) => (
-                                <li key={index} className="text-slate-300">
-                                    <p className="font-medium">{receta.nombre}</p>
-                                    <p className="text-sm text-slate-400">{receta.descripcion}</p>
-                                    {receta.url && (
-                                        <a href={receta.url} 
-                                           target="_blank" 
-                                           rel="noopener noreferrer"
-                                           className="text-blue-400 hover:text-blue-300 text-sm">
-                                            Ver receta
-                                        </a>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
+// Componente para mostrar un campo individual
+const InfoField = ({ label, value, type = "text" }) => {
+    let displayValue = value;
+    
+    if (value === undefined || value === null) {
+        displayValue = "No especificado";
+    } else if (type === "boolean") {
+        displayValue = value ? "Sí" : "No";
+    } else if (type === "date") {
+        displayValue = new Date(value).toLocaleString();
+    } else if (type === "number") {
+        displayValue = typeof value === "number" ? value.toFixed(2) : value;
+    }
 
-                {product.coccion?.consejos?.length > 0 && (
-                    <div>
-                        <h3 className="text-slate-300 font-medium mb-2">Consejos de Cocción</h3>
-                        <ul className="list-disc list-inside">
-                            {product.coccion.consejos.map((consejo, index) => (
-                                <li key={index} className="text-slate-300">{consejo}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </div>
+    return (
+        <p className={baseStyles.text.secondary}>
+            <span className={baseStyles.text.muted}>{label}:</span>{" "}
+            {displayValue}
+        </p>
+    );
+};
+
+// Componente para mostrar etiquetas
+const TagList = ({ tags }) => (
+    <div className="flex flex-wrap gap-2">
+        {tags.map((tag, index) => (
+            <span
+                key={index}
+                className={`px-3 py-1 text-sm rounded-full ${baseStyles.background.highlight} ${baseStyles.text.secondary}`}
+            >
+                {tag}
+            </span>
+        ))}
+    </div>
+);
+
+// Componente para una sección de información
+const InfoSection = ({ title, children, className = "" }) => (
+    <div className={`space-y-4 ${className}`}>
+        <h2 className={`text-lg font-semibold ${baseStyles.text.primary}`}>{title}</h2>
+        <div className={`p-4 rounded-lg ${baseStyles.background.secondary}`}>
+            {children}
         </div>
-
-        {/* Add Pesos Estándar section */}
-        {product.opcionesPeso?.pesosEstandar?.length > 0 && (
-            <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-slate-200">Pesos Estándar</h2>
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {product.opcionesPeso.pesosEstandar.map((peso, index) => (
-                            <div key={index} className="p-3 bg-slate-600/50 rounded">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Peso:</span> {peso.peso}{peso.unidad}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Precio:</span> ${peso.precio}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">SKU:</span> {peso.sku}
-                                </p>
-                                {peso.esPredeterminado && (
-                                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded mt-2 inline-block">
-                                        Predeterminado
-                                    </span>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        )}
-    </>
+    </div>
 );
 
-// Update renderProductTypeSpecificInfo for Oil Products
-const renderOilInfo = (product) => (
-    <>
-        {/* Existing oil info... */}
-
-        {/* Add Opciones de Volumen section */}
-        {product.opcionesVolumen?.length > 0 && (
-            <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-slate-200">Opciones de Volumen</h2>
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {product.opcionesVolumen.map((opcion, index) => (
-                            <div key={index} className="p-3 bg-slate-600/50 rounded">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Volumen:</span> {opcion.volumen}ml
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Precio:</span> ${opcion.precio}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">SKU:</span> {opcion.sku}
-                                </p>
-                                {opcion.esPredeterminado && (
-                                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded mt-2 inline-block">
-                                        Predeterminado
-                                    </span>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        )}
-    </>
-);
-
+// Componente principal AdminProductDetails
 const AdminProductDetails = () => {
     const { productId } = useParams();
     const navigate = useNavigate();
@@ -185,550 +129,700 @@ const AdminProductDetails = () => {
         }
     };
 
+    // Renderizar información específica según el tipo de producto
     const renderProductTypeSpecificInfo = () => {
+        if (!product) return null;
+
         switch (product.tipoProducto) {
-            case 'ProductoCarne':
-                return (
-                    <>
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Información de la Carne</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Tipo de Carne:</span> {product.infoCarne?.tipoCarne}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Precio por Kg:</span> ${product.infoCarne?.precioPorKg?.toFixed(2)}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Nombre Argentino:</span> {product.infoCarne?.nombreArgentino || 'No especificado'}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Nombre Chileno:</span> {product.infoCarne?.nombreChileno || 'No especificado'}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Características de la Carne</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Porcentaje de Grasa:</span> {product.caracteristicas?.porcentajeGrasa || 0}%
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Marmoleo:</span> {product.caracteristicas?.marmoleo || 'No especificado'}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Color:</span> {product.caracteristicas?.color || 'No especificado'}
-                                </p>
-                                {product.caracteristicas?.textura?.length > 0 && (
-                                    <div>
-                                        <span className="text-slate-400">Textura:</span>
-                                        <ul className="list-disc list-inside">
-                                            {product.caracteristicas.textura.map((tex, index) => (
-                                                <li key={index} className="text-slate-300">{tex}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Información Nutricional</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Porción:</span> {product.infoNutricional?.porcion}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Calorías:</span> {product.infoNutricional?.calorias}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Proteínas:</span> {product.infoNutricional?.proteinas}g
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Grasa Total:</span> {product.infoNutricional?.grasaTotal}g
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Cocción</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
-                                {product.coccion?.metodos?.length > 0 && (
-                                    <div>
-                                        <span className="text-slate-400 block mb-1">Métodos de Cocción:</span>
-                                        <ul className="list-disc list-inside">
-                                            {product.coccion.metodos.map((metodo, index) => (
-                                                <li key={index} className="text-slate-300">{metodo}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Temperatura Ideal:</span> {product.coccion?.temperaturaIdeal}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Tiempo Estimado:</span> {product.coccion?.tiempoEstimado}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Opciones de Peso</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Peso Variable:</span>
-                                    {product.peso?.esPesoVariable ? 'Sí' : 'No'}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Peso Promedio:</span>
-                                    {product.peso?.pesoPromedio} kg
-                                </p>
-                                {product.peso?.esPesoVariable && (
-                                    <>
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">Peso Mínimo:</span>
-                                            {product.peso?.pesoMinimo} kg
-                                        </p>
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">Peso Máximo:</span>
-                                            {product.peso?.pesoMaximo} kg
-                                        </p>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Empaque</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Tipo:</span>
-                                    {product.empaque?.tipo}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Unidades por Caja:</span>
-                                    {product.empaque?.unidadesPorCaja}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Peso por Caja:</span>
-                                    {product.empaque?.pesoCaja} kg
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Origen</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">País:</span>
-                                    {product.origen?.pais}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Región:</span>
-                                    {product.origen?.region || 'No especificada'}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Productor:</span>
-                                    {product.origen?.productor || 'No especificado'}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Raza:</span>
-                                    {product.origen?.raza}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Maduración:</span>
-                                    {product.origen?.maduracion} días
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Procesamiento</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Fecha Faenado:</span>
-                                    {new Date(product.procesamiento?.fechaFaenado).toLocaleDateString()}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Fecha Envasado:</span>
-                                    {new Date(product.procesamiento?.fechaEnvasado).toLocaleDateString()}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Fecha Vencimiento:</span>
-                                    {new Date(product.procesamiento?.fechaVencimiento).toLocaleDateString()}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Número de Lote:</span>
-                                    {product.procesamiento?.numeroLote}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Producción</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Método:</span>
-                                    {product.produccion?.metodo}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Temperatura:</span>
-                                    {product.produccion?.temperatura}°C
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Add missing Cocción section */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Recetas y Consejos</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
-                                {product.coccion?.recetas?.length > 0 && (
-                                    <div>
-                                        <h3 className="text-slate-300 font-medium mb-2">Recetas</h3>
-                                        <ul className="space-y-2">
-                                            {product.coccion.recetas.map((receta, index) => (
-                                                <li key={index} className="text-slate-300">
-                                                    <p className="font-medium">{receta.nombre}</p>
-                                                    <p className="text-sm text-slate-400">{receta.descripcion}</p>
-                                                    {receta.url && (
-                                                        <a href={receta.url} 
-                                                           target="_blank" 
-                                                           rel="noopener noreferrer"
-                                                           className="text-blue-400 hover:text-blue-300 text-sm">
-                                                            Ver receta
-                                                        </a>
-                                                    )}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                {product.coccion?.consejos?.length > 0 && (
-                                    <div>
-                                        <h3 className="text-slate-300 font-medium mb-2">Consejos de Cocción</h3>
-                                        <ul className="list-disc list-inside">
-                                            {product.coccion.consejos.map((consejo, index) => (
-                                                <li key={index} className="text-slate-300">{consejo}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Add Pesos Estándar section */}
-                        {product.opcionesPeso?.pesosEstandar?.length > 0 && (
-                            <div className="space-y-4">
-                                <h2 className="text-lg font-semibold text-slate-200">Pesos Estándar</h2>
-                                <div className="bg-slate-700/50 p-4 rounded-lg">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {product.opcionesPeso.pesosEstandar.map((peso, index) => (
-                                            <div key={index} className="p-3 bg-slate-600/50 rounded">
-                                                <p className="text-slate-300">
-                                                    <span className="text-slate-400">Peso:</span> {peso.peso}{peso.unidad}
-                                                </p>
-                                                <p className="text-slate-300">
-                                                    <span className="text-slate-400">Precio:</span> ${peso.precio}
-                                                </p>
-                                                <p className="text-slate-300">
-                                                    <span className="text-slate-400">SKU:</span> {peso.sku}
-                                                </p>
-                                                {peso.esPredeterminado && (
-                                                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded mt-2 inline-block">
-                                                        Predeterminado
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Añadir sección de Maduración */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Maduración</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Tipo:</span> {product.maduracion?.tipo || 'No especificado'}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Días:</span> {product.maduracion?.dias || 0}
-                                </p>
-                                {product.maduracion?.notas && (
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Notas:</span> {product.maduracion.notas}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Añadir sección de Corte */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Detalle del Corte</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Corte:</span> {product.infoCarne?.corte}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Descripción:</span> {product.corte?.descripcion || 'No especificada'}
-                                </p>
-                                {product.corte?.parteCorporal && (
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Parte Corporal:</span> {product.corte.parteCorporal}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Actualizar sección de Cocción con temperaturas */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Cocción y Temperaturas</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
-                                {product.coccion?.temperaturaTerminado && (
-                                    <div>
-                                        <h3 className="text-slate-300 font-medium mb-2">Temperaturas por Punto</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {Object.entries(product.coccion.temperaturaTerminado).map(([punto, temp]) => (
-                                                <div key={punto} className="bg-slate-600/50 p-3 rounded">
-                                                    <p className="text-slate-300">
-                                                        <span className="text-slate-400">{punto}:</span> {temp}°C
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                {/* ...existing cocción content... */}
-                                {product.coccion?.metodos?.length > 0 && (
-                                    <div>
-                                        <span className="text-slate-400 block mb-1">Métodos de Cocción:</span>
-                                        <ul className="list-disc list-inside">
-                                            {product.coccion.metodos.map((metodo, index) => (
-                                                <li key={index} className="text-slate-300">{metodo}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Temperatura Ideal:</span> {product.coccion?.temperaturaIdeal}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Tiempo Estimado:</span> {product.coccion?.tiempoEstimado}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Añadir sección de Disponibilidad */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Disponibilidad</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                {product.disponibilidad?.temporada && (
-                                    <>
-                                        <p className="text-slate-300">
-                                            <span className="text-slate-400">Temporada:</span> {product.disponibilidad.temporada}
-                                        </p>
-                                        {product.disponibilidad.mesesDisponibilidad && (
-                                            <div>
-                                                <span className="text-slate-400 block mb-2">Meses disponibles:</span>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {product.disponibilidad.mesesDisponibilidad.map((mes, index) => (
-                                                        <span key={index} className="px-3 py-1 bg-slate-600 text-slate-200 rounded-full text-sm">
-                                                            {mes}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Añadir sección de Trazabilidad */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Trazabilidad</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Lote:</span> {product.trazabilidad?.lote || 'No especificado'}
-                                </p>
-                                {product.trazabilidad?.establecimiento && (
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Establecimiento:</span> {product.trazabilidad.establecimiento}
-                                    </p>
-                                )}
-                                {product.trazabilidad?.numeroGuia && (
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Número de Guía:</span> {product.trazabilidad.numeroGuia}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    </>
-                );
-
-            case 'ProductoAceite':
-                return (
-                    <>
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Información del Aceite</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Tipo:</span> {product.infoAceite?.tipo}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Volumen:</span> {product.infoAceite?.volumen}ml
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Envase:</span> {product.infoAceite?.envase}
-                                </p>
-                                {product.caracteristicas?.aditivos?.length > 0 && (
-                                    <div>
-                                        <span className="text-slate-400 block mb-1">Aditivos:</span>
-                                        <ul className="list-disc list-inside">
-                                            {product.caracteristicas.aditivos.map((aditivo, index) => (
-                                                <li key={index} className="text-slate-300">{aditivo}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Add Characteristics Section */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Características</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Filtración:</span>
-                                    {product.caracteristicas?.filtracion}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Acidez:</span>
-                                    {product.caracteristicas?.acidez}%
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Extracción:</span>
-                                    {product.caracteristicas?.extraccion}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Add Production Section */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Producción</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Método:</span>
-                                    {product.produccion?.metodo}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Temperatura:</span>
-                                    {product.produccion?.temperatura}°C
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Fecha Envasado:</span>
-                                    {new Date(product.produccion?.fechaEnvasado).toLocaleDateString()}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Fecha Vencimiento:</span>
-                                    {new Date(product.produccion?.fechaVencimiento).toLocaleDateString()}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Información Nutricional</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Porción:</span> {product.infoNutricional?.porcion}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Calorías:</span> {product.infoNutricional?.calorias}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Grasa Total:</span> {product.infoNutricional?.grasaTotal}g
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Grasa Saturada:</span> {product.infoNutricional?.grasaSaturada}g
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Add Opciones de Volumen section */}
-                        {product.opcionesVolumen?.length > 0 && (
-                            <div className="space-y-4">
-                                <h2 className="text-lg font-semibold text-slate-200">Opciones de Volumen</h2>
-                                <div className="bg-slate-700/50 p-4 rounded-lg">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {product.opcionesVolumen.map((opcion, index) => (
-                                            <div key={index} className="p-3 bg-slate-600/50 rounded">
-                                                <p className="text-slate-300">
-                                                    <span className="text-slate-400">Volumen:</span> {opcion.volumen}ml
-                                                </p>
-                                                <p className="text-slate-300">
-                                                    <span className="text-slate-400">Precio:</span> ${opcion.precio}
-                                                </p>
-                                                <p className="text-slate-300">
-                                                    <span className="text-slate-400">SKU:</span> {opcion.sku}
-                                                </p>
-                                                {opcion.esPredeterminado && (
-                                                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded mt-2 inline-block">
-                                                        Predeterminado
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                );
-
+            case "ProductoCarne":
+                return renderMeatInfo(product);
+            case "ProductoAceite":
+                return renderOilInfo(product);
             default:
                 return null;
         }
     };
 
-    const renderMetadataSection = () => {
-        if (!product.metadatos || Object.keys(product.metadatos).length === 0) {
-            return null;
-        }
-    
-        return (
-            <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-slate-200">Metadatos del Producto</h2>
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(product.metadatos).map(([key, value], index) => (
-                            <div 
-                                key={index} 
-                                className="p-3 bg-slate-600/50 rounded flex justify-between items-start"
-                            >
-                                <div>
-                                    <span className="text-slate-400 text-sm">{key}:</span>
-                                    <div className="text-slate-300 break-words">
-                                        {typeof value === 'object' 
-                                            ? JSON.stringify(value, null, 2) 
-                                            : String(value)
-                                        }
+    // Función para renderizar la información de productos de carne
+    const renderMeatInfo = (product) => (
+        <>
+            {/* Información Básica de la Carne */}
+            <InfoSection title="Información de la Carne">
+                <div className="space-y-2">
+                    <InfoField 
+                        label="Tipo de Carne" 
+                        value={product.infoCarne?.tipoCarne} 
+                    />
+                    <InfoField 
+                        label="Corte" 
+                        value={product.infoCarne?.corte} 
+                    />
+                    <InfoField 
+                        label="Nombre Argentino" 
+                        value={product.infoCarne?.nombreArgentino} 
+                    />
+                    <InfoField 
+                        label="Nombre Chileno" 
+                        value={product.infoCarne?.nombreChileno} 
+                    />
+                </div>
+            </InfoSection>
+
+            {/* Características */}
+            <InfoSection title="Características">
+                <div className="space-y-2">
+                    <InfoField 
+                        label="Porcentaje de Grasa" 
+                        value={product.caracteristicas?.porcentajeGrasa}
+                        type="number"
+                    />
+                    <InfoField 
+                        label="Marmoleo" 
+                        value={product.caracteristicas?.marmoleo}
+                        type="number"
+                    />
+                    <InfoField 
+                        label="Color" 
+                        value={product.caracteristicas?.color} 
+                    />
+                    {product.caracteristicas?.textura?.length > 0 && (
+                        <div>
+                            <span className={baseStyles.text.muted}>Textura:</span>
+                            <div className="mt-2">
+                                <TagList tags={product.caracteristicas.textura} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </InfoSection>
+
+            {/* Información Nutricional */}
+            <InfoSection title="Información Nutricional">
+                <div className="space-y-2">
+                    <InfoField 
+                        label="Porción" 
+                        value={product.infoNutricional?.porcion} 
+                    />
+                    <InfoField 
+                        label="Calorías" 
+                        value={product.infoNutricional?.calorias}
+                        type="number"
+                    />
+                    <InfoField 
+                        label="Proteínas" 
+                        value={product.infoNutricional?.proteinas}
+                        type="number"
+                    />
+                    <InfoField 
+                        label="Grasa Total" 
+                        value={product.infoNutricional?.grasaTotal}
+                        type="number"
+                    />
+                    <InfoField 
+                        label="Grasa Saturada" 
+                        value={product.infoNutricional?.grasaSaturada}
+                        type="number"
+                    />
+                    <InfoField 
+                        label="Colesterol" 
+                        value={product.infoNutricional?.colesterol}
+                        type="number"
+                    />
+                    <InfoField 
+                        label="Sodio" 
+                        value={product.infoNutricional?.sodio}
+                        type="number"
+                    />
+                    <InfoField 
+                        label="Carbohidratos" 
+                        value={product.infoNutricional?.carbohidratos}
+                        type="number"
+                    />
+                </div>
+            </InfoSection>
+
+            {/* Cocción */}
+            <InfoSection title="Información de Cocción">
+                <div className="space-y-4">
+                    {product.coccion?.metodos?.length > 0 && (
+                        <div>
+                            <span className={baseStyles.text.muted}>Métodos de Cocción:</span>
+                            <div className="mt-2">
+                                <TagList tags={product.coccion.metodos} />
+                            </div>
+                        </div>
+                    )}
+                    <InfoField 
+                        label="Temperatura Ideal" 
+                        value={product.coccion?.temperaturaIdeal} 
+                    />
+                    <InfoField 
+                        label="Tiempo Estimado" 
+                        value={product.coccion?.tiempoEstimado} 
+                    />
+                    {product.coccion?.consejos?.length > 0 && (
+                        <div>
+                            <span className={baseStyles.text.muted}>Consejos:</span>
+                            <div className="mt-2">
+                                <TagList tags={product.coccion.consejos} />
+                            </div>
+                        </div>
+                    )}
+                    {product.coccion?.recetas?.length > 0 && (
+                        <div className="mt-4">
+                            <span className={`block mb-2 ${baseStyles.text.muted}`}>Recetas:</span>
+                            <div className="grid grid-cols-1 gap-4">
+                                {product.coccion.recetas.map((receta, index) => (
+                                    <div 
+                                        key={index}
+                                        className={`p-4 rounded-lg ${baseStyles.background.highlight}`}
+                                    >
+                                        <InfoField 
+                                            label="Nombre" 
+                                            value={receta.nombre} 
+                                        />
+                                        <InfoField 
+                                            label="Descripción" 
+                                            value={receta.descripcion} 
+                                        />
+                                        {receta.url && (
+                                            <a 
+                                                href={receta.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-500 hover:text-blue-600 mt-2 inline-block"
+                                            >
+                                                Ver receta completa
+                                            </a>
+                                        )}
                                     </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </InfoSection>
+
+            {/* Empaque */}
+            <InfoSection title="Información de Empaque">
+                <div className="space-y-2">
+                    <InfoField 
+                        label="Tipo de Envase" 
+                        value={product.empaque?.tipo} 
+                    />
+                    <InfoField 
+                        label="Unidades por Caja" 
+                        value={product.empaque?.unidadesPorCaja}
+                        type="number"
+                    />
+                    <InfoField 
+                        label="Peso por Caja" 
+                        value={product.empaque?.pesoCaja}
+                        type="number"
+                    />
+                </div>
+            </InfoSection>
+
+            {/* Origen */}
+            <InfoSection title="Información de Origen">
+                <div className="space-y-2">
+                    <InfoField 
+                        label="País" 
+                        value={product.origen?.pais} 
+                    />
+                    <InfoField 
+                        label="Región" 
+                        value={product.origen?.region} 
+                    />
+                    <InfoField 
+                        label="Productor" 
+                        value={product.origen?.productor} 
+                    />
+                    <InfoField 
+                        label="Raza" 
+                        value={product.origen?.raza} 
+                    />
+                    <InfoField 
+                        label="Maduración" 
+                        value={product.origen?.maduracion} 
+                    />
+                </div>
+            </InfoSection>
+
+            {/* Procesamiento */}
+            <InfoSection title="Información de Procesamiento">
+                <div className="space-y-2">
+                    <InfoField 
+                        label="Fecha de Faenado" 
+                        value={product.procesamiento?.fechaFaenado}
+                        type="date"
+                    />
+                    <InfoField 
+                        label="Fecha de Envasado" 
+                        value={product.procesamiento?.fechaEnvasado}
+                        type="date"
+                    />
+                    <InfoField 
+                        label="Fecha de Vencimiento" 
+                        value={product.procesamiento?.fechaVencimiento}
+                        type="date"
+                    />
+                    <InfoField 
+                        label="Número de Lote" 
+                        value={product.procesamiento?.numeroLote} 
+                    />
+                </div>
+            </InfoSection>
+        </>
+    );
+
+    // Función para renderizar la información de productos de aceite
+    const renderOilInfo = (product) => (
+        <>
+            {/* Información Básica del Aceite */}
+            <InfoSection title="Información del Aceite">
+                <div className="space-y-2">
+                    <InfoField 
+                        label="Tipo" 
+                        value={product.infoAceite?.tipo} 
+                    />
+                    <InfoField 
+                        label="Envase" 
+                        value={product.infoAceite?.envase} 
+                    />
+                </div>
+            </InfoSection>
+
+            {/* Características */}
+            <InfoSection title="Características">
+                <div className="space-y-4">
+                    {product.caracteristicas?.aditivos?.length > 0 && (
+                        <div>
+                            <span className={baseStyles.text.muted}>Aditivos:</span>
+                            <div className="mt-2">
+                                <TagList tags={product.caracteristicas.aditivos} />
+                            </div>
+                        </div>
+                    )}
+                    <InfoField 
+                        label="Filtración" 
+                        value={product.caracteristicas?.filtracion} 
+                    />
+                    <InfoField 
+                        label="Acidez" 
+                        value={product.caracteristicas?.acidez}
+                    />
+                    <InfoField 
+                        label="Extracción" 
+                        value={product.caracteristicas?.extraccion} 
+                    />
+                </div>
+            </InfoSection>
+
+            {/* Información Nutricional */}
+            <InfoSection title="Información Nutricional">
+                <div className="space-y-2">
+                    <InfoField 
+                        label="Porción" 
+                        value={product.infoNutricional?.porcion} 
+                    />
+                    <InfoField 
+                        label="Calorías" 
+                        value={product.infoNutricional?.calorias}
+                        type="number" 
+                    />
+                    <InfoField 
+                        label="Grasa Total" 
+                        value={product.infoNutricional?.grasaTotal}
+                        type="number" 
+                    />
+                    <InfoField 
+                        label="Grasa Saturada" 
+                        value={product.infoNutricional?.grasaSaturada}
+                        type="number" 
+                    />
+                    <InfoField 
+                        label="Grasa Trans" 
+                        value={product.infoNutricional?.grasaTrans}
+                        type="number" 
+                    />
+                    <InfoField 
+                        label="Grasa Poliinsaturada" 
+                        value={product.infoNutricional?.grasaPoliinsaturada}
+                        type="number" 
+                    />
+                    <InfoField 
+                        label="Grasa Monoinsaturada" 
+                        value={product.infoNutricional?.grasaMonoinsaturada}
+                        type="number" 
+                    />
+                </div>
+            </InfoSection>
+
+            {/* Usos Recomendados */}
+            {product.usosRecomendados?.length > 0 && (
+                <InfoSection title="Usos Recomendados">
+                    <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                            <TagList tags={product.usosRecomendados} />
+                        </div>
+                    </div>
+                </InfoSection>
+            )}
+
+            {/* Producción */}
+            <InfoSection title="Información de Producción">
+                <div className="space-y-2">
+                    <InfoField 
+                        label="Método" 
+                        value={product.produccion?.metodo} 
+                    />
+                    <InfoField 
+                        label="Temperatura" 
+                        value={product.produccion?.temperatura} 
+                    />
+                    <InfoField 
+                        label="Fecha de Envasado" 
+                        value={product.produccion?.fechaEnvasado}
+                        type="date" 
+                    />
+                    <InfoField 
+                        label="Fecha de Vencimiento" 
+                        value={product.produccion?.fechaVencimiento}
+                        type="date" 
+                    />
+                </div>
+            </InfoSection>
+        </>
+    );
+
+    // Renderizar la información base del producto
+    const renderBaseProductInfo = (product) => (
+        <>
+            {/* Información Básica */}
+            <InfoSection title="Información Básica">
+                <div className="space-y-2">
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>SKU:</span> {product.sku}
+                    </p>
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Nombre:</span> {product.nombre}
+                    </p>
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Slug:</span> {product.slug}
+                    </p>
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Categoría:</span> {product.categoria}
+                    </p>
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Estado:</span> {product.estado ? 'Activo' : 'Inactivo'}
+                    </p>
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Destacado:</span> {product.destacado ? 'Sí' : 'No'}
+                    </p>
+                </div>
+            </InfoSection>
+
+            {/* Descripción */}
+            <InfoSection title="Descripción">
+                <div className="space-y-4">
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Descripción Corta:</span>
+                        <br />
+                        {product.descripcion?.corta || 'No especificada'}
+                    </p>
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Descripción Completa:</span>
+                        <br />
+                        {product.descripcion?.completa || 'No especificada'}
+                    </p>
+                </div>
+            </InfoSection>
+
+            {/* Precios */}
+            <InfoSection title="Precios">
+                <div className="space-y-2">
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Precio Base:</span> ${product.precios?.base?.toFixed(2)}
+                    </p>
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Descuento Regular:</span> {product.precios?.descuentos?.regular}%
+                    </p>
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Precio Final:</span> ${product.precioFinal?.toFixed(2)}
+                    </p>
+                </div>
+            </InfoSection>
+
+            {/* Multimedia */}
+            <InfoSection title="Multimedia">
+                <ImageGallery
+                    images={product.multimedia?.imagenes || []}
+                    productName={product.nombre}
+                />
+                {product.multimedia?.video && (
+                    <div className="mt-4">
+                        <p className={baseStyles.text.secondary}>
+                            <span className={baseStyles.text.muted}>Video:</span>
+                            <a href={product.multimedia.video} target="_blank" rel="noopener noreferrer" 
+                               className="text-blue-500 hover:text-blue-600 ml-2">
+                                Ver video
+                            </a>
+                        </p>
+                    </div>
+                )}
+            </InfoSection>
+
+            {/* SEO */}
+            <InfoSection title="SEO">
+                <div className="space-y-4">
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Meta Título:</span>
+                        <br />
+                        {product.seo?.metaTitulo || 'No especificado'}
+                    </p>
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Meta Descripción:</span>
+                        <br />
+                        {product.seo?.metaDescripcion || 'No especificada'}
+                    </p>
+                    {product.seo?.palabrasClave?.length > 0 && (
+                        <div>
+                            <span className={`block mb-2 ${baseStyles.text.muted}`}>Palabras Clave:</span>
+                            <div className="flex flex-wrap gap-2">
+                                {product.seo.palabrasClave.map((palabra, index) => (
+                                    <span key={index} className={`px-3 py-1 rounded-full text-sm ${baseStyles.background.highlight} ${baseStyles.text.secondary}`}>
+                                        {palabra}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </InfoSection>
+
+            {/* Opciones de Peso */}
+            {product.opcionesPeso && (
+                <InfoSection title="Opciones de Peso">
+                    <div className="space-y-4">
+                        <p className={baseStyles.text.secondary}>
+                            <span className={baseStyles.text.muted}>Peso Variable:</span>
+                            {product.opcionesPeso.esPesoVariable ? 'Sí' : 'No'}
+                        </p>
+                        {product.opcionesPeso.pesoPromedio && (
+                            <p className={baseStyles.text.secondary}>
+                                <span className={baseStyles.text.muted}>Peso Promedio:</span>
+                                {product.opcionesPeso.pesoPromedio}
+                            </p>
+                        )}
+                        {/* ... resto de opciones de peso ... */}
+                    </div>
+                </InfoSection>
+            )}
+
+            {/* Conservación */}
+            <InfoSection title="Conservación">
+                <div className="space-y-2">
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Requiere Refrigeración:</span>
+                        {product.conservacion?.requiereRefrigeracion ? 'Sí' : 'No'}
+                    </p>
+                    <p className={baseStyles.text.secondary}>
+                        <span className={baseStyles.text.muted}>Requiere Congelación:</span>
+                        {product.conservacion?.requiereCongelacion ? 'Sí' : 'No'}
+                    </p>
+                    {product.conservacion?.vidaUtil && (
+                        <p className={baseStyles.text.secondary}>
+                            <span className={baseStyles.text.muted}>Vida Útil:</span>
+                            {product.conservacion.vidaUtil}
+                        </p>
+                    )}
+                    {product.conservacion?.instrucciones && (
+                        <p className={baseStyles.text.secondary}>
+                            <span className={baseStyles.text.muted}>Instrucciones:</span>
+                            {product.conservacion.instrucciones}
+                        </p>
+                    )}
+                </div>
+            </InfoSection>
+
+            {/* Información Adicional */}
+            <InfoSection title="Información Adicional">
+                <div className="space-y-2">
+                    <InfoField 
+                        label="Origen" 
+                        value={product.infoAdicional?.origen} 
+                    />
+                    <InfoField 
+                        label="Marca" 
+                        value={product.infoAdicional?.marca} 
+                    />
+                    {product.infoAdicional?.certificaciones?.length > 0 && (
+                        <div>
+                            <span className={baseStyles.text.muted}>Certificaciones:</span>
+                            <div className="mt-2">
+                                <TagList tags={product.infoAdicional.certificaciones} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </InfoSection>
+
+            {/* Opciones de Peso (versión completa) */}
+            {product.opcionesPeso && (
+                <InfoSection title="Opciones de Peso">
+                    <div className="space-y-4">
+                        <InfoField 
+                            label="Peso Variable" 
+                            value={product.opcionesPeso.esPesoVariable} 
+                            type="boolean" 
+                        />
+                        <InfoField 
+                            label="Peso Promedio" 
+                            value={product.opcionesPeso.pesoPromedio} 
+                            type="number" 
+                        />
+                        <InfoField 
+                            label="Peso Mínimo" 
+                            value={product.opcionesPeso.pesoMinimo} 
+                            type="number" 
+                        />
+                        <InfoField 
+                            label="Peso Máximo" 
+                            value={product.opcionesPeso.pesoMaximo} 
+                            type="number" 
+                        />
+
+                        {/* Pesos Estándar */}
+                        {product.opcionesPeso.pesosEstandar?.length > 0 && (
+                            <div className="mt-4">
+                                <h3 className={`text-base font-medium ${baseStyles.text.primary} mb-2`}>
+                                    Pesos Estándar
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {product.opcionesPeso.pesosEstandar.map((peso, index) => (
+                                        <div 
+                                            key={index} 
+                                            className={`p-4 rounded-lg ${baseStyles.background.highlight}`}
+                                        >
+                                            <InfoField 
+                                                label="Peso" 
+                                                value={`${peso.peso} ${peso.unidad}`} 
+                                            />
+                                            <InfoField 
+                                                label="Precio" 
+                                                value={peso.precio} 
+                                                type="number" 
+                                            />
+                                            <InfoField 
+                                                label="SKU" 
+                                                value={peso.sku} 
+                                            />
+                                            <InfoField 
+                                                label="Stock Disponible" 
+                                                value={peso.stockDisponible} 
+                                                type="number" 
+                                            />
+                                            <InfoField 
+                                                label="Umbral de Stock Bajo" 
+                                                value={peso.umbralStockBajo} 
+                                                type="number" 
+                                            />
+                                            <InfoField 
+                                                label="Última Actualización" 
+                                                value={peso.ultimaActualizacion} 
+                                                type="date" 
+                                            />
+                                            {peso.esPredeterminado && (
+                                                <span className={`mt-2 inline-block px-2 py-1 text-xs rounded-full ${baseStyles.background.secondary} ${baseStyles.text.secondary}`}>
+                                                    Predeterminado
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
+                        )}
+
+                        {/* Rangos Preferidos */}
+                        {product.opcionesPeso.rangosPreferidos?.length > 0 && (
+                            <div className="mt-4">
+                                <h3 className={`text-base font-medium ${baseStyles.text.primary} mb-2`}>
+                                    Rangos Preferidos
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {product.opcionesPeso.rangosPreferidos.map((rango, index) => (
+                                        <div 
+                                            key={index} 
+                                            className={`p-4 rounded-lg ${baseStyles.background.highlight}`}
+                                        >
+                                            <InfoField 
+                                                label="Nombre" 
+                                                value={rango.nombre} 
+                                            />
+                                            <InfoField 
+                                                label="Peso Mínimo" 
+                                                value={rango.pesoMinimo} 
+                                                type="number" 
+                                            />
+                                            <InfoField 
+                                                label="Peso Máximo" 
+                                                value={rango.pesoMaximo} 
+                                                type="number" 
+                                            />
+                                            <InfoField 
+                                                label="Descripción" 
+                                                value={rango.descripcion} 
+                                            />
+                                            {rango.esPredeterminado && (
+                                                <span className={`mt-2 inline-block px-2 py-1 text-xs rounded-full ${baseStyles.background.secondary} ${baseStyles.text.secondary}`}>
+                                                    Predeterminado
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </InfoSection>
+            )}
+
+            {/* Metadatos */}
+            {product.metadatos && product.metadatos.size > 0 && (
+                <InfoSection title="Metadatos">
+                    <div className="space-y-2">
+                        {Array.from(product.metadatos).map(([key, value]) => (
+                            <InfoField 
+                                key={key}
+                                label={key} 
+                                value={JSON.stringify(value)} 
+                            />
                         ))}
                     </div>
-                </div>
-            </div>
-        );
-    };
+                </InfoSection>
+            )}
 
+            {/* Tags */}
+            {product.tags?.length > 0 && (
+                <InfoSection title="Etiquetas">
+                    <div className="flex flex-wrap gap-2">
+                        {product.tags.map((tag, index) => (
+                            <span key={index} className={`px-3 py-1 rounded-full text-sm ${baseStyles.background.highlight} ${baseStyles.text.secondary}`}>
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+                </InfoSection>
+            )}
+        </>
+    );
+
+    // Renderizado condicional para estados de carga y error
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 dark:border-blue-400"></div>
             </div>
         );
     }
@@ -736,37 +830,39 @@ const AdminProductDetails = () => {
     if (!product) {
         return (
             <div className="p-6">
-                <div className="text-center text-slate-400">
+                <div className={`text-center ${baseStyles.text.muted}`}>
                     Producto no encontrado
                 </div>
             </div>
         );
     }
 
+    // Renderizado principal
     return (
-        <div className="p-6">
+        <div className={`p-6 ${baseStyles.background.primary}`}>
             <div className="max-w-6xl mx-auto">
-                {/* Header section with navigation */}
+                {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <button
                         onClick={() => navigate('/admin/products')}
-                        className="flex items-center gap-2 text-slate-300 hover:text-white"
+                        className={`flex items-center gap-2 ${baseStyles.text.secondary} hover:${baseStyles.text.primary}`}
                     >
                         <HiArrowLeft className="h-5 w-5" />
                         <span>Volver a la lista</span>
                     </button>
                     <button
                         onClick={() => navigate(`/admin/products/${productId}/edit`)}
-                        className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+                        className="flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
                     >
                         <HiPencil className="h-5 w-5" />
                         Editar
                     </button>
                 </div>
 
-                <div className="bg-slate-800 rounded-xl shadow-xl overflow-hidden">
-                    {/* Product Header */}
-                    <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-slate-700">
+                {/* Contenido principal */}
+                <div className={`rounded-xl shadow-xl overflow-hidden ${baseStyles.background.primary}`}>
+                    {/* Encabezado del producto */}
+                    <div className={`p-6 ${baseStyles.gradient} ${baseStyles.card.header}`}>
                         <div className="flex justify-between items-start">
                             <div>
                                 <h1 className="text-2xl font-bold text-white">{product.nombre}</h1>
@@ -782,172 +878,10 @@ const AdminProductDetails = () => {
                         </div>
                     </div>
 
-                    {/* Main Content */}
+                    {/* Contenido del producto */}
                     <div className="p-6 space-y-8">
-                        {/* Product Images - Updated Section */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Imágenes del Producto</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg">
-                                <ImageGallery
-                                    images={product.multimedia?.imagenes || []}
-                                    productName={product.nombre}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Basic Info Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Basic Information */}
-                            <div className="space-y-4">
-                                <h2 className="text-lg font-semibold text-slate-200">Información Básica</h2>
-                                <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">SKU:</span> {product.sku}
-                                    </p>
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Categoría:</span> {product.categoria}
-                                    </p>
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Tipo:</span> {product.tipoProducto}
-                                    </p>
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Destacado:</span> {product.destacado ? 'Sí' : 'No'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Pricing Information */}
-                            <div className="space-y-4">
-                                <h2 className="text-lg font-semibold text-slate-200">Precios</h2>
-                                <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Precio Base:</span> ${product.precios?.base?.toFixed(2)}
-                                    </p>
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Descuento Regular:</span> {product.precios?.descuentos?.regular}%
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Product Details */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Inventory Information */}
-                            <div className="space-y-4">
-                                <h2 className="text-lg font-semibold text-slate-200">Inventario</h2>
-                                <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Stock:</span> {product.inventario?.stockUnidades} unidades
-                                    </p>
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Stock Mínimo:</span> {product.inventario?.umbralStockBajo} unidades
-                                    </p>
-                                    <p className="text-slate-300">
-                                        <span className="text-slate-400">Última Actualización:</span>{' '}
-                                        {new Date(product.inventario?.ultimaActualizacion).toLocaleString()}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {renderProductTypeSpecificInfo()}
-                        </div>
-
-                        {/* Description */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Descripción</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400 block mb-1">Descripción Corta:</span>
-                                    {product.descripcion?.corta || 'No especificada'}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400 block mb-1">Descripción Completa:</span>
-                                    {product.descripcion?.completa || 'No especificada'}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Add Metadata Section here */}
-                        {renderMetadataSection()}
-
-                        {/* SEO Information - Added Section */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">SEO</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400 block mb-1">Meta Título:</span>
-                                    {product.seo?.metaTitulo || 'No especificado'}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400 block mb-1">Meta Descripción:</span>
-                                    {product.seo?.metaDescripcion || 'No especificada'}
-                                </p>
-                                <div>
-                                    <span className="text-slate-400 block mb-2">Palabras Clave:</span>
-                                    <div className="flex flex-wrap gap-2">
-                                        {product.seo?.palabrasClave?.map((palabra, index) => (
-                                            <span
-                                                key={index}
-                                                className="px-3 py-1 bg-slate-600 text-slate-200 rounded-full text-sm"
-                                            >
-                                                {palabra}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Conservation Information */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Conservación</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-2">
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Requiere Refrigeración:</span> {product.conservacion?.requiereRefrigeracion ? 'Sí' : 'No'}
-                                </p>
-                                <p className="text-slate-300">
-                                    <span className="text-slate-400">Requiere Congelación:</span> {product.conservacion?.requiereCongelacion ? 'Sí' : 'No'}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Additional Information */}
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-slate-200">Información Adicional</h2>
-                            <div className="bg-slate-700/50 p-4 rounded-lg space-y-4">
-                                <div>
-                                    <span className="text-slate-400 block mb-1">Certificaciones:</span>
-                                    {product.infoAdicional?.certificaciones?.length > 0 ? (
-                                        <ul className="list-disc list-inside text-slate-300">
-                                            {product.infoAdicional.certificaciones.map((cert, index) => (
-                                                <li key={index}>{cert}</li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p className="text-slate-300">No hay certificaciones registradas</p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <span className="text-slate-400 block mb-1">Usos Recomendados:</span>
-                                    {product.usosRecomendados?.length > 0 ? (
-                                        <ul className="list-disc list-inside text-slate-300">
-                                            {product.usosRecomendados.map((uso, index) => (
-                                                <li key={index}>{uso}</li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p className="text-slate-300">No hay usos recomendados registrados</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Dates */}
-                        <div className="border-t border-slate-700 pt-6 text-sm text-slate-400">
-                            <p>Creado: {new Date(product.fechaCreacion).toLocaleString()}</p>
-                            <p>Última actualización: {new Date(product.fechaActualizacion).toLocaleString()}</p>
-                        </div>
+                        {renderBaseProductInfo(product)}
+                        {renderProductTypeSpecificInfo()}
                     </div>
                 </div>
             </div>
