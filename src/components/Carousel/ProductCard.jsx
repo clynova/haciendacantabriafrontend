@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
+import { FaSnowflake, FaTemperatureLow, FaLeaf } from 'react-icons/fa'; // Add these imports
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { addProductToWishlist } from '../../services/userService';
@@ -48,6 +49,32 @@ const ProductCard = ({ product }) => {
         navigate(`/product/${product.slug || product._id}`);
     };
 
+    const isArgentinianMeat = product.tipoProducto === 'ProductoCarne' && 
+                             product.origen?.pais?.toLowerCase() === 'argentina';
+
+    const getConservationInfo = () => {
+        if (product.conservacion?.requiereCongelacion) {
+            return {
+                icon: <FaSnowflake className="w-5 h-5 text-blue-500" />,
+                text: 'Congelado',
+                bgColor: 'bg-blue-100 dark:bg-blue-900/30'
+            };
+        } else if (product.conservacion?.requiereRefrigeracion) {
+            return {
+                icon: <FaTemperatureLow className="w-5 h-5 text-cyan-500" />,
+                text: 'Refrigerado',
+                bgColor: 'bg-cyan-100 dark:bg-cyan-900/30'
+            };
+        }
+        return {
+            icon: <FaLeaf className="w-5 h-5 text-green-500" />,
+            text: 'Fresco',
+            bgColor: 'bg-green-100 dark:bg-green-900/30'
+        };
+    };
+
+    const conservationInfo = getConservationInfo();
+
     return (
         <div className="px-2">
             <div 
@@ -69,6 +96,27 @@ const ProductCard = ({ product }) => {
                         onError={handleImageError}
                     />
                     
+                    {/* Argentina Flag Badge */}
+                    {isArgentinianMeat && (
+                        <div className="absolute top-3 left-3 z-30">
+                            <img
+                                src="/images/flags/argentina-flag.png"
+                                alt="Origen Argentina"
+                                className="w-8 h-8 rounded-full shadow-md"
+                                title="Producto de origen argentino"
+                            />
+                        </div>
+                    )}
+
+                    {/* Conservation Badge */}
+                    <div className={`absolute bottom-3 left-3 z-30 flex items-center gap-1.5 px-2.5 py-1 
+                                   rounded-full ${conservationInfo.bgColor} shadow-md`}>
+                        {conservationInfo.icon}
+                        <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                            {conservationInfo.text}
+                        </span>
+                    </div>
+
                     {/* Favorite Button - Always visible and above zoom */}
                     <button
                         onClick={(e) => {
@@ -154,6 +202,10 @@ ProductCard.propTypes = {
                 _id: PropTypes.string,
             })).isRequired,
         }).isRequired,
+        conservacion: PropTypes.shape({
+            requiereRefrigeracion: PropTypes.bool,
+            requiereCongelacion: PropTypes.bool,
+        }),
     }).isRequired,
 };
 
