@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { CartDrawer } from "./Cart/CartDrawer";
 import UserDropdown from './Nav/UserDropdown';
 import { AboutDropdown } from "./Nav/AboutDropdown";
+import logo from '/images/logo.png'
 
 // Componente Navigation extraído para mejor organización
 const Navigation = ({ links, onMobileClick = null }) => {
@@ -129,8 +130,8 @@ const Header = () => {
                 className="flex items-center"
               >
                 <img 
-                  src="/src/images/logo.svg"
-                  alt="COHESA Logo"
+                  src={logo}
+                  alt="COHESA shop Logo"
                   className="h-8 w-8 mr-2"
                 />
                 <span 
