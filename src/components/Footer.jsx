@@ -22,7 +22,12 @@ export const Footer = () => {
               alt="Hacienda Cantabria Logo"
               className="h-18 w-18 object-contain mb-4"
             />
-            <h2 className="text-white font-bold text-xl text-center md:text-left">Cohesa</h2>
+                            <span 
+                  className="hidden md:block text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent hover:from-blue-300 hover:to-indigo-300 transition-all duration-300"
+                  style={{ fontFamily: "Kaushan Script, cursive "}}
+                >
+                  COHESA shop
+                </span>
             <p className="text-xs text-slate-400 italic mt-2 text-center md:text-left max-w-[200px]">
               Donde la experiencia local se combina con una visión global
             </p>
@@ -87,11 +92,12 @@ export const Footer = () => {
             {/* Métodos de Pago */}
             <div>
               <h3 className="text-lg font-semibold text-white mb-4">Medios de Pago</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <FaCreditCard className="text-3xl" title="Tarjetas de Crédito/Débito" />
-                <div className="flex items-center text-sm">
-                  <span>Webpay</span>
-                </div>
+              <div className="flex justify-center">
+                <img 
+                  src="src\images\logo-web-pay-plus.png" 
+                  alt="Webpay" 
+                  className="h-12 object-contain"
+                />
               </div>
             </div>
           </div>
