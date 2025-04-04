@@ -14,6 +14,7 @@ import imgCarne from '../images/categories/Carne.webp';
 import imgAceite from '../images/categories/Aceite.webp';
 import imgDestino from '../images/categories/destino.webp';
 import imgAccesorios from '../images/categories/destino.webp';
+import { FaSnowflake, FaTemperatureLow, FaLeaf } from 'react-icons/fa';
 
 const TIPOS_ACEITE = ['OLIVA', 'GIRASOL', 'MAIZ', 'MEZCLA'];
 const METODOS_COCCION = ['PARRILLA', 'HORNO', 'SARTEN', 'PLANCHA'];
@@ -68,6 +69,27 @@ const itemVariants = {
             damping: 15
         }
     }
+};
+
+const getConservationInfo = (product) => {
+    if (product.conservacion?.requiereCongelacion) {
+        return {
+            icon: <FaSnowflake className="w-4 h-4 text-blue-500" />,
+            text: 'Congelado',
+            bgColor: 'bg-blue-100/90'
+        };
+    } else if (product.conservacion?.requiereRefrigeracion) {
+        return {
+            icon: <FaTemperatureLow className="w-4 h-4 text-cyan-500" />,
+            text: 'Refrigerado',
+            bgColor: 'bg-cyan-100/90'
+        };
+    }
+    return {
+        icon: <FaLeaf className="w-4 h-4 text-green-500" />,
+        text: 'Fresco',
+        bgColor: 'bg-green-100/90'
+    };
 };
 
 const Categorias = () => {
@@ -322,17 +344,50 @@ const Categorias = () => {
                                          transition-transform duration-500"
                                 loading="lazy"
                             />
-                            {product.destacado && (
-                                <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 
-                                             rounded-md text-xs font-medium shadow-sm">
-                                    Destacado
+                            
+                            {/* Argentina Flag Badge */}
+                            {product.tipoProducto === 'ProductoCarne' && 
+                             product.origen?.pais?.toLowerCase() === 'argentina' && (
+                                <div className="absolute top-2 left-2 z-20">
+                                    <img
+                                        src="/images/flags/argentina-flag.png"
+                                        alt="Origen Argentina"
+                                        className="w-8 h-8 rounded-full shadow-md"
+                                        title="Producto de origen argentino"
+                                    />
                                 </div>
                             )}
+
+                            {/* Conservation Badge - Moved to left side */}
+                            {(() => {
+                                const conservationInfo = getConservationInfo(product);
+                                return (
+                                    <div className={`absolute bottom-2 left-2 z-20 flex items-center gap-1.5 
+                                                  px-2.5 py-1 rounded-full ${conservationInfo.bgColor} shadow-md`}>
+                                        {conservationInfo.icon}
+                                        <span className="text-xs font-medium text-gray-800">
+                                            {conservationInfo.text}
+                                        </span>
+                                    </div>
+                                );
+                            })()}
+
+                            {/* Discount Badge - Moved to right */}
                             {product.precios?.base && 
                              product.precioFinal < product.precios.base && (
-                                <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 
+                                <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 
                                              rounded-md text-xs font-medium shadow-sm">
                                     {Math.round((1 - product.precioFinal / product.precios.base) * 100)}% OFF
+                                </div>
+                            )}
+
+                            {/* Featured Badge - Adjust position to be below discount if present */}
+                            {product.destacado && (
+                                <div className={`absolute ${product.precios?.base && 
+                                               product.precioFinal < product.precios.base ? 'top-10' : 'top-2'} 
+                                               right-2 bg-yellow-500 text-white px-2 py-1 
+                                               rounded-md text-xs font-medium shadow-sm`}>
+                                    Destacado
                                 </div>
                             )}
                         </div>
@@ -417,17 +472,50 @@ const Categorias = () => {
                                          group-hover:scale-105 transition-transform duration-500"
                                 loading="lazy"
                             />
-                            {product.destacado && (
-                                <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 
-                                             rounded-md text-xs font-medium shadow-sm">
-                                    Destacado
+                            
+                            {/* Argentina Flag Badge */}
+                            {product.tipoProducto === 'ProductoCarne' && 
+                             product.origen?.pais?.toLowerCase() === 'argentina' && (
+                                <div className="absolute top-2 left-2 z-20">
+                                    <img
+                                        src="/images/flags/argentina-flag.png"
+                                        alt="Origen Argentina"
+                                        className="w-8 h-8 rounded-full shadow-md"
+                                        title="Producto de origen argentino"
+                                    />
                                 </div>
                             )}
+
+                            {/* Conservation Badge - Moved to left side */}
+                            {(() => {
+                                const conservationInfo = getConservationInfo(product);
+                                return (
+                                    <div className={`absolute bottom-2 left-2 z-20 flex items-center gap-1.5 
+                                                  px-2.5 py-1 rounded-full ${conservationInfo.bgColor} shadow-md`}>
+                                        {conservationInfo.icon}
+                                        <span className="text-xs font-medium text-gray-800">
+                                            {conservationInfo.text}
+                                        </span>
+                                    </div>
+                                );
+                            })()}
+
+                            {/* Discount Badge - Moved to right */}
                             {product.precios?.base && 
                              product.precioFinal < product.precios.base && (
-                                <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 
+                                <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 
                                              rounded-md text-xs font-medium shadow-sm">
                                     {Math.round((1 - product.precioFinal / product.precios.base) * 100)}% OFF
+                                </div>
+                            )}
+
+                            {/* Featured Badge - Adjust position to be below discount if present */}
+                            {product.destacado && (
+                                <div className={`absolute ${product.precios?.base && 
+                                               product.precioFinal < product.precios.base ? 'top-10' : 'top-2'} 
+                                               right-2 bg-yellow-500 text-white px-2 py-1 
+                                               rounded-md text-xs font-medium shadow-sm`}>
+                                    Destacado
                                 </div>
                             )}
                         </div>

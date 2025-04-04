@@ -123,12 +123,22 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             {/* Logo */}
-            <div className="flex-shrink-0 md:w-1/4">
+            <div className="flex-shrink-0 md:w-1/4 flex items-center">
               <Link
                 to="/"
-                className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent hover:from-blue-300 hover:to-indigo-300 transition-all duration-300"
+                className="flex items-center"
               >
-                Cohesa
+                <img 
+                  src="/src/images/logo.svg"
+                  alt="COHESA Logo"
+                  className="h-8 w-8 mr-2"
+                />
+                <span 
+                  className="hidden md:block text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent hover:from-blue-300 hover:to-indigo-300 transition-all duration-300"
+                  style={{ fontFamily: "Kaushan Script, cursive "}}
+                >
+                  COHESA shop
+                </span>
               </Link>
             </div>
 

@@ -20,10 +20,10 @@ const categories = [
     color: "from-green-500/20 to-green-900/40"
   },
   {
-    title: "Accesorios",
-    description: "Encuentra los mejores accesorios para tu cocina y parrilla",
+    title: "Ofertas",
+    description: "Encuentra los mejores ofertas para tu cocina y parrilla",
     image: imgDestino,
-    href: "/categoria/accesorios",
+    href: "/categoria/ofertas",
     color: "from-purple-500/20 to-purple-900/40"
   }
 ];

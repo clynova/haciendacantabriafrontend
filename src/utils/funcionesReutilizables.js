@@ -22,12 +22,12 @@ const getImageUrl = (imagePath) => {
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-CL', {
-        style: 'currency',
-        currency: 'CLP',
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 2
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(amount);
-};
+  };
 
 const formatCurrencyBoletas = (amount) => {
     return new Intl.NumberFormat('es-CL', {
