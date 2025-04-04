@@ -3,7 +3,7 @@ import Lenis from '@studio-freight/lenis';
 import { useGlobal } from '../context/GlobalContext';
 import ProductSlider from '../components/ProductSlider';
 import { CategoriesGrid } from '../components/Categories/CategoriesGrid';
-import ProductGrid from '../components/ProductGrid';
+//import ProductGrid from '../components/ProductGrid';
 import BestSellersCarousel from '../components/Carousel/BestSellersCarousel';
 import { Link } from "react-router-dom";
 import CompaniesCarousel from '../components/Companies/CompaniesCarousel';
@@ -136,7 +136,7 @@ const Home = () => {
               Ver todo el catálogo →
             </Link>
           </div>
-          <ProductGrid />
+          {/*<ProductGrid  /> */}
         </section>
       </div>
     </div>
