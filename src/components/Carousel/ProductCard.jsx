@@ -1,13 +1,13 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
-import { FaSnowflake, FaTemperatureLow, FaLeaf } from 'react-icons/fa'; // Add these imports
+import { FaSnowflake, FaTemperatureLow, FaLeaf } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { addProductToWishlist } from '../../services/userService';
 import toast from 'react-hot-toast';
-import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables';
+import { formatCurrency } from '../../utils/funcionesReutilizables';
 
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
@@ -18,9 +18,11 @@ const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
     const fallbackImage = '/images/placeholder.png';
 
-    const hasAvailableStock = product.opcionesPeso?.pesosEstandar?.some(
-        option => option.stockDisponible > 0
-    );
+    // Usar siempre la variante predeterminada para todos los datos
+    const variant = product.variantePredeterminada || {};
+    
+    // Comprobamos el stock disponible
+    const hasAvailableStock = variant.stockDisponible > 0;
 
     const handleImageError = () => {
         setImageError(true);
@@ -41,8 +43,13 @@ const ProductCard = ({ product }) => {
     };
 
     const handleAddToCart = () => {
-        // Ya no mostramos el toast aquí, la función addToCart se encarga de mostrarlo
-        addToCart(product);
+        // Pasar el producto completo con su variante predeterminada
+        addToCart({
+            ...product,
+            selectedVariant: variant
+        });
+        
+        toast.success(`${product.nombre} (${variant.peso}${variant.unidad}) agregado al carrito`);
     };
 
     const navigateToProduct = (e) => {
@@ -53,6 +60,7 @@ const ProductCard = ({ product }) => {
         navigate(`/product/${product.slug || product._id}`);
     };
 
+    // Verificamos si es carne argentina basado en el tipo de producto y origen
     const isArgentinianMeat = product.tipoProducto === 'ProductoCarne' && 
                              product.origen?.pais?.toLowerCase() === 'argentina';
 
@@ -78,7 +86,7 @@ const ProductCard = ({ product }) => {
     };
 
     const conservationInfo = getConservationInfo();
-
+    
     return (
         <div className="px-2">
             <div 
@@ -100,6 +108,14 @@ const ProductCard = ({ product }) => {
                         onError={handleImageError}
                     />
                     
+                    {/* Discount Badge - Only shown if there's a discount */}
+                    {variant.descuento > 0 && (
+                        <div className="absolute top-3 right-15 z-30 bg-red-500 text-white 
+                                      px-2 py-1 rounded-lg font-bold shadow-md">
+                            -{variant.descuento}%
+                        </div>
+                    )}
+                    
                     {/* Argentina Flag Badge */}
                     {isArgentinianMeat && (
                         <div className="absolute top-3 left-3 z-30">
@@ -119,6 +135,12 @@ const ProductCard = ({ product }) => {
                         <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
                             {conservationInfo.text}
                         </span>
+                    </div>
+
+                    {/* Weight Badge */}
+                    <div className="absolute bottom-3 right-3 z-30 bg-blue-600 text-white
+                                  px-2 py-1 rounded-lg shadow-md text-sm font-medium">
+                        {variant.peso}{variant.unidad}
                     </div>
 
                     {/* Favorite Button - Always visible and above zoom */}
@@ -160,11 +182,11 @@ const ProductCard = ({ product }) => {
                     </h3>
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-xl font-bold text-gray-900 dark:text-white">
-                            {formatCurrency(product.precioFinal)}
+                            {formatCurrency(variant.precioFinal || 0)}
                         </span>
-                        {product.precios?.base && product.precioFinal < product.precios.base && (
+                        {variant.descuento > 0 && (
                             <span className="text-sm text-gray-500 line-through">
-                                {formatCurrency(product.precios.base)}
+                                {formatCurrency(variant.precio || 0)}
                             </span>
                         )}
                     </div>
@@ -191,29 +213,45 @@ ProductCard.propTypes = {
     product: PropTypes.shape({
         _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
         nombre: PropTypes.string.isRequired,
-        precioFinal: PropTypes.number.isRequired,
-        precios: PropTypes.shape({
-            base: PropTypes.number,
-        }),
-        opcionesPeso: PropTypes.shape({
-            pesosEstandar: PropTypes.arrayOf(PropTypes.shape({
-                peso: PropTypes.number.isRequired,
-                unidad: PropTypes.string.isRequired,
-                stockDisponible: PropTypes.number.isRequired
-            }))
-        }),
+        slug: PropTypes.string,
+        tipoProducto: PropTypes.string,
         multimedia: PropTypes.shape({
             imagenes: PropTypes.arrayOf(PropTypes.shape({
                 url: PropTypes.string,
                 textoAlternativo: PropTypes.string,
                 esPrincipal: PropTypes.bool,
                 _id: PropTypes.string,
-            })).isRequired,
-        }).isRequired,
+            })),
+        }),
         conservacion: PropTypes.shape({
             requiereRefrigeracion: PropTypes.bool,
             requiereCongelacion: PropTypes.bool,
         }),
+        origen: PropTypes.shape({
+            pais: PropTypes.string,
+        }),
+        variantePredeterminada: PropTypes.shape({
+            pesoId: PropTypes.string,
+            peso: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            unidad: PropTypes.string,
+            precio: PropTypes.number,
+            descuento: PropTypes.number,
+            precioFinal: PropTypes.number,
+            stockDisponible: PropTypes.number,
+            esPredeterminado: PropTypes.bool,
+            sku: PropTypes.string,
+        }),
+        precioVariantesPorPeso: PropTypes.arrayOf(PropTypes.shape({
+            pesoId: PropTypes.string,
+            peso: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            unidad: PropTypes.string,
+            precio: PropTypes.number,
+            descuento: PropTypes.number,
+            precioFinal: PropTypes.number,
+            stockDisponible: PropTypes.number,
+            esPredeterminado: PropTypes.bool,
+            sku: PropTypes.string,
+        })),
     }).isRequired,
 };
 

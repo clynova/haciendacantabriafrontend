@@ -1,8 +1,8 @@
-import { useEffect, memo } from 'react';
+import { useState, useEffect, memo } from 'react';
 import Slider from 'react-slick';
 import { SlArrowLeftCircle, SlArrowRightCircle } from "react-icons/sl";
-import { useProducts } from '../../context/ProductContext';
 import ProductCard from './ProductCard';
+import { getProductsByTags } from '../../services/productService';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -72,11 +72,32 @@ const settings = {
 };
 
 const BestSellersCarousel = () => {
-  const { products, loading, error, fetchProducts } = useProducts();
+  const [bestSellers, setBestSellers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    const fetchBestSellers = async () => {
+      setLoading(true);
+      try {
+        // Obtenemos productos destacados usando la etiqueta "Destacado"
+        const response = await getProductsByTags('Destacado', 8);
+        
+        if (response.success) {
+          setBestSellers(response.products);
+        } else {
+          setError(response.msg);
+        }
+      } catch (err) {
+        setError('Error al cargar los productos destacados');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBestSellers();
+  }, []);
 
   if (loading) {
     return (
@@ -93,9 +114,6 @@ const BestSellersCarousel = () => {
       </div>
     );
   }
-
-  // Ensure products is defined before calling slice
-  const bestSellers = products ? products.slice(0, 8) : [];
 
   if (bestSellers.length === 0) {
     return (
