@@ -1,4 +1,7 @@
-export const SubmitButton = ({ loading }) => {
+export const SubmitButton = ({ loading, isEdit = false }) => {
+    const buttonText = isEdit ? "Guardar Cambios" : "Crear Producto";
+    const loadingText = isEdit ? "Guardando Cambios..." : "Creando Producto...";
+
     return (
         <div className="flex justify-end pt-6">
             <button
@@ -30,11 +33,11 @@ export const SubmitButton = ({ loading }) => {
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                             />
                         </svg>
-                        <span>Creando Producto...</span>
+                        <span>{loadingText}</span>
                     </>
                 ) : (
                     <>
-                        <span>Crear Producto</span>
+                        <span>{buttonText}</span>
                         <svg 
                             xmlns="http://www.w3.org/2000/svg" 
                             className="h-5 w-5" 
