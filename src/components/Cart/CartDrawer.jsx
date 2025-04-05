@@ -5,58 +5,39 @@ import { Link } from 'react-router-dom';
 import { formatCurrency } from '../../utils/funcionesReutilizables';
 import { useMemo } from 'react';
 
-// Función auxiliar para validar que un item del carrito tiene todas las propiedades requeridas
+// Función para generar una clave única para cada item basada en su ID y variante
+const getItemKey = (item) => {
+  if (item.variant && item.productId) {
+    const productId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+    return `${productId}-${item.variant.pesoId}`;
+  }
+  return item._id || item.id;
+};
+
+// Función para validar que un item del carrito tiene el formato correcto
 const isValidCartItem = (item) => {
   if (!item) return false;
 
-  // Para el nuevo formato con variant y productId
+  // Nuevo formato con variant y productId
   if (item.variant && item.productId) {
-    return (
-      // Verificar que existe la variante y sus propiedades básicas
-      item.variant && 
+    const productId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+    return Boolean(
+      item.variant &&
       typeof item.variant === 'object' &&
-      // Verificar que existe el producto y sus propiedades básicas
-      item.productId && 
-      typeof item.productId === 'object' &&
-      // Asegurar que tenemos al menos un ID y un nombre
-      (item.productId._id || item.productId.id) &&
-      item.productId.nombre &&
-      // Verificar que hay una cantidad
+      item.variant.pesoId &&
+      productId &&
       typeof item.quantity === 'number'
     );
   }
   
-  // Para productos con selectedWeightOption
-  if (item.selectedWeightOption) {
-    return (
-      item._id &&
-      item.nombre &&
-      typeof item.quantity === 'number' &&
-      item.selectedWeightOption &&
-      typeof item.selectedWeightOption === 'object'
-    );
-  }
-  
-  // Para el formato básico
-  return (
-    // Verificar ID y nombre
-    (item._id || item.id) &&
-    item.nombre &&
-    // Verificar que hay un precio (cualquier formato válido)
-    (item.precioFinal !== undefined || 
-     item.precio !== undefined || 
-     (item.variant && item.variant.precio !== undefined)) &&
-    // Verificar cantidad
-    typeof item.quantity === 'number'
-  );
+  return false;
 };
 
-// Función para eliminar duplicados en el carrito y mantener solo la entrada más reciente
+// Función para eliminar duplicados en el carrito
 const removeDuplicateItems = (items) => {
   const uniqueItems = new Map();
   
   // Recorrer los items en orden inverso para quedarnos con el más reciente
-  // cuando hay múltiples items con el mismo ID/variante
   [...items].reverse().forEach(item => {
     const itemKey = getItemKey(item);
     if (!uniqueItems.has(itemKey)) {
@@ -67,19 +48,8 @@ const removeDuplicateItems = (items) => {
   return Array.from(uniqueItems.values());
 };
 
-// Función para generar una clave única para cada item basada en su ID y variante
-const getItemKey = (item) => {
-  if (item.variant && item.productId) {
-    return `${item.productId._id}-${item.variant.pesoId}`;
-  } else if (item.selectedWeightOption && item._id) {
-    return `${item._id}-${item.selectedWeightOption.pesoId || item.selectedWeightOption.peso}`;
-  }
-  return item._id;
-};
-
 const CartDrawer = () => {
-  // Obtener cartTotal directamente del contexto
-  const { cartItems, isCartOpen, setIsCartOpen, isLoading, cartTotal } = useCart();
+  const { cartItems, isCartOpen, setIsCartOpen, isLoading, calculateSubtotal } = useCart();
   
   // Filtrar items válidos y eliminar duplicados
   const validUniqueCartItems = useMemo(() => {
@@ -87,6 +57,9 @@ const CartDrawer = () => {
     return removeDuplicateItems(validItems);
   }, [cartItems]);
   
+  // Calcular el subtotal usando la función del contexto
+  const subtotal = calculateSubtotal();
+
   if (!isCartOpen) return null;
 
   return (
@@ -151,7 +124,7 @@ const CartDrawer = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-slate-400">Subtotal:</span>
                   <span className="text-gray-800 dark:text-slate-200 font-medium">
-                    {formatCurrency(cartTotal)}
+                    {formatCurrency(subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -163,7 +136,7 @@ const CartDrawer = () => {
               <div className="flex items-center justify-between mb-4 py-2 border-t border-gray-200 dark:border-slate-700">
                 <span className="text-gray-800 dark:text-white font-semibold text-lg">Total:</span>
                 <span className="text-blue-600 dark:text-blue-400 font-bold text-lg">
-                  {formatCurrency(cartTotal)}
+                  {formatCurrency(subtotal)}
                 </span>
               </div>
               

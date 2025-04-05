@@ -442,8 +442,30 @@ function CartProvider({ children }) {
   // Calcular total del carrito
   const calculateCartTotal = () => {
     return cartItems.reduce((total, item) => {
-      const price = item.variant?.precio || 
-                   (typeof item.productId === 'object' ? item.productId.variantePredeterminada?.precio : 0);
+      // Determinar el precio correcto con descuento si existe
+      let price = 0;
+      
+      if (item.variant) {
+        // Buscamos si existe información de precio con descuento en las variantes
+        if (typeof item.productId === 'object' && item.productId.precioVariantesPorPeso) {
+          const variantInfo = item.productId.precioVariantesPorPeso.find(
+            v => v.pesoId === item.variant.pesoId
+          );
+          
+          if (variantInfo && variantInfo.precioFinal !== undefined) {
+            price = variantInfo.precioFinal; // Usamos el precio con descuento
+          } else {
+            price = item.variant.precio; // Usamos el precio regular si no hay información de descuento
+          }
+        } else {
+          price = item.variant.precio; // Si no hay información de variantes con precios, usamos el precio base
+        }
+      } else if (typeof item.productId === 'object') {
+        // Fallback a la variante predeterminada si no hay variante específica
+        price = item.productId.variantePredeterminada?.precioFinal || 
+                item.productId.variantePredeterminada?.precio || 0;
+      }
+      
       return total + (price * (item.quantity || 1));
     }, 0);
   };
@@ -474,8 +496,30 @@ function CartProvider({ children }) {
   // Calcular subtotal
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => {
-      const price = item.variant?.precio || 
-                   (typeof item.productId === 'object' ? item.productId.variantePredeterminada?.precio : 0);
+      // Determinar el precio correcto con descuento si existe
+      let price = 0;
+      
+      if (item.variant) {
+        // Buscamos si existe información de precio con descuento en las variantes
+        if (typeof item.productId === 'object' && item.productId.precioVariantesPorPeso) {
+          const variantInfo = item.productId.precioVariantesPorPeso.find(
+            v => v.pesoId === item.variant.pesoId
+          );
+          
+          if (variantInfo && variantInfo.precioFinal !== undefined) {
+            price = variantInfo.precioFinal; // Usamos el precio con descuento
+          } else {
+            price = item.variant.precio; // Usamos el precio regular si no hay información de descuento
+          }
+        } else {
+          price = item.variant.precio; // Si no hay información de variantes con precios, usamos el precio base
+        }
+      } else if (typeof item.productId === 'object') {
+        // Fallback a la variante predeterminada si no hay variante específica
+        price = item.productId.variantePredeterminada?.precioFinal || 
+                item.productId.variantePredeterminada?.precio || 0;
+      }
+      
       return total + (price * (item.quantity || 1));
     }, 0);
   };

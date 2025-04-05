@@ -1,5 +1,6 @@
 import { HiMinus, HiPlus, HiX, HiTag } from 'react-icons/hi';
 import { FaWeightHanging } from 'react-icons/fa';
+import { MdDiscount } from 'react-icons/md';
 import { useCart } from '../../context/CartContext';
 import PropTypes from 'prop-types';
 import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables';
@@ -39,52 +40,60 @@ const CartItem = ({ item }) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
-  // Handle all possible product formats
-  const isNewFormat = Boolean(item.variant && item.productId);
-  const hasSelectedWeightOption = Boolean(item.selectedWeightOption);
+  if (!item || !item.productId || !item.variant) {
+    console.warn("Item de carrito con formato inválido:", item);
+    return null;
+  }
+  
+  // Extraer información del producto y variante
+  const productId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+  const variantId = item.variant.pesoId;
+  const productName = typeof item.productId === 'object' ? item.productId.nombre : 'Producto';
+  
+  // Obtener la imagen del producto
+  const productImage = typeof item.productId === 'object' ? 
+    getImageSrc(item.productId.multimedia) : '/images/placeholder.png';
+  
+  // Determinar si la variante tiene descuento
+  let originalPrice = item.variant.precio || 0;
+  let finalPrice = originalPrice;
+  let discountPercentage = 0;
+  
+  // Buscar información de descuento en las variantes del producto
+  if (typeof item.productId === 'object' && item.productId.precioVariantesPorPeso) {
+    const variantInfo = item.productId.precioVariantesPorPeso.find(
+      v => v.pesoId === item.variant.pesoId
+    );
+    
+    if (variantInfo) {
+      originalPrice = variantInfo.precio || originalPrice;
+      finalPrice = variantInfo.precioFinal || originalPrice;
+      discountPercentage = variantInfo.descuento || 0;
+    }
+  }
+  
+  // Calcular información de stock
+  let availableStock = 999;
+  
+  if (typeof item.productId === 'object' && item.productId.opcionesPeso?.pesosEstandar) {
+    const variantStock = item.productId.opcionesPeso.pesosEstandar.find(
+      opt => opt._id === item.variant.pesoId || opt.pesoId === item.variant.pesoId
+    );
+    
+    if (variantStock && variantStock.stockDisponible !== undefined) {
+      availableStock = variantStock.stockDisponible;
+    }
+  }
+  
+  const isLowStock = availableStock > 0 && availableStock <= 5;
+  const hasDiscount = discountPercentage > 0;
 
-  // Get product details based on format
-  const productId = isNewFormat ? item.productId._id : item._id;
-  const variantId = isNewFormat ? item.variant.pesoId : item.variantId ||
-    (hasSelectedWeightOption ? item.selectedWeightOption._id : null);
-  const productName = isNewFormat ? item.productId.nombre : item.nombre;
-  const productPrice = isNewFormat ? (item.variant.precio || 0) :
-    hasSelectedWeightOption ? (item.selectedWeightOption.precio || 0) :
-      (item.precioFinal || item.precio || 0);
-
-  // Mejorar la obtención de la imagen del producto
-  const productImage = isNewFormat ?
-    getImageSrc(item.productId.multimedia || item.multimedia) :
-    getImageSrc(item.multimedia);
-
-  // Get weight variant info for all formats
-  const weightInfo = isNewFormat ? {
+  // Preparar información del peso
+  const weightInfo = {
     peso: item.variant.peso,
     unidad: item.variant.unidad,
     sku: item.variant.sku || 'N/A'
-  } : hasSelectedWeightOption ? {
-    peso: item.selectedWeightOption.peso,
-    unidad: item.selectedWeightOption.unidad,
-    sku: item.selectedWeightOption.sku || 'N/A'
-  } : null;
-
-  // Get available stock based on format
-  const getAvailableStock = () => {
-    if (isNewFormat) {
-      const variantWithStock = item.productId.opcionesPeso?.pesosEstandar?.find(
-        option => option.peso === item.variant.peso && option.unidad === item.variant.unidad
-      );
-      return variantWithStock?.stockDisponible || 250;
-    } else if (hasSelectedWeightOption) {
-      return item.selectedWeightOption.stockDisponible || 250;
-    } else {
-      return item.inventario?.stockUnidades !== undefined ?
-        item.inventario.stockUnidades : (item.inventario?.stock || 250);
-    }
   };
-
-  const availableStock = getAvailableStock();
-  const isLowStock = availableStock > 0 && availableStock <= 5;
 
   const handleRemove = async () => {
     if (isPending) return;
@@ -92,21 +101,8 @@ const CartItem = ({ item }) => {
     try {
       setIsPending(true);
       setIsRemoving(true);
-
-      // Obtener los IDs correctamente
-      const productId = isNewFormat ? item.productId._id : item._id;
-      const variantId = isNewFormat ? item.variant.pesoId : item.variantId ||
-        (hasSelectedWeightOption ? item.selectedWeightOption._id : null);
-
-        console.log('productId:', productId);
-        console.log('variantId:', variantId);
-      const result = await removeFromCart(productId, variantId);
-
-      // Si la eliminación fue exitosa, no necesitamos hacer nada más
-      // El estado del carrito se actualizará automáticamente a través del contexto
-
+      await removeFromCart(productId, variantId);
     } catch (error) {
-      // Si hay un error, revertimos el estado visual
       setIsRemoving(false);
       toast.error('Error al eliminar el producto del carrito');
       console.error('Error al eliminar el producto:', error);
@@ -131,6 +127,12 @@ const CartItem = ({ item }) => {
               ¡Últimas unidades!
             </div>
           )}
+          {hasDiscount && (
+            <div className="absolute bottom-0 right-0 bg-green-500 text-white text-xs px-1.5 py-0.5 flex items-center">
+              <MdDiscount className="mr-0.5" />
+              {discountPercentage}% OFF
+            </div>
+          )}
         </div>
 
         {/* Información del producto */}
@@ -140,7 +142,6 @@ const CartItem = ({ item }) => {
               <div className="flex flex-col">
                 <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">{productName}</h3>
 
-                {/* Mostrar información del peso siempre que esté disponible */}
                 {weightInfo && (
                   <div className="flex flex-wrap items-center gap-2 mt-1">
                     <div className="inline-flex items-center text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
@@ -171,11 +172,11 @@ const CartItem = ({ item }) => {
 
           <div className="flex items-center justify-between mt-auto pt-2">
             <div className="flex items-center">
-              {/* Botón para decrementar cantidad productId, variantId, quantity, action, token */}
+              {/* Botón para decrementar cantidad */}
               <button
                 onClick={() => updateItemQuantityAction(productId, variantId, 1, 'decrement')}
                 className="p-1 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 bg-gray-100 dark:bg-slate-800 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isPending || item.quantity <= 1} // Deshabilitar si está pendiente o la cantidad es 1
+                disabled={isPending || item.quantity <= 1}
               >
                 <HiMinus className="h-3 w-3" />
               </button>
@@ -186,7 +187,7 @@ const CartItem = ({ item }) => {
               <button
                 onClick={() => updateItemQuantityAction(productId, variantId, 1, 'increment')}
                 className="p-1 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 bg-gray-100 dark:bg-slate-800 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isPending || item.quantity >= availableStock} // Deshabilitar si está pendiente o se alcanzó el stock
+                disabled={isPending || item.quantity >= availableStock}
               >
                 <HiPlus className="h-3 w-3" />
               </button>
@@ -194,13 +195,16 @@ const CartItem = ({ item }) => {
 
             <div className="text-right">
               <div className="text-sm font-medium text-gray-900 dark:text-white">
-                {formatCurrency(productPrice * item.quantity)}
+                {formatCurrency(finalPrice * item.quantity)}
               </div>
               <div className="text-xs text-gray-500 dark:text-slate-400">
-                {formatCurrency(productPrice)} c/u
+                {hasDiscount && (
+                  <span className="line-through mr-1 text-red-400">{formatCurrency(originalPrice)}</span>
+                )}
+                <span>{formatCurrency(finalPrice)} c/u</span>
                 {weightInfo && (
                   <span className="ml-1">
-                    ({formatCurrency(productPrice / weightInfo.peso)}/{weightInfo.unidad})
+                    ({formatCurrency(finalPrice / weightInfo.peso)}/{weightInfo.unidad})
                   </span>
                 )}
               </div>
@@ -213,49 +217,26 @@ const CartItem = ({ item }) => {
 };
 
 CartItem.propTypes = {
-  item: PropTypes.oneOfType([
-    // New format with variant and productId
-    PropTypes.shape({
-      variant: PropTypes.shape({
-        pesoId: PropTypes.string,
-        peso: PropTypes.number,
-        unidad: PropTypes.string,
-        precio: PropTypes.number,
-        sku: PropTypes.string,
-      }),
-      productId: PropTypes.shape({
-        _id: PropTypes.string,
-        nombre: PropTypes.string,
+  item: PropTypes.shape({
+    variant: PropTypes.shape({
+      pesoId: PropTypes.string.isRequired,
+      peso: PropTypes.number.isRequired,
+      unidad: PropTypes.string.isRequired,
+      precio: PropTypes.number.isRequired,
+      sku: PropTypes.string,
+    }).isRequired,
+    productId: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.shape({
+        _id: PropTypes.string.isRequired,
+        nombre: PropTypes.string.isRequired,
         multimedia: PropTypes.object,
         opcionesPeso: PropTypes.object,
-      }),
-      quantity: PropTypes.number,
-    }),
-    // Format with selectedWeightOption
-    PropTypes.shape({
-      _id: PropTypes.string,
-      nombre: PropTypes.string,
-      selectedWeightOption: PropTypes.shape({
-        _id: PropTypes.string,
-        peso: PropTypes.number,
-        unidad: PropTypes.string,
-        precio: PropTypes.number,
-        sku: PropTypes.string,
-        stockDisponible: PropTypes.number,
-      }),
-      quantity: PropTypes.number,
-      multimedia: PropTypes.object,
-    }),
-    // Legacy format
-    PropTypes.shape({
-      _id: PropTypes.string,
-      nombre: PropTypes.string,
-      precioFinal: PropTypes.number,
-      quantity: PropTypes.number,
-      multimedia: PropTypes.object,
-      inventario: PropTypes.object,
-    })
-  ]).isRequired,
+        precioVariantesPorPeso: PropTypes.array,
+      })
+    ]).isRequired,
+    quantity: PropTypes.number.isRequired,
+  }).isRequired,
 };
 
 export { CartItem };
