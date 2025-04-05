@@ -5,6 +5,7 @@ import { HiArrowLeft, HiPencil } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import { getProductById } from '../../services/adminService';
 import { ImageGallery } from '../../components/admin/products/sections/ImageGallery';
+import PropTypes from 'prop-types';
 
 const formatValue = (value, type = 'text') => {
     if (value === undefined || value === null) return 'No especificado';
@@ -72,6 +73,12 @@ const InfoField = ({ label, value, type = "text" }) => {
             {displayValue}
         </p>
     );
+};
+
+InfoField.propTypes = {
+    label: PropTypes.string.isRequired,
+    value: PropTypes.any,
+    type: PropTypes.oneOf(['text', 'date', 'boolean', 'number', 'array'])
 };
 
 // Componente para mostrar etiquetas
@@ -843,20 +850,20 @@ const AdminProductDetails = () => {
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
-                    <button
+                    <AccessibleButton
                         onClick={() => navigate('/admin/products')}
                         className={`flex items-center gap-2 ${baseStyles.text.secondary} hover:${baseStyles.text.primary}`}
                     >
                         <HiArrowLeft className="h-5 w-5" />
                         <span>Volver a la lista</span>
-                    </button>
-                    <button
+                    </AccessibleButton>
+                    <AccessibleButton
                         onClick={() => navigate(`/admin/products/${productId}/edit`)}
                         className="flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
                     >
                         <HiPencil className="h-5 w-5" />
                         Editar
-                    </button>
+                    </AccessibleButton>
                 </div>
 
                 {/* Contenido principal */}
@@ -888,5 +895,32 @@ const AdminProductDetails = () => {
         </div>
     );
 };
+
+const ErrorBoundary = ({ children }) => {
+    const [hasError, setHasError] = useState(false);
+    const [error, setError] = useState(null);
+
+    if (hasError) {
+        return (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h3 className="text-red-800">Algo salió mal</h3>
+                <p className="text-red-600">{error?.message}</p>
+            </div>
+        );
+    }
+
+    return children;
+};
+
+const AccessibleButton = ({ children, ...props }) => (
+    <button
+        {...props}
+        role="button"
+        tabIndex={0}
+        aria-label={props['aria-label'] || props.title}
+    >
+        {children}
+    </button>
+);
 
 export { AdminProductDetails };

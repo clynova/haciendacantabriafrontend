@@ -117,9 +117,6 @@ const AdminProducts = () => {
                                         Nombre
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wider">
-                                        Precio Base
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wider">
                                         Estado
                                     </th>
                                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wider">
@@ -130,13 +127,13 @@ const AdminProducts = () => {
                             <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
+                                        <td colSpan="4" className="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
                                             Cargando productos...
                                         </td>
                                     </tr>
                                 ) : filteredProducts.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
+                                        <td colSpan="4" className="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
                                             No se encontraron productos
                                         </td>
                                     </tr>
@@ -148,9 +145,6 @@ const AdminProducts = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-slate-200">
                                                 {product.nombre}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-slate-200">
-                                                ${product.precios?.base?.toFixed(2)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

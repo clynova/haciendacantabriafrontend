@@ -225,8 +225,25 @@ export const getProductById = async (productId, token) => {
     }
 };
 
-export const createProduct = async (productData, token) => {
-    try {
+export const createProduct = async (token, productData) => {
+    try {        
+        // Asegurarse de que las fechas estén en formato ISO
+        if (productData.opcionesPeso?.pesosEstandar) {
+            productData.opcionesPeso.pesosEstandar = productData.opcionesPeso.pesosEstandar.map(peso => ({
+                ...peso,
+                ultimaActualizacion: new Date(peso.ultimaActualizacion).toISOString()
+            }));
+        }
+
+        // Si hay fechas en producción, convertirlas a ISO
+        if (productData.produccion) {
+            if (productData.produccion.fechaEnvasado) {
+                productData.produccion.fechaEnvasado = new Date(productData.produccion.fechaEnvasado).toISOString();
+            }
+            if (productData.produccion.fechaVencimiento) {
+                productData.produccion.fechaVencimiento = new Date(productData.produccion.fechaVencimiento).toISOString();
+            }
+        }
         const response = await api.post('/api/product', productData, {
             headers: {
                 'Content-Type': 'application/json',
@@ -235,13 +252,10 @@ export const createProduct = async (productData, token) => {
         });
         return response.data;
     } catch (error) {
-        throw {
-            success: false,
-            msg: error.response?.data?.msg || 'Error al crear el producto',
-            error: error.response?.data || error
-        };
+        throw error;
     }
 };
+
 
 export const updateProduct = async (productId, data, token) => {
     try {
