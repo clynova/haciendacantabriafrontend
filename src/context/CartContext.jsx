@@ -168,6 +168,11 @@ function CartProvider({ children }) {
       return;
     }
 
+    // Manejar el caso donde la variante viene en selectedVariant (nuevo modelo)
+    if (product.selectedVariant && !variant) {
+      variant = product.selectedVariant;
+    }
+
     const productId = typeof product === 'string' ? product : product._id;
     const variantId = variant?.pesoId || variant?._id;
 
@@ -216,8 +221,6 @@ function CartProvider({ children }) {
           quantity: addedQuantity // Solo enviamos la cantidad a agregar (1), no la cantidad total
         };
 
-        console.log('API Data:', apiData);
-
         const response = await addToCartAPI(apiData, token);
         
         if (!response.success) {
@@ -252,8 +255,8 @@ function CartProvider({ children }) {
         });
       }
 
-      // Mostrar notificación
-      if (showNotification) {
+      // Mostrar notificación ya no es necesario aquí porque lo hace ProductCard
+      if (showNotification && !product.selectedVariant) {
         const productName = typeof product === 'object' ? product.nombre : 'Producto';
         const variantInfo = variant ? ` (${variant.peso}${variant.unidad})` : '';
         toast.success(`${productName}${variantInfo} agregado al carrito`);
