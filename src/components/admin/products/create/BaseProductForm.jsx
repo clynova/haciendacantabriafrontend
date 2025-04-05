@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { BasicInfoSection } from './BasicInfoSection';
-import { PricingAndInventorySection } from './PricingAndInventorySection';
 import { ImageUploader } from './ImageUploader';
 import { AdditionalInfoSection } from './AdditionalInfoSection';
 import { ConservationSection } from './ConservationSection';
 import { TagsInput } from './TagsInput';
 import { SeoSection } from './SeoSection';
+import { WeightOptionsSection } from './WeightOptionsSection';
 
 const BaseProductForm = ({
     formData,
@@ -25,9 +25,8 @@ const BaseProductForm = ({
                 onChange={handleInputChange}
                 mode="create"
             />
-
-            {/* Sección de precios e inventario */}
-            <PricingAndInventorySection
+                        {/* Sección de opciones de peso */}
+                        <WeightOptionsSection
                 formData={formData}
                 handleInputChange={handleInputChange}
             />
@@ -84,12 +83,6 @@ BaseProductForm.propTypes = {
             corta: PropTypes.string,
             completa: PropTypes.string
         }),
-        precios: PropTypes.shape({
-            base: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-            descuentos: PropTypes.shape({
-                regular: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-            })
-        }),
         multimedia: PropTypes.shape({
             imagenes: PropTypes.arrayOf(PropTypes.shape({
                 url: PropTypes.string,
@@ -118,7 +111,30 @@ BaseProductForm.propTypes = {
             stockUnidades: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             umbralStockBajo: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         }),
-        tags: PropTypes.arrayOf(PropTypes.string)
+        opcionesPeso: PropTypes.shape({
+            esPesoVariable: PropTypes.bool,
+            pesoPromedio: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            pesoMinimo: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            pesoMaximo: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            pesosEstandar: PropTypes.arrayOf(PropTypes.shape({
+                peso: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+                unidad: PropTypes.string,
+                esPredeterminado: PropTypes.bool,
+                precio: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+                sku: PropTypes.string,
+                stockDisponible: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+                umbralStockBajo: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+            })),
+            rangosPreferidos: PropTypes.arrayOf(PropTypes.shape({
+                nombre: PropTypes.string,
+                pesoMinimo: PropTypes.number,
+                pesoMaximo: PropTypes.number,
+                descripcion: PropTypes.string,
+                esPredeterminado: PropTypes.bool
+            }))
+        }).isRequired,
+        tags: PropTypes.arrayOf(PropTypes.string),
+        metadatos: PropTypes.object
     }).isRequired,
     handleInputChange: PropTypes.func.isRequired,
     handleImageUpload: PropTypes.func.isRequired,

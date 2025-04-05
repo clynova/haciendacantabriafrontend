@@ -8,7 +8,7 @@ export const ProductHeader = ({ onBack }) => {
                 <button
                     type="button"
                     onClick={onBack}
-                    className="flex items-center text-slate-300 hover:text-blue-400 transition-colors"
+                    className="flex items-center text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                     <svg 
                         xmlns="http://www.w3.org/2000/svg" 
@@ -28,16 +28,16 @@ export const ProductHeader = ({ onBack }) => {
 
             {/* Header Content */}
             <div className="text-center">
-                <h1 className="text-3xl font-bold text-slate-100 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100 mb-2">
                     Crear Nuevo Producto
                 </h1>
-                <p className="text-slate-400 max-w-2xl mx-auto">
+                <p className="text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
                     Complete los detalles del producto. Los campos marcados con * son obligatorios.
                 </p>
             </div>
 
             {/* Divider */}
-            <div className="h-px bg-slate-700 my-6" />
+            <div className="h-px bg-gray-200 dark:bg-slate-700 my-6" />
         </div>
     );
 };

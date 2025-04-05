@@ -47,28 +47,11 @@ const USOS_RECOMENDADOS = [
     'SALSAS'
 ];
 
-// Add this with the other constants at the top
-const UNIDADES_VOLUMEN = ['ml', 'litros'];
-
 // Add this helper function at the top of the file
 const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toISOString().split('T')[0];
-};
-
-// Add this helper function at the top of the file
-const parseVolumeString = (volumeValue) => {
-    if (!volumeValue) return { value: '', unit: 'ml' };
-    if (typeof volumeValue === 'number') return { value: volumeValue.toString(), unit: 'ml' };
-    if (typeof volumeValue === 'string') {
-        const parts = volumeValue.split(' ');
-        return {
-            value: parts[0] || '',
-            unit: parts[1] || 'ml'
-        };
-    }
-    return { value: '', unit: 'ml' };
 };
 
 // Modify the component initialization to properly merge data
@@ -79,8 +62,7 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
         caracteristicas = {}, // Añadir esto
         produccion = {},
         infoNutricional = {},
-        usosRecomendados = [],
-        opcionesVolumen = []
+        usosRecomendados = []
     } = formData;
 
     // Usar el objeto correcto dependiendo del modo
@@ -130,33 +112,6 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
         }, targetSection);
     };
 
-    // Update handleOpcionVolumenChange
-    const handleOpcionVolumenChange = (index, field, value) => {
-        const updatedOpciones = [...(formData.opcionesVolumen || [])];
-        
-        if (!updatedOpciones[index]) {
-            updatedOpciones[index] = {};
-        }
-        
-        if (field === 'esPredeterminado' && value === true) {
-            updatedOpciones.forEach((opcion, i) => {
-                if (i !== index) opcion.esPredeterminado = false;
-            });
-        }
-        
-        updatedOpciones[index] = {
-            ...updatedOpciones[index],
-            [field]: value
-        };
-
-        handleInputChange({
-            target: {
-                name: 'opcionesVolumen',
-                value: updatedOpciones
-            }
-        });
-    };
-
     // Corregir handleUsosRecomendadosChange
     const handleUsosRecomendadosChange = (e) => {
         const { checked, value } = e.target;
@@ -175,42 +130,6 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
         });
     };
 
-    // Update addOpcionVolumen
-    const addOpcionVolumen = () => {
-        const currentOpciones = formData.opcionesVolumen || [];
-        const newOpcion = {
-            volumen: '',
-            precio: '',
-            sku: '',
-            esPredeterminado: currentOpciones.length === 0
-        };
-        
-        handleInputChange({
-            target: {
-                name: 'opcionesVolumen',
-                value: [...currentOpciones, newOpcion]
-            }
-        });
-    };
-
-    // Update removeOpcionVolumen
-    const removeOpcionVolumen = (index) => {
-        const updatedOpciones = [...(formData.opcionesVolumen || [])];
-        const removedOpcion = updatedOpciones[index];
-        updatedOpciones.splice(index, 1);
-
-        if (removedOpcion.esPredeterminado && updatedOpciones.length > 0) {
-            updatedOpciones[0].esPredeterminado = true;
-        }
-
-        handleInputChange({
-            target: {
-                name: 'opcionesVolumen',
-                value: updatedOpciones
-            }
-        });
-    };
-
     const formatEnumLabel = (value) => {
         return value.split('_').map(word => 
             word.charAt(0) + word.slice(1).toLowerCase()
@@ -221,64 +140,28 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
         <div className="bg-slate-800 rounded-lg p-5 space-y-6">
             <h2 className="text-lg font-semibold text-slate-200">Características del Aceite</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Tipo de Aceite */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                        Tipo de Aceite
-                    </label>
-                    <select
-                        name="tipo"
-                        value={formData.infoAceite?.tipo || ''}
-                        onChange={(e) => handleChange(e, 'infoAceite')}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
-                    >
-                        <option value="">Seleccione el tipo de aceite</option>
-                        {TIPO_ACEITE.map(tipo => (
-                            <option key={tipo} value={tipo}>
-                                {formatEnumLabel(tipo)}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                <FormSelect
+                    label="Tipo de Aceite"
+                    name="tipo"
+                    value={formData.infoAceite?.tipo || ''}
+                    onChange={(e) => handleChange(e, 'infoAceite')}
+                    options={TIPO_ACEITE.map(tipo => ({
+                        value: tipo,
+                        label: formatEnumLabel(tipo)
+                    }))}
+                    required
+                />
 
-                {/* Envase */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                        Tipo de Envase
-                    </label>
-                    <select
-                        name="envase"
-                        value={formData.infoAceite?.envase || ''}
-                        onChange={(e) => handleChange(e, 'infoAceite')}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
-                    >
-                        <option value="">Seleccione el tipo de envase</option>
-                        {TIPO_ENVASE.map(tipo => (
-                            <option key={tipo} value={tipo}>
-                                {formatEnumLabel(tipo)}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Volumen Base */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                        Volumen Base (ml)
-                    </label>
-                    <div className="relative">
-                        <input
-                            type="number"
-                            name="volumen"
-                            value={formData.infoAceite?.volumen || ''}
-                            onChange={(e) => handleChange(e, 'infoAceite')}
-                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white pr-12"
-                            min="0"
-                            step="1"
-                        />
-                        <span className="absolute right-3 top-2 text-gray-400">ml</span>
-                    </div>
-                </div>
+                <FormSelect
+                    label="Tipo de Envase"
+                    name="envase"
+                    value={formData.infoAceite?.envase || ''}
+                    onChange={(e) => handleChange(e, 'infoAceite')}
+                    options={TIPO_ENVASE.map(tipo => ({
+                        value: tipo,
+                        label: formatEnumLabel(tipo)
+                    }))}
+                />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Acidez */}
@@ -599,85 +482,6 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     )}
                 </div>
             </div>
-
-            {/* Opciones de Volumen */}
-            <h2 className="text-lg font-semibold text-slate-200 mt-6">Opciones de Volumen</h2>
-            <div className="space-y-4">
-                {(formData.opcionesVolumen || []).map((opcion, index) => (
-                    <div key={index} className="bg-slate-700 p-4 rounded-md">
-                        <div className="flex justify-between items-center mb-3">
-                            <h3 className="text-white font-medium">Opción {index + 1}</h3>
-                            <button
-                                type="button"
-                                onClick={() => removeOpcionVolumen(index)}
-                                className="text-red-400 hover:text-red-300"
-                            >
-                                Eliminar
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-200 mb-1">
-                                    Volumen (ml)
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="number"
-                                        value={opcion.volumen || ''}
-                                        onChange={(e) => handleOpcionVolumenChange(index, 'volumen', Number(e.target.value))}
-                                        className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-md text-white pr-12"
-                                        min="0"
-                                    />
-                                    <span className="absolute right-3 top-2 text-gray-400">ml</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-200 mb-1">
-                                    Precio ($)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={opcion.precio || ''}
-                                    onChange={(e) => handleOpcionVolumenChange(index, 'precio', Number(e.target.value))}
-                                    className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-md text-white"
-                                    min="0"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-200 mb-1">
-                                    SKU
-                                </label>
-                                <input
-                                    type="text"
-                                    value={opcion.sku || ''}
-                                    onChange={(e) => handleOpcionVolumenChange(index, 'sku', e.target.value)}
-                                    className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-md text-white"
-                                />
-                            </div>
-                            <div className="flex items-center">
-                                <label className="flex items-center space-x-2 cursor-pointer mt-6">
-                                    <input
-                                        type="checkbox"
-                                        checked={opcion.esPredeterminado || false}
-                                        onChange={(e) => handleOpcionVolumenChange(index, 'esPredeterminado', e.target.checked)}
-                                        className="w-4 h-4 text-blue-600 rounded border-gray-500 bg-gray-700"
-                                    />
-                                    <span className="text-sm text-gray-300">
-                                        Predeterminado
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-                <button
-                    type="button"
-                    onClick={addOpcionVolumen}
-                    className="mt-2 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-colors"
-                >
-                    Agregar Opción de Volumen
-                </button>
-            </div>
         </div>
     );
 };
@@ -686,7 +490,6 @@ AceiteForm.propTypes = {
     formData: PropTypes.shape({
         infoAceite: PropTypes.shape({
             tipo: PropTypes.oneOf(TIPO_ACEITE),
-            volumen: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             envase: PropTypes.oneOf(TIPO_ENVASE)
         }).isRequired,
         caracteristicas: PropTypes.shape({
@@ -710,13 +513,7 @@ AceiteForm.propTypes = {
             fechaEnvasado: PropTypes.string,
             fechaVencimiento: PropTypes.string
         }),
-        usosRecomendados: PropTypes.arrayOf(PropTypes.string),
-        opcionesVolumen: PropTypes.arrayOf(PropTypes.shape({
-            volumen: PropTypes.number,
-            precio: PropTypes.number,
-            sku: PropTypes.string,
-            esPredeterminado: PropTypes.bool
-        }))
+        usosRecomendados: PropTypes.arrayOf(PropTypes.string)
     }),
     handleInputChange: PropTypes.func.isRequired,
     mode: PropTypes.oneOf(['create', 'edit'])
