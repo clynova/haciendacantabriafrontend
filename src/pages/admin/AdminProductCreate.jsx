@@ -10,7 +10,7 @@ import { uploadImageToCloudinary } from '../../services/utilService';
 import { SubmitButton } from '../../components/common/SubmitButton';
 import { ProductTypeSelector } from '../../components/admin/products/ProductTypeSelector';
 import BaseProductForm from '../../components/admin/products/create/BaseProductForm';
-import { TestingTools } from '../../components/admin/products/TestingTools';
+// import { TestingTools } from '../../components/admin/products/TestingTools';
 // Cortes de carne según el modelo del backend
 const CORTES_CARNE = [
     'LOMO_VETADO', 'LOMO_LISO', 'ASADO_DEL_CARNICERO', 'PALANCA',
@@ -757,10 +757,10 @@ const AdminProductCreate = () => {
                     </div>
                 </form>
             </div>
-            <TestingTools onTestDataFill={(testData) => setFormData(prev => ({
+            {/* <TestingTools onTestDataFill={(testData) => setFormData(prev => ({
             ...prev,
             ...testData
-        }))} />
+        }))} /> */}
         </div>
     );
 };
