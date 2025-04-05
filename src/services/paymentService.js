@@ -4,6 +4,353 @@ import api from "./api";
  * Cart API Functions
  */
 
+
+/* example response getCart
+{
+    "success": true,
+    "cart": {
+        "_id": "67f0955bddc8c38ace49720c",
+        "userId": "67e213b9ef679c056df168a6",
+        "products": [
+            {
+                "variant": {
+                    "pesoId": "67f087c0ddc8c38ace4961f2",
+                    "peso": 1,
+                    "unidad": "kg",
+                    "precio": 5000,
+                    "sku": "CARNE-001-1KG"
+                },
+                "productId": {
+                    "infoCarne": {
+                        "tipoCarne": "VACUNO",
+                        "corte": "BIFE_ANGOSTO",
+                        "nombreArgentino": "Bife Angosto",
+                        "nombreChileno": "Lomo Vetado"
+                    },
+                    "multimedia": {
+                        "imagenes": [
+                            {
+                                "url": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/cedbe657dafb02e19fffa457d73437d0/detailed",
+                                "textoAlternativo": "Bife angosto fresco",
+                                "esPrincipal": true,
+                                "_id": "67f087c0ddc8c38ace4961f0",
+                                "id": "67f087c0ddc8c38ace4961f0"
+                            }
+                        ],
+                        "video": "https://ejemplo.com/videos/bife-angosto.mp4"
+                    },
+                    "opcionesPeso": {
+                        "esPesoVariable": true,
+                        "pesoPromedio": 1.2,
+                        "pesoMinimo": 1,
+                        "pesoMaximo": 2,
+                        "pesosEstandar": [
+                            {
+                                "descuentos": {
+                                    "regular": 10
+                                },
+                                "peso": 500,
+                                "unidad": "g",
+                                "esPredeterminado": false,
+                                "precio": 2500,
+                                "sku": "CARNE-001-500G",
+                                "stockDisponible": 30,
+                                "umbralStockBajo": 5,
+                                "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
+                                "_id": "67f087c0ddc8c38ace4961f1",
+                                "id": "67f087c0ddc8c38ace4961f1"
+                            },
+                            {
+                                "descuentos": {
+                                    "regular": 15
+                                },
+                                "peso": 1,
+                                "unidad": "kg",
+                                "esPredeterminado": true,
+                                "precio": 5000,
+                                "sku": "CARNE-001-1KG",
+                                "stockDisponible": 20,
+                                "umbralStockBajo": 5,
+                                "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
+                                "_id": "67f087c0ddc8c38ace4961f2",
+                                "id": "67f087c0ddc8c38ace4961f2"
+                            }
+                        ],
+                        "rangosPreferidos": []
+                    },
+                    "_id": "67f087c0ddc8c38ace4961ef",
+                    "sku": "CARNE-001",
+                    "nombre": "Bife Angosto",
+                    "slug": "bife-angosto",
+                    "categoria": "CARNE",
+                    "estado": true,
+                    "tipoProducto": "ProductoCarne",
+                    "precioVariantesPorPeso": [
+                        {
+                            "pesoId": "67f087c0ddc8c38ace4961f1",
+                            "peso": 500,
+                            "unidad": "g",
+                            "precio": 2500,
+                            "descuento": 10,
+                            "precioFinal": 2250,
+                            "stockDisponible": 30,
+                            "esPredeterminado": false,
+                            "sku": "CARNE-001-500G"
+                        },
+                        {
+                            "pesoId": "67f087c0ddc8c38ace4961f2",
+                            "peso": 1,
+                            "unidad": "kg",
+                            "precio": 5000,
+                            "descuento": 15,
+                            "precioFinal": 4250,
+                            "stockDisponible": 20,
+                            "esPredeterminado": true,
+                            "sku": "CARNE-001-1KG"
+                        }
+                    ],
+                    "variantePredeterminada": {
+                        "pesoId": "67f087c0ddc8c38ace4961f2",
+                        "peso": 1,
+                        "unidad": "kg",
+                        "precio": 5000,
+                        "descuento": 15,
+                        "precioFinal": 4250,
+                        "stockDisponible": 20,
+                        "esPredeterminado": true,
+                        "sku": "CARNE-001-1KG"
+                    }
+                },
+                "quantity": 1
+            },
+            {
+                "variant": {
+                    "pesoId": "67f087c0ddc8c38ace4961f1",
+                    "peso": 500,
+                    "unidad": "g",
+                    "precio": 2500,
+                    "sku": "CARNE-001-500G"
+                },
+                "productId": {
+                    "infoCarne": {
+                        "tipoCarne": "VACUNO",
+                        "corte": "BIFE_ANGOSTO",
+                        "nombreArgentino": "Bife Angosto",
+                        "nombreChileno": "Lomo Vetado"
+                    },
+                    "multimedia": {
+                        "imagenes": [
+                            {
+                                "url": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/cedbe657dafb02e19fffa457d73437d0/detailed",
+                                "textoAlternativo": "Bife angosto fresco",
+                                "esPrincipal": true,
+                                "_id": "67f087c0ddc8c38ace4961f0",
+                                "id": "67f087c0ddc8c38ace4961f0"
+                            }
+                        ],
+                        "video": "https://ejemplo.com/videos/bife-angosto.mp4"
+                    },
+                    "opcionesPeso": {
+                        "esPesoVariable": true,
+                        "pesoPromedio": 1.2,
+                        "pesoMinimo": 1,
+                        "pesoMaximo": 2,
+                        "pesosEstandar": [
+                            {
+                                "descuentos": {
+                                    "regular": 10
+                                },
+                                "peso": 500,
+                                "unidad": "g",
+                                "esPredeterminado": false,
+                                "precio": 2500,
+                                "sku": "CARNE-001-500G",
+                                "stockDisponible": 30,
+                                "umbralStockBajo": 5,
+                                "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
+                                "_id": "67f087c0ddc8c38ace4961f1",
+                                "id": "67f087c0ddc8c38ace4961f1"
+                            },
+                            {
+                                "descuentos": {
+                                    "regular": 15
+                                },
+                                "peso": 1,
+                                "unidad": "kg",
+                                "esPredeterminado": true,
+                                "precio": 5000,
+                                "sku": "CARNE-001-1KG",
+                                "stockDisponible": 20,
+                                "umbralStockBajo": 5,
+                                "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
+                                "_id": "67f087c0ddc8c38ace4961f2",
+                                "id": "67f087c0ddc8c38ace4961f2"
+                            }
+                        ],
+                        "rangosPreferidos": []
+                    },
+                    "_id": "67f087c0ddc8c38ace4961ef",
+                    "sku": "CARNE-001",
+                    "nombre": "Bife Angosto",
+                    "slug": "bife-angosto",
+                    "categoria": "CARNE",
+                    "estado": true,
+                    "tipoProducto": "ProductoCarne",
+                    "precioVariantesPorPeso": [
+                        {
+                            "pesoId": "67f087c0ddc8c38ace4961f1",
+                            "peso": 500,
+                            "unidad": "g",
+                            "precio": 2500,
+                            "descuento": 10,
+                            "precioFinal": 2250,
+                            "stockDisponible": 30,
+                            "esPredeterminado": false,
+                            "sku": "CARNE-001-500G"
+                        },
+                        {
+                            "pesoId": "67f087c0ddc8c38ace4961f2",
+                            "peso": 1,
+                            "unidad": "kg",
+                            "precio": 5000,
+                            "descuento": 15,
+                            "precioFinal": 4250,
+                            "stockDisponible": 20,
+                            "esPredeterminado": true,
+                            "sku": "CARNE-001-1KG"
+                        }
+                    ],
+                    "variantePredeterminada": {
+                        "pesoId": "67f087c0ddc8c38ace4961f2",
+                        "peso": 1,
+                        "unidad": "kg",
+                        "precio": 5000,
+                        "descuento": 15,
+                        "precioFinal": 4250,
+                        "stockDisponible": 20,
+                        "esPredeterminado": true,
+                        "sku": "CARNE-001-1KG"
+                    }
+                },
+                "quantity": 2
+            },
+            {
+                "variant": {
+                    "pesoId": "67f087e3ddc8c38ace4961fe",
+                    "peso": 1,
+                    "unidad": "L",
+                    "precio": 3000,
+                    "sku": "ACEITE-001-1L"
+                },
+                "productId": {
+                    "infoAceite": {
+                        "tipo": "OLIVA",
+                        "envase": "BOTELLA"
+                    },
+                    "multimedia": {
+                        "imagenes": [
+                            {
+                                "url": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/40161b980d1f9033380ccfecd2bf4f23/detailed",
+                                "textoAlternativo": "Botella de aceite de oliva",
+                                "esPrincipal": true,
+                                "_id": "67f087e3ddc8c38ace4961fc",
+                                "id": "67f087e3ddc8c38ace4961fc"
+                            }
+                        ],
+                        "video": "https://ejemplo.com/videos/aceite-oliva.mp4"
+                    },
+                    "opcionesPeso": {
+                        "esPesoVariable": false,
+                        "pesosEstandar": [
+                            {
+                                "descuentos": {
+                                    "regular": 5
+                                },
+                                "peso": 500,
+                                "unidad": "ml",
+                                "esPredeterminado": false,
+                                "precio": 1500,
+                                "sku": "ACEITE-001-500ML",
+                                "stockDisponible": 50,
+                                "umbralStockBajo": 10,
+                                "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
+                                "_id": "67f087e3ddc8c38ace4961fd",
+                                "id": "67f087e3ddc8c38ace4961fd"
+                            },
+                            {
+                                "descuentos": {
+                                    "regular": 5
+                                },
+                                "peso": 1,
+                                "unidad": "L",
+                                "esPredeterminado": true,
+                                "precio": 3000,
+                                "sku": "ACEITE-001-1L",
+                                "stockDisponible": 30,
+                                "umbralStockBajo": 10,
+                                "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
+                                "_id": "67f087e3ddc8c38ace4961fe",
+                                "id": "67f087e3ddc8c38ace4961fe"
+                            }
+                        ],
+                        "rangosPreferidos": []
+                    },
+                    "_id": "67f087e3ddc8c38ace4961fb",
+                    "sku": "ACEITE-001",
+                    "nombre": "Aceite de Oliva Extra Virgen",
+                    "slug": "aceite-de-oliva-extra-virgen",
+                    "categoria": "ACEITE",
+                    "estado": true,
+                    "tipoProducto": "ProductoAceite",
+                    "precioVariantesPorPeso": [
+                        {
+                            "pesoId": "67f087e3ddc8c38ace4961fd",
+                            "peso": 500,
+                            "unidad": "ml",
+                            "precio": 1500,
+                            "descuento": 5,
+                            "precioFinal": 1425,
+                            "stockDisponible": 50,
+                            "esPredeterminado": false,
+                            "sku": "ACEITE-001-500ML"
+                        },
+                        {
+                            "pesoId": "67f087e3ddc8c38ace4961fe",
+                            "peso": 1,
+                            "unidad": "L",
+                            "precio": 3000,
+                            "descuento": 5,
+                            "precioFinal": 2850,
+                            "stockDisponible": 30,
+                            "esPredeterminado": true,
+                            "sku": "ACEITE-001-1L"
+                        }
+                    ],
+                    "variantePredeterminada": {
+                        "pesoId": "67f087e3ddc8c38ace4961fe",
+                        "peso": 1,
+                        "unidad": "L",
+                        "precio": 3000,
+                        "descuento": 5,
+                        "precioFinal": 2850,
+                        "stockDisponible": 30,
+                        "esPredeterminado": true,
+                        "sku": "ACEITE-001-1L"
+                    }
+                },
+                "quantity": 1
+            }
+        ],
+        "updatedAt": "2025-04-05T02:30:51.867Z",
+        "createdAt": "2025-04-05T02:28:43.277Z",
+        "__v": 2
+    },
+    "msg": "Se envió correctamente el carrito",
+    "adjustedItems": false
+}
+
+*/
+
 // Get user's cart from the server
 const getCart = async (token) => {
   try {
@@ -26,6 +373,56 @@ const getCart = async (token) => {
     throw error.response?.data || error;
   }
 };
+
+
+
+/* example response addToCart
+{
+    "success": true,
+    "cart": {
+        "_id": "67f0955bddc8c38ace49720c",
+        "userId": "67e213b9ef679c056df168a6",
+        "products": [
+            {
+                "variant": {
+                    "pesoId": "67f087c0ddc8c38ace4961f2",
+                    "peso": 1,
+                    "unidad": "kg",
+                    "precio": 5000,
+                    "sku": "CARNE-001-1KG"
+                },
+                "productId": "67f087c0ddc8c38ace4961ef",
+                "quantity": 2
+            },
+            {
+                "variant": {
+                    "pesoId": "67f087c0ddc8c38ace4961f1",
+                    "peso": 500,
+                    "unidad": "g",
+                    "precio": 2500,
+                    "sku": "CARNE-001-500G"
+                },
+                "productId": "67f087c0ddc8c38ace4961ef",
+                "quantity": 2
+            },
+            {
+                "variant": {
+                    "pesoId": "67f087e3ddc8c38ace4961fe",
+                    "peso": 1,
+                    "unidad": "L",
+                    "precio": 3000,
+                    "sku": "ACEITE-001-1L"
+                },
+                "productId": "67f087e3ddc8c38ace4961fb",
+                "quantity": 1
+            }
+        ],
+        "updatedAt": "2025-04-05T10:24:48.041Z",
+        "createdAt": "2025-04-05T02:28:43.277Z",
+        "__v": 2
+    }
+}
+*/
 
 // Add a product to the cart
 const addToCart = async (productData, token) => {
@@ -98,6 +495,44 @@ const removeFromCart = async (productId, variantId, token) => {
   };
 }
 
+
+/* example response removeProductFromCart
+{
+    "success": true,
+    "cart": {
+        "_id": "67f0955bddc8c38ace49720c",
+        "userId": "67e213b9ef679c056df168a6",
+        "products": [
+            {
+                "variant": {
+                    "pesoId": "67f087c0ddc8c38ace4961f1",
+                    "peso": 500,
+                    "unidad": "g",
+                    "precio": 2500,
+                    "sku": "CARNE-001-500G"
+                },
+                "productId": "67f087c0ddc8c38ace4961ef",
+                "quantity": 2
+            },
+            {
+                "variant": {
+                    "pesoId": "67f087e3ddc8c38ace4961fe",
+                    "peso": 1,
+                    "unidad": "L",
+                    "precio": 3000,
+                    "sku": "ACEITE-001-1L"
+                },
+                "productId": "67f087e3ddc8c38ace4961fb",
+                "quantity": 1
+            }
+        ],
+        "updatedAt": "2025-04-05T10:28:10.785Z",
+        "createdAt": "2025-04-05T02:28:43.277Z",
+        "__v": 3
+    },
+    "msg": "Producto eliminado del carrito exitosamente"
+}
+*/
 const removeProductFromCart = async (productId, variantId, token) => {
   try {
     console.log("variantId", variantId)
@@ -131,9 +566,53 @@ const removeProductFromCart = async (productId, variantId, token) => {
   }
 };
 
-// cartRoutes.put('/update-quantity/:productId', updateProductQuantity);
-
-
+/* example response updateProductQuantity
+{
+    "success": true,
+    "cart": {
+        "_id": "67f0955bddc8c38ace49720c",
+        "userId": "67e213b9ef679c056df168a6",
+        "products": [
+            {
+                "variant": {
+                    "pesoId": "67f087c0ddc8c38ace4961f2",
+                    "peso": 1,
+                    "unidad": "kg",
+                    "precio": 5000,
+                    "sku": "CARNE-001-1KG"
+                },
+                "productId": "67f087c0ddc8c38ace4961ef",
+                "quantity": 1
+            },
+            {
+                "variant": {
+                    "pesoId": "67f087c0ddc8c38ace4961f1",
+                    "peso": 500,
+                    "unidad": "g",
+                    "precio": 2500,
+                    "sku": "CARNE-001-500G"
+                },
+                "productId": "67f087c0ddc8c38ace4961ef",
+                "quantity": 2
+            },
+            {
+                "variant": {
+                    "pesoId": "67f087e3ddc8c38ace4961fe",
+                    "peso": 1,
+                    "unidad": "L",
+                    "precio": 3000,
+                    "sku": "ACEITE-001-1L"
+                },
+                "productId": "67f087e3ddc8c38ace4961fb",
+                "quantity": 1
+            }
+        ],
+        "updatedAt": "2025-04-05T10:25:48.042Z",
+        "createdAt": "2025-04-05T02:28:43.277Z",
+        "__v": 2
+    },
+    "msg": "Cantidad disminuida exitosamente"
+}*/
 const updateProductQuantity = async (productId, variantId, quantity, action, token) => {
   try {
     // action puede ser 'increment' o 'decrement'
@@ -154,7 +633,13 @@ const updateProductQuantity = async (productId, variantId, quantity, action, tok
 }
 
 
-// Clear the entire cart
+
+/* example response clearCart
+{
+    "success": true,
+    "msg": "Carrito vaciado exitosamente"
+}
+*/
 const clearCart = async (token) => {
   try {
     // Usando la ruta correcta según los comentarios de la API

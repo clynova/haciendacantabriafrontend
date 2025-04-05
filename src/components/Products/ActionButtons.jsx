@@ -20,20 +20,38 @@ const ActionButtons = ({ product, addToCart, selectedWeightOption }) => {
     const hasAvailableStock = selectedWeightOption && selectedWeightOption.stockDisponible > 0;
 
     const handleAddToCart = () => {
-        if (!hasAvailableStock) {
-            toast.error('Este producto está agotado en el peso seleccionado');
+        // Evitar operaciones si ya está cargando o no hay stock
+        if (isLoading.cart || !hasAvailableStock) {
+            if (!hasAvailableStock) {
+                toast.error('Este producto está agotado en el peso seleccionado');
+            }
             return;
         }
 
+        // Activar el estado de carga inmediatamente para evitar clics múltiples
         setIsLoading(prev => ({ ...prev, cart: true }));
+        
         try {
-            addToCart({
-                ...product,
-                selectedWeightOption: selectedWeightOption
-            });
+            // Convertir selectedWeightOption al formato de variant que espera el nuevo CartContext
+            const variant = {
+                pesoId: selectedWeightOption._id || selectedWeightOption.pesoId,
+                peso: selectedWeightOption.peso,
+                unidad: selectedWeightOption.unidad,
+                precio: selectedWeightOption.precio || selectedWeightOption.precioFinal,
+                stockDisponible: selectedWeightOption.stockDisponible,
+                sku: selectedWeightOption.sku || ''
+            };
+            
+            // Pasar producto y variante como parámetros separados
+            addToCart(product, variant, 1, true);
+            
+            // Mantener el botón deshabilitado por un breve momento después de completar
+            // para evitar doble clic accidental
+            setTimeout(() => {
+                setIsLoading(prev => ({ ...prev, cart: false }));
+            }, 500);
         } catch (error) {
             toast.error('Error al agregar al carrito');
-        } finally {
             setIsLoading(prev => ({ ...prev, cart: false }));
         }
     };
@@ -59,7 +77,7 @@ const ActionButtons = ({ product, addToCart, selectedWeightOption }) => {
         <div className="mt-10 flex flex-col space-y-4">
             <button
                 onClick={handleAddToCart}
-                disabled={!hasAvailableStock}
+                disabled={isLoading.cart || !hasAvailableStock}
                 className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white 
                          font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 
                          disabled:cursor-not-allowed disabled:bg-gray-400"
@@ -69,7 +87,7 @@ const ActionButtons = ({ product, addToCart, selectedWeightOption }) => {
                 ) : (
                     <FaShoppingCart className="w-5 h-5" />
                 )}
-                <span>{!hasAvailableStock ? 'Agotado' : 'Agregar al carrito'}</span>
+                <span>{!hasAvailableStock ? 'Agotado' : isLoading.cart ? 'Agregando...' : 'Agregar al carrito'}</span>
             </button>
 
             <div className="grid grid-cols-2 gap-4">
