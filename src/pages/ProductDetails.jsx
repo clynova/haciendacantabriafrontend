@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useGlobal } from '../context/GlobalContext';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -19,6 +19,8 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedWeightOption, setSelectedWeightOption] = useState(null);
+  // Estado para almacenar la información de precio y descuento de la opción seleccionada
+  const [selectedVariantInfo, setSelectedVariantInfo] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -30,18 +32,37 @@ const ProductDetails = () => {
         if (fetchedProduct.success) {
           setProduct(fetchedProduct.product);
           
-          // Set default selected weight option to the first available option with stock
-          if (fetchedProduct.product.opcionesPeso?.pesosEstandar?.length > 0) {
-            const availableOption = fetchedProduct.product.opcionesPeso.pesosEstandar.find(
-              option => option.stockDisponible > 0
-            ) || fetchedProduct.product.opcionesPeso.pesosEstandar[0];
-            
-            setSelectedWeightOption(availableOption);
+          // Usamos la variante predeterminada o buscamos una con stock disponible
+          if (fetchedProduct.product.precioVariantesPorPeso?.length > 0) {
+            // Primero intentamos usar la variante predeterminada
+            if (fetchedProduct.product.variantePredeterminada && 
+                fetchedProduct.product.variantePredeterminada.stockDisponible > 0) {
+              // Encontrar la opción de peso correspondiente a la variante predeterminada
+              const defaultOption = fetchedProduct.product.opcionesPeso.pesosEstandar.find(
+                option => option._id === fetchedProduct.product.variantePredeterminada.pesoId
+              );
+              
+              setSelectedWeightOption(defaultOption);
+              setSelectedVariantInfo(fetchedProduct.product.variantePredeterminada);
+            } else {
+              // Si no hay predeterminada o no tiene stock, buscamos la primera con stock
+              const availableVariant = fetchedProduct.product.precioVariantesPorPeso.find(
+                variant => variant.stockDisponible > 0
+              ) || fetchedProduct.product.precioVariantesPorPeso[0];
+              
+              // Encontrar la opción de peso correspondiente
+              const weightOption = fetchedProduct.product.opcionesPeso.pesosEstandar.find(
+                option => option._id === availableVariant.pesoId
+              );
+              
+              setSelectedWeightOption(weightOption);
+              setSelectedVariantInfo(availableVariant);
+            }
           }
           
           // Redirect to slug URL if we're on ID URL
           if (_id && fetchedProduct.product.slug && !window.location.pathname.includes('/product/')) {
-            navigate(`/product/${fetchedProduct.product.seo.slug}`, { replace: true });
+            navigate(`/product/${fetchedProduct.product.slug}`, { replace: true });
           }
         } else {
           throw new Error(fetchedProduct.msg || 'Error al cargar el producto');
@@ -61,6 +82,20 @@ const ProductDetails = () => {
       setPageTitle(`${product.nombre} | Hacienda Cantabria`);
     }
   }, [setPageTitle, product]);
+
+  // Efecto para actualizar la información de variante cuando cambia la opción de peso seleccionada
+  useEffect(() => {
+    if (selectedWeightOption && product?.precioVariantesPorPeso) {
+      // Buscar la información de precio/descuento para la opción seleccionada
+      const variantInfo = product.precioVariantesPorPeso.find(
+        variant => variant.pesoId === selectedWeightOption._id
+      );
+      
+      if (variantInfo) {
+        setSelectedVariantInfo(variantInfo);
+      }
+    }
+  }, [selectedWeightOption, product]);
 
   if (loading) {
     return (
@@ -441,29 +476,50 @@ const ProductDetails = () => {
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex justify-between items-center">
               <div className="flex flex-col">
-                {product.precios?.base && product.precioFinal < product.precios.base && (
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg line-through text-gray-500 dark:text-gray-400">
-                      {formatCurrency(product.precios.base)}
+                {selectedVariantInfo && (
+                  <>
+                    {selectedVariantInfo.descuento > 0 && (
+                      <div className="flex items-center gap-2">
+                        <p className="text-lg line-through text-gray-500 dark:text-gray-400">
+                          {formatCurrency(selectedVariantInfo.precio)}
+                        </p>
+                        <span className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 text-sm px-2 py-0.5 rounded-full">
+                          -{selectedVariantInfo.descuento}%
+                        </span>
+                      </div>
+                    )}
+                    <p className="text-3xl tracking-tight text-gray-900 dark:text-white font-bold">
+                      {formatCurrency(selectedVariantInfo.precioFinal)}
                     </p>
-                    <span className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 text-sm px-2 py-0.5 rounded-full">
-                      -{Math.round((1 - (product.precioFinal / product.precios.base)) * 100)}%
-                    </span>
-                  </div>
+                  </>
                 )}
-                <p className="text-3xl tracking-tight text-gray-900 dark:text-white font-bold">
-                  {formatCurrency(product.precioFinal)}
-                </p>
-                {product.precioTransferencia && (
-                  <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                    Precio transferencia: {formatCurrency(product.precioTransferencia)}
-                  </p>
+                {!selectedVariantInfo && product.variantePredeterminada && (
+                  <>
+                    {product.variantePredeterminada.descuento > 0 && (
+                      <div className="flex items-center gap-2">
+                        <p className="text-lg line-through text-gray-500 dark:text-gray-400">
+                          {formatCurrency(product.variantePredeterminada.precio)}
+                        </p>
+                        <span className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 text-sm px-2 py-0.5 rounded-full">
+                          -{product.variantePredeterminada.descuento}%
+                        </span>
+                      </div>
+                    )}
+                    <p className="text-3xl tracking-tight text-gray-900 dark:text-white font-bold">
+                      {formatCurrency(product.variantePredeterminada.precioFinal)}
+                    </p>
+                  </>
                 )}
               </div>
               {getStockStatus()}
             </div>
 
-            {product.sku && (
+            {selectedVariantInfo && selectedVariantInfo.sku && (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                SKU: {selectedVariantInfo.sku}
+              </p>
+            )}
+            {!selectedVariantInfo && product.sku && (
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 SKU: {product.sku}
               </p>
