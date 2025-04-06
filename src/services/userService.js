@@ -338,6 +338,120 @@ const getOrders = async (token) => {
     }
 }
 
+
+/* example response getWishlist
+{
+    "success": true,
+    "msg": "Wishlist recuperada exitosamente",
+    "data": {
+        "_id": "67f1e41466fa9c6d7924df20",
+        "userId": "67e213b9ef679c056df168a6",
+        "products": [
+            {
+                "multimedia": {
+                    "imagenes": [
+                        {
+                            "url": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/cedbe657dafb02e19fffa457d73437d0/detailed",
+                            "textoAlternativo": "Bife angosto fresco",
+                            "esPrincipal": true,
+                            "_id": "67f087c0ddc8c38ace4961f0",
+                            "id": "67f087c0ddc8c38ace4961f0"
+                        }
+                    ],
+                    "video": "https://ejemplo.com/videos/bife-angosto.mp4"
+                },
+                "opcionesPeso": {
+                    "esPesoVariable": true,
+                    "pesoPromedio": 1.2,
+                    "pesoMinimo": 1,
+                    "pesoMaximo": 2,
+                    "pesosEstandar": [
+                        {
+                            "descuentos": {
+                                "regular": 10
+                            },
+                            "peso": 500,
+                            "unidad": "g",
+                            "esPredeterminado": false,
+                            "precio": 2500,
+                            "sku": "CARNE-001-500G",
+                            "stockDisponible": 30,
+                            "umbralStockBajo": 5,
+                            "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
+                            "_id": "67f087c0ddc8c38ace4961f1",
+                            "id": "67f087c0ddc8c38ace4961f1"
+                        },
+                        {
+                            "descuentos": {
+                                "regular": 15
+                            },
+                            "peso": 1,
+                            "unidad": "kg",
+                            "esPredeterminado": true,
+                            "precio": 5000,
+                            "sku": "CARNE-001-1KG",
+                            "stockDisponible": 0,
+                            "umbralStockBajo": 5,
+                            "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
+                            "_id": "67f087c0ddc8c38ace4961f2",
+                            "id": "67f087c0ddc8c38ace4961f2"
+                        }
+                    ],
+                    "rangosPreferidos": []
+                },
+                "_id": "67f087c0ddc8c38ace4961ef",
+                "sku": "CARNE-001",
+                "nombre": "Bife Angosto",
+                "slug": "bife-angosto",
+                "categoria": "CARNE",
+                "estado": true,
+                "tipoProducto": "ProductoCarne",
+                "precioVariantesPorPeso": [
+                    {
+                        "pesoId": "67f087c0ddc8c38ace4961f1",
+                        "peso": 500,
+                        "unidad": "g",
+                        "precio": 2500,
+                        "descuento": 10,
+                        "precioFinal": 2250,
+                        "stockDisponible": 30,
+                        "esPredeterminado": false,
+                        "sku": "CARNE-001-500G"
+                    },
+                    {
+                        "pesoId": "67f087c0ddc8c38ace4961f2",
+                        "peso": 1,
+                        "unidad": "kg",
+                        "precio": 5000,
+                        "descuento": 15,
+                        "precioFinal": 4250,
+                        "stockDisponible": 0,
+                        "esPredeterminado": true,
+                        "sku": "CARNE-001-1KG"
+                    }
+                ],
+                "variantePredeterminada": {
+                    "pesoId": "67f087c0ddc8c38ace4961f2",
+                    "peso": 1,
+                    "unidad": "kg",
+                    "precio": 5000,
+                    "descuento": 15,
+                    "precioFinal": 4250,
+                    "stockDisponible": 0,
+                    "esPredeterminado": true,
+                    "sku": "CARNE-001-1KG"
+                }
+            }
+        ],
+        "createdAt": "2025-04-06T02:16:52.382Z",
+        "updatedAt": "2025-04-06T02:16:52.382Z",
+        "__v": 0
+    }
+}
+
+*/
+
+
 const getWishlist = async (token) => {
     try {
         const response = await api.get("/api/wishlist", {
