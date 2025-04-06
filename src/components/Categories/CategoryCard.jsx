@@ -1,12 +1,20 @@
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-const CategoryCard = ({ title, image, href, description, color, className = '' }) => {
+const CategoryCard = ({ 
+  title, 
+  image, 
+  href, 
+  description, 
+  color = "from-black/50 to-black/80", // Default gradient 
+  className = '',
+  icon 
+}) => {
   return (
     <Link
       to={href}
       className={`group relative overflow-hidden flex flex-col justify-end 
-                 transition-all duration-500  ${className}`}
+                transition-all duration-500 rounded-xl ${className}`}
     >
       {/* Background image */}
       <div className="absolute inset-0">
@@ -14,18 +22,27 @@ const CategoryCard = ({ title, image, href, description, color, className = '' }
           src={image}
           alt={title}
           className="h-full w-full object-cover transition-transform duration-500
-                   group-hover:scale-110"
+                 group-hover:scale-110"
           loading="lazy"
         />
       </div>
 
       {/* Gradient overlay */}
-      <div className={`absolute inset-0 bg-gradient-to-t ${color} opacity-60
-                    transition-opacity duration-500 group-hover:opacity-70`} />
+      <div 
+        className={`absolute inset-0 bg-gradient-to-t ${color || "from-black/50 to-black/80"} opacity-60
+                  transition-opacity duration-500 group-hover:opacity-70`} 
+      />
       
       {/* Content */}
       <div className="relative p-4 sm:p-6 z-10 transform transition-transform duration-500
-                    group-hover:translate-y-[-8px]">
+                  group-hover:translate-y-[-8px]">
+        {/* Optional icon */}
+        {icon && (
+          <div className="mb-3">
+            {icon}
+          </div>
+        )}
+        
         <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2
                      drop-shadow-lg">{title}</h3>
         <p className="text-white/90 text-sm sm:text-base line-clamp-2
@@ -60,8 +77,9 @@ CategoryCard.propTypes = {
   image: PropTypes.string.isRequired,
   href: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
-  color: PropTypes.string.isRequired,
+  color: PropTypes.string,
   className: PropTypes.string,
+  icon: PropTypes.node
 };
 
 export { CategoryCard };
