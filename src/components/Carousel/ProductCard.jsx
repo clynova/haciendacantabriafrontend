@@ -163,6 +163,21 @@ const ProductCard = ({ product }) => {
                                     </span>
                                 </motion.div>
                             )}
+                            
+                            
+                            {/* Multiple Variants Badge */}
+                            { /* product.precioVariantesPorPeso && product.precioVariantesPorPeso.length > 1 && (
+                              <motion.div 
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="flex items-center gap-1.5 bg-purple-500 rounded-full px-3 py-1 shadow-lg mt-2"
+                                >
+                                    <span className="text-xs font-bold text-white">
+                                        Varios formatos
+                                    </span>
+                                </motion.div>
+                               
+                            )}
 
                             {/* Favorite Button */}
                             <motion.button

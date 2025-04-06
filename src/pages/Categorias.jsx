@@ -205,26 +205,27 @@ const Categorias = () => {
     const handleAddToCart = (product, e) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        // Identificar la variante a agregar (prioritizando la predeterminada)
         if (product.variantePredeterminada) {
-            const cartItem = {
-                productId: product._id,
-                quantity: 1,
-                variantId: product.variantePredeterminada.pesoId
-            };
-            addToCart(cartItem);
+            addToCart(
+                product,
+                product.variantePredeterminada
+            );
         } else if (product.precioVariantesPorPeso?.length > 0) {
             const firstVariant = product.precioVariantesPorPeso[0];
-            const cartItem = {
-                productId: product._id,
-                quantity: 1,
-                variantId: firstVariant.pesoId
+            // Construir un objeto de variante compatible con la implementación del carrito
+            const variantObject = {
+                pesoId: firstVariant.pesoId,
+                peso: firstVariant.peso,
+                unidad: firstVariant.unidadMedida || 'g',
+                precio: firstVariant.precio || firstVariant.precioFinal,
+                stockDisponible: firstVariant.stockDisponible || 0
             };
-            addToCart(cartItem);
+            addToCart(product, variantObject);
         } else {
-            addToCart({
-                productId: product._id,
-                quantity: 1
-            });
+            // Fallback para productos sin variantes
+            addToCart(product);
         }
     };
 
@@ -345,7 +346,7 @@ const Categorias = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6"
+            className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6"
         >
             {sortedProducts.map((product) => {
                 const defaultVariant = product.variantePredeterminada;
@@ -440,6 +441,42 @@ const Categorias = () => {
                                             {formatCurrency(basePrice)}
                                         </span>
                                     )}
+                                </div>
+                                {/* Información de la variante */}
+                                <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                                    {defaultVariant ? (
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center">
+                                                <span className="font-medium">
+                                                    {defaultVariant.peso} {defaultVariant.unidad || 'g'}
+                                                </span>
+                                                <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium ${defaultVariant.stockDisponible > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                    {defaultVariant.stockDisponible > 0 ? 'En stock' : 'Agotado'}
+                                                </span>
+                                            </div>
+                                            {product.precioVariantesPorPeso?.length > 1 && (
+                                                <span className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                                    • Más variantes disponibles
+                                                </span>
+                                            )}
+                                        </div>
+                                    ) : product.precioVariantesPorPeso?.length > 0 ? (
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center">
+                                                <span className="font-medium">
+                                                    {firstVariant.peso} {firstVariant.unidad || 'g'}
+                                                </span>
+                                                <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium ${firstVariant.stockDisponible > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                    {firstVariant.stockDisponible > 0 ? 'En stock' : 'Agotado'}
+                                                </span>
+                                            </div>
+                                            {product.precioVariantesPorPeso.length > 1 && (
+                                                <span className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                                    • Más variantes disponibles
+                                                </span>
+                                            )}
+                                        </div>
+                                    ) : null}
                                 </div>
 
                                 <button
@@ -584,6 +621,43 @@ const Categorias = () => {
                                                 {formatCurrency(basePrice)}
                                             </span>
                                         )}
+                                        
+                                        {/* Información de la variante */}
+                                        <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                                            {defaultVariant ? (
+                                                <div className="flex flex-col">
+                                                    <div className="flex items-center">
+                                                        <span className="font-medium">
+                                                            {defaultVariant.peso} {defaultVariant.unidad || 'g'}
+                                                        </span>
+                                                        <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium ${defaultVariant.stockDisponible > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                            {defaultVariant.stockDisponible > 0 ? 'En stock' : 'Agotado'}
+                                                        </span>
+                                                    </div>
+                                                    {product.precioVariantesPorPeso?.length > 1 && (
+                                                        <span className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                                            • Más variantes disponibles
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ) : product.precioVariantesPorPeso?.length > 0 ? (
+                                                <div className="flex flex-col">
+                                                    <div className="flex items-center">
+                                                        <span className="font-medium">
+                                                            {firstVariant.peso} {firstVariant.unidad || 'g'}
+                                                        </span>
+                                                        <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium ${firstVariant.stockDisponible > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                            {firstVariant.stockDisponible > 0 ? 'En stock' : 'Agotado'}
+                                                        </span>
+                                                    </div>
+                                                    {product.precioVariantesPorPeso.length > 1 && (
+                                                        <span className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                                            • Más variantes disponibles
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ) : null}
+                                        </div>
                                     </div>
 
                                     <button

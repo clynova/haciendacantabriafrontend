@@ -287,7 +287,7 @@ const AllProducts = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-6"
         >
             {sortedProducts.map((product) => {
                 const defaultVariant = product.variantePredeterminada;
@@ -354,6 +354,15 @@ const AllProducts = () => {
                                                    right-2 bg-yellow-500 text-white px-2 py-1 
                                                    rounded-md text-xs font-medium shadow-sm`}>
                                         Destacado
+                                    </div>
+                                )}
+                                
+                                {/* Etiqueta de múltiples variantes */}
+                                {product.precioVariantesPorPeso && product.precioVariantesPorPeso.length > 1 && (
+                                    <div className={`absolute ${basePrice > finalPrice ? (product.destacado ? 'top-18' : 'top-10') : (product.destacado ? 'top-10' : 'top-2')} 
+                                                   right-2 bg-purple-500 text-white px-2 py-1 
+                                                   rounded-md text-xs font-medium shadow-sm`}>
+                                        Varios formatos
                                     </div>
                                 )}
                             </div>
@@ -488,6 +497,15 @@ const AllProducts = () => {
                                                    right-2 bg-yellow-500 text-white px-2 py-1 
                                                    rounded-md text-xs font-medium shadow-sm`}>
                                         Destacado
+                                    </div>
+                                )}
+                                
+                                {/* Etiqueta de múltiples variantes */}
+                                {product.precioVariantesPorPeso && product.precioVariantesPorPeso.length > 1 && (
+                                    <div className={`absolute ${basePrice > finalPrice ? (product.destacado ? 'top-18' : 'top-10') : (product.destacado ? 'top-10' : 'top-2')} 
+                                                   right-2 bg-purple-500 text-white px-2 py-1 
+                                                   rounded-md text-xs font-medium shadow-sm`}>
+                                        Varios formatos
                                     </div>
                                 )}
                             </div>
