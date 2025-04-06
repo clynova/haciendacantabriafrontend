@@ -242,6 +242,17 @@ const AdminOrderDetails = () => {
                                     <p className="text-white">{order.payment.paymentDetails.authorization_code}</p>
                                 </div>
                             )}
+                            <div>
+                                <p className="text-slate-400 text-sm">Tipo de Comprobante</p>
+                                <p className="text-white">{order.comprobanteTipo || 'No especificado'}</p>
+                            </div>
+                            <div>
+                                <p className="text-slate-400 text-sm">RUT</p>
+                                <p className="text-white">
+                                    {order.comprobanteTipo === 'factura' ? order.rut || 'No especificado' : 
+                                     order.comprobanteTipo === 'boleta' ? 'No Aplica' : 'No especificado'}
+                                </p>
+                            </div>
                         </div>
                     </div>
 

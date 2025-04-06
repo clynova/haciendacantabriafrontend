@@ -267,6 +267,9 @@ const AdminOrders = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                                     Estado de Pago
                                 </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                                    Comprobante
+                                </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
                                     Acciones
                                 </th>
@@ -275,7 +278,7 @@ const AdminOrders = () => {
                         <tbody className="divide-y divide-slate-700">
                             {filteredOrders.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-4 text-center text-slate-400">
+                                    <td colSpan="8" className="px-6 py-4 text-center text-slate-400">
                                         No se encontraron pedidos con los filtros actuales
                                     </td>
                                 </tr>
@@ -314,6 +317,12 @@ const AdminOrders = () => {
                                             }`}>
                                                 {order.payment.status}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
+                                            {order.comprobanteTipo || 'No especificado'} 
+                                            {order.comprobanteTipo === 'factura' ? 
+                                                ` - RUT: ${order.rut || 'No especificado'}` : 
+                                                order.comprobanteTipo === 'boleta' ? ' - RUT: No Aplica' : ''}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right">
                                             <div className="flex justify-end space-x-2">

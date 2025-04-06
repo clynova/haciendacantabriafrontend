@@ -184,6 +184,9 @@ const QuotationsCheckout = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [comprobanteTipo, setComprobanteTipo] = useState("Boleta");
+    const [rut, setRut] = useState("");
+    const [rutError, setRutError] = useState("");
 
     const selectedPaymentMethod = selectedMethod
         ? paymentMethods.find(method => method._id === selectedMethod)
@@ -293,12 +296,27 @@ const QuotationsCheckout = () => {
             return;
         }
 
+        // Validar el RUT si se seleccionó Factura
+        if (comprobanteTipo === "Factura" && !rut.trim()) {
+            setRutError("El RUT es obligatorio para factura");
+            toast.error("Debes ingresar un RUT para la factura");
+            return;
+        }
+
         setIsProcessing(true);
         toast.loading('Procesando tu pago...', { id: 'payment' });
 
         try {
-            // Crear orden a partir de la cotización
-            const orderResponse = await createOrderFromQuotation(quotationId, selectedMethod, token);
+            // Crear orden a partir de la cotización con datos de facturación
+            const orderResponse = await createOrderFromQuotation(
+                quotationId, 
+                selectedMethod, 
+                token,
+                {
+                    comprobanteTipo: comprobanteTipo,
+                    rut: comprobanteTipo === "Factura" ? rut : ""
+                }
+            );
 
             if (!orderResponse.success) {
                 throw new Error(orderResponse.message || 'Error al crear la orden');
@@ -420,6 +438,57 @@ const QuotationsCheckout = () => {
                                     <HiShieldCheck className="text-green-600 dark:text-green-500 mr-2" size={20} />
                                     <span className="text-sm text-gray-600 dark:text-gray-300">Transacción Protegida</span>
                                 </div>
+                            </div>
+
+                            <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+                                <h3 className="font-medium mb-4 text-gray-700 dark:text-gray-300">Datos de Facturación</h3>
+                                
+                                <div className="mb-4">
+                                    <label htmlFor="comprobanteTipo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Tipo de Comprobante*
+                                    </label>
+                                    <select
+                                        id="comprobanteTipo"
+                                        name="comprobanteTipo"
+                                        value={comprobanteTipo}
+                                        onChange={(e) => setComprobanteTipo(e.target.value)}
+                                        className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        required
+                                    >
+                                        <option value="Boleta">Boleta</option>
+                                        <option value="Factura">Factura</option>
+                                    </select>
+                                </div>
+
+                                {comprobanteTipo === "Factura" && (
+                                    <div className="mb-4">
+                                        <label htmlFor="rut" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            RUT*
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="rut"
+                                            name="rut"
+                                            value={rut}
+                                            onChange={(e) => {
+                                                setRut(e.target.value);
+                                                if (!e.target.value.trim() && comprobanteTipo === "Factura") {
+                                                    setRutError("El RUT es obligatorio para factura");
+                                                } else {
+                                                    setRutError("");
+                                                }
+                                            }}
+                                            className={`mt-1 block w-full rounded-md border ${
+                                                rutError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                                            } py-2 px-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                            placeholder="Ingrese el RUT para la factura"
+                                            required={comprobanteTipo === "Factura"}
+                                        />
+                                        {rutError && (
+                                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{rutError}</p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
