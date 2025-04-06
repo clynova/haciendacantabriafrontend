@@ -108,7 +108,7 @@ const Home = () => {
                   Explora nuestra selección premium de cortes argentinos, pollo fresco y aceite de la mejor calidad
                 </p>
               </div>
-              <a href="/mas-vendidos" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+              <a href="/productos" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
                 Ver todo el catálogo →
               </a>
             </div>
@@ -132,7 +132,7 @@ const Home = () => {
                 Los cortes preferidos por nuestros clientes, seleccionados por su calidad y sabor excepcional
               </p>
             </div>
-            <Link to="/productos" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+            <Link to="/mas-vendidos" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
               Ver más vendidos →
             </Link>
           </div>

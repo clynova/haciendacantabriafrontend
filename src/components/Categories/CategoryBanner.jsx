@@ -1,42 +1,59 @@
 import { HiChevronRight } from "react-icons/hi";
 import { Link } from "react-router-dom";
+import PropTypes from 'prop-types';
 
-const CategoryBanner = ({ title, description, imageUrl, productsCount }) => {
-    return (
-        <div className="relative overflow-hidden">
-            {/* Background image with gradient overlay */}
-            <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{
-                    backgroundImage: `url(${imageUrl})`,
-                    filter: 'blur(1px)',
-                }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
+const CategoryBanner = ({ 
+  title, 
+  description, 
+  imageUrl, 
+  productsCount 
+}) => {
+  return (
+    <div className="relative bg-gray-900 overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0">
+        <img 
+          src={imageUrl} 
+          alt={title}
+          className="w-full h-full object-cover opacity-50"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/90 to-gray-900/70"></div>
+      </div>
 
-            {/* Content */}
-            <div className="container mx-auto px-4 py-20 relative z-10">
-                <div className="max-w-3xl">
-                    <div className="flex items-center text-sm mb-4 text-white/70 font-medium">
-                        <Link to="/" className="hover:opacity-80 transition-opacity">Inicio</Link>
-                        <HiChevronRight className="h-4 w-4 mx-2 opacity-50" />
-                        <span className="opacity-70">Categorías</span>
-                        <HiChevronRight className="h-4 w-4 mx-2 opacity-50" />
-                        <span className="text-white">{title}</span>
-                    </div>
-
-                    <h1 className="text-4xl md:text-6xl font-bold mb-3 text-white tracking-tight">{title}</h1>
-
-                    <p className="text-white/90 text-lg max-w-2xl mb-6">{description}</p>
-
-                    <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
-                        <span className="text-white/70 text-sm mr-2">Productos</span>
-                        <span className="text-2xl font-bold text-white">{productsCount}</span>
-                    </div>
-                </div>
+      {/* Content */}
+      <div className="relative max-w-7xl mx-auto px-4 py-16 sm:py-24 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="flex items-center justify-center text-sm mb-4 text-white/70 font-medium">
+            <Link to="/" className="hover:opacity-80 transition-opacity">Inicio</Link>
+            <HiChevronRight className="h-4 w-4 mx-2 opacity-50" />
+            <span className="opacity-70">Categorías</span>
+            <HiChevronRight className="h-4 w-4 mx-2 opacity-50" />
+            <span className="text-white">{title}</span>
+          </div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+            {title}
+          </h1>
+          <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-300">
+            {description}
+          </p>
+          
+          {/* Show product count if available */}
+          {productsCount !== undefined && (
+            <div className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-800 bg-gray-100/90">
+              {productsCount} {productsCount === 1 ? 'producto' : 'productos'} disponibles
             </div>
+          )}
         </div>
-    );
+      </div>
+    </div>
+  );
+};
+
+CategoryBanner.propTypes = {
+  title: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
+  imageUrl: PropTypes.string.isRequired,
+  productsCount: PropTypes.number
 };
 
 export { CategoryBanner };
