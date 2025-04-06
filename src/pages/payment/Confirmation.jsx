@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
-//import { getOrderDetails, getPaymentStatus } from '../../services/checkoutService';
 import { getPaymentStatus } from '../../services/checkoutService';
+import { getOrderById } from '../../services/userService';
 import { formatCurrency } from '../../utils/funcionesReutilizables';
 import { HiCheck, HiOutlineShoppingBag, HiOutlineClock, HiOutlineUser, HiOutlineLocationMarker, HiOutlineTruck } from 'react-icons/hi';
 
@@ -29,13 +29,13 @@ const OrderSummaryItem = ({ item }) => {
             <div className="flex items-start space-x-3">
                 <div className="font-medium text-gray-700">{item.quantity}x</div>
                 <div>
-                    <div className="text-gray-800">{item.product.nombre}</div>
+                    <div className="text-gray-800">{item.productSnapshot?.nombre}</div>
                     <div className="text-sm text-gray-500">
-                        {item.variant.peso} {item.variant.unidad} - {item.variant.sku}
+                        {item.variant?.peso} {item.variant?.unidad} - {item.variant?.sku}
                     </div>
                 </div>
             </div>
-            <div className="font-medium">{formatCurrency(item.totalPrice)}</div>
+            <div className="font-medium">{formatCurrency(item.subtotal)}</div>
         </div>
     );
 };
@@ -48,8 +48,11 @@ const Confirmation = () => {
     const [loading, setLoading] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
+    const fetchedRef = useRef(false);
 
     useEffect(() => {
+        if (fetchedRef.current) return;
+        
         const params = new URLSearchParams(location.search);
         const orderId = params.get('order_id') || location.state?.orderId;
 
@@ -59,38 +62,127 @@ const Confirmation = () => {
             return;
         }
 
-        // Limpiar el carrito
         clearCart();
 
-        // Obtener los detalles de la orden
         const fetchOrderDetails = async () => {
             setLoading(true);
             try {
-                // Primero verificar el estado del pago
+                fetchedRef.current = true;
+                
+                // Obtener el estado del pago
                 const paymentStatusResponse = await getPaymentStatus(orderId, token);
                 if (paymentStatusResponse.success) {
                     setOrderStatus(paymentStatusResponse.paymentStatus || 'completed');
                 }
                 
-                // Luego obtener los detalles completos de la orden
-           /*     const orderResponse = await getOrderDetails(orderId, token);
+                // Obtener los detalles completos de la orden usando getOrderById
+                const orderResponse = await getOrderById(orderId, token);
                 if (orderResponse.success && orderResponse.order) {
-                    setOrderDetails(orderResponse.order);
+                    // Adaptar la respuesta al formato que espera el componente
+                    const orderData = orderResponse.order;
+                    setOrderDetails({
+                        _id: orderData._id,
+                        createdAt: orderData.createdAt,
+                        shipping: {
+                            recipientName: orderData.shippingAddress?.recipientName,
+                            phoneContact: orderData.shippingAddress?.phoneContact,
+                            address: {
+                                street: orderData.shippingAddress?.street,
+                                number: '',
+                                suburb: orderData.shippingAddress?.city,
+                                city: orderData.shippingAddress?.state,
+                                state: orderData.shippingAddress?.country,
+                                zipCode: orderData.shippingAddress?.zipCode
+                            },
+                            method: {
+                                name: orderData.shipping?.method,
+                                delivery_time: orderData.shipping?.carrier?.methods?.[0]?.delivery_time || '5-7 días hábiles'
+                            }
+                        },
+                        products: orderData.details || [],
+                        summary: {
+                            subtotal: orderData.subtotal,
+                            shippingCost: orderData.shippingCost,
+                            paymentFee: orderData.paymentCommission,
+                            total: orderData.total
+                        },
+                        status: orderData.status
+                    });
+                    
+                    // Actualizar el estado de la orden si está disponible en los detalles
+                    if (orderData.status) {
+                        setOrderStatus(orderData.status);
+                    }
+                    
                 } else {
                     toast.error('Error al obtener detalles de la orden');
+                    // Establecer datos por defecto en caso de error
+                    setOrderDetails({
+                        _id: orderId,
+                        createdAt: new Date().toISOString(),
+                        shipping: {
+                            recipientName: 'Cliente',
+                            phoneContact: '-',
+                            address: {
+                                street: '-',
+                                number: '',
+                                suburb: '-',
+                                city: '-',
+                                state: '-',
+                                zipCode: '-'
+                            },
+                            method: {
+                                name: 'Estándar',
+                                delivery_time: '5-7 días hábiles'
+                            }
+                        },
+                        products: [],
+                        summary: {
+                            subtotal: 0,
+                            shippingCost: 0,
+                            paymentFee: 0,
+                            total: 0
+                        }
+                    });
                 }
-*/
-
             } catch (error) {
                 console.error('Error obteniendo detalles de la orden:', error);
-                setOrderStatus('completed'); // Asumimos éxito por defecto
+                setOrderStatus('completed');
+                setOrderDetails({
+                    _id: orderId || 'Desconocido',
+                    createdAt: new Date().toISOString(),
+                    shipping: {
+                        recipientName: 'Cliente',
+                        phoneContact: '-',
+                        address: {
+                            street: '-',
+                            number: '',
+                            suburb: '-',
+                            city: '-',
+                            state: '-',
+                            zipCode: '-'
+                        },
+                        method: {
+                            name: 'Estándar',
+                            delivery_time: '5-7 días hábiles'
+                        }
+                    },
+                    products: [],
+                    summary: {
+                        subtotal: 0,
+                        shippingCost: 0,
+                        paymentFee: 0,
+                        total: 0
+                    }
+                });
             } finally {
                 setLoading(false);
             }
         };
 
         fetchOrderDetails();
-    }, [location, navigate, clearCart, token]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (loading) {
         return (
