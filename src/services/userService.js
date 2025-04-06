@@ -40,7 +40,6 @@ const updateProfile = async (formData, token) => {
                 "currency": "CLP",
                 "commissionPercentage": 0,
                 "commissionAmount": 0,
-                "token": "01ab207d0ebf6acdfa5df1d3b342e4d043582cea0d4ef1df24e0e987f1aac685",
                 "paymentDate": "2025-04-06T01:07:45.110Z",
                 "paymentDetails": {
                     "vci": "TSY",
