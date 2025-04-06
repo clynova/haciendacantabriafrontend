@@ -1,6 +1,5 @@
-import { useCart } from '../../context/CartContext';
 import { FiArrowRight, FiLock } from 'react-icons/fi';
-import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables';
+import { formatCurrency } from '../../utils/funcionesReutilizables';
 import PropTypes from 'prop-types';
 
 /**
@@ -15,6 +14,9 @@ import PropTypes from 'prop-types';
  * @param {Boolean} props.showButton - Indica si se debe mostrar el botón de continuar
  * @param {String} props.buttonText - Texto del botón de continuar
  * @param {Boolean} props.loading - Indica si está cargando
+ * @param {Function} props.calculateSubtotal - Función para calcular el subtotal (opcional)
+ * @param {Function} props.calculateTotalWeight - Función para calcular el peso total (opcional)
+ * @param {Number} props.shippingCost - Costo de envío (opcional)
  */
 const CartSummary = ({ 
     cartItems = [], 
@@ -24,42 +26,96 @@ const CartSummary = ({
     paymentMethod = null,
     showButton = true,
     buttonText = "Continuar",
-    loading = false
+    loading = false,
+    calculateSubtotal = null,
+    calculateTotalWeight = null,
+    shippingCost = null
 }) => {
-    const { calculateSubtotal } = useCart();
-    
+    // Calcular el subtotal usando la función proporcionada o calcular con la nueva estructura de datos
     const subtotal = calculateSubtotal ? calculateSubtotal() : 
-        cartItems.reduce((total, item) => total + (item.precioFinal * item.quantity), 0);
+        cartItems.reduce((total, item) => {
+            const product = item.productId;
+            const variant = item.variant;
+            
+            // Buscar la información de precio para esta variante
+            const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
+            
+            // Usar el precio final si está disponible, de lo contrario usar el precio normal
+            const price = variantInfo?.precioFinal || variant.precio;
+            
+            return total + (price * item.quantity);
+        }, 0);
     
-    // Cálculo de envío con lógica de envío gratuito
-    let shippingCost = 0;
-    let isShippingFree = false;
+    // Cálculo de peso total si no se proporciona
+    const calculateWeight = () => {
+        if (calculateTotalWeight) {
+            return calculateTotalWeight();
+        }
+        
+        return cartItems.reduce((total, item) => {
+            const variant = item.variant;
+            let weight = variant.peso || 0;
+            
+            // Convertir a kg si es necesario para uniformidad
+            if (variant.unidad === 'g') {
+                weight = weight / 1000;
+            }
+            
+            return total + (weight * item.quantity);
+        }, 0);
+    };
     
-    if (shippingMethod?.base_cost) {
-        // Verificar si aplica envío gratuito
-        if (shippingMethod.free_shipping_threshold && subtotal >= shippingMethod.free_shipping_threshold) {
-            shippingCost = 0;
-            isShippingFree = true;
-        } else {
-            shippingCost = parseFloat(shippingMethod.base_cost);
+    // Determinar el costo de envío si no se proporciona
+    const getShippingCost = () => {
+        if (shippingCost !== null) {
+            return shippingCost;
         }
-    } else if (shippingInfo?.baseCost) {
-        // Verificar si aplica envío gratuito usando la información de shippingInfo
-        if (shippingInfo.free_shipping_threshold && subtotal >= shippingInfo.free_shipping_threshold) {
-            shippingCost = 0;
-            isShippingFree = true;
-        } else {
-            shippingCost = parseFloat(shippingInfo.baseCost);
+        
+        if (shippingMethod?.base_cost) {
+            // Verificar si aplica envío gratis
+            if (shippingMethod.free_shipping_threshold && subtotal >= shippingMethod.free_shipping_threshold) {
+                return 0;
+            }
+            
+            // Cálculo basado en peso si hay costo extra por kg
+            if (shippingMethod.extra_cost_per_kg) {
+                const totalWeight = calculateWeight();
+                const extraWeight = Math.max(0, totalWeight - 1);
+                return shippingMethod.base_cost + (extraWeight * shippingMethod.extra_cost_per_kg);
+            }
+            
+            return parseFloat(shippingMethod.base_cost);
+        } 
+        
+        if (shippingInfo?.baseCost) {
+            // Verificar si aplica envío gratis usando la información de shippingInfo
+            if (shippingInfo.free_shipping_threshold && subtotal >= shippingInfo.free_shipping_threshold) {
+                return 0;
+            }
+            
+            // Cálculo basado en peso si hay costo extra por kg
+            if (shippingInfo.extraCostPerKg) {
+                const totalWeight = calculateWeight();
+                const extraWeight = Math.max(0, totalWeight - 1);
+                return parseFloat(shippingInfo.baseCost) + (extraWeight * shippingInfo.extraCostPerKg);
+            }
+            
+            return parseFloat(shippingInfo.baseCost);
         }
-    }
+        
+        return 0;
+    };
+    
+    const finalShippingCost = getShippingCost();
+    const isShippingFree = finalShippingCost === 0 && (shippingMethod || shippingInfo);
     
     // Cálculo de comisión de pago
     let paymentCommission = 0;
     if (paymentMethod?.commission_percentage) {
-        paymentCommission = ((subtotal + shippingCost) * paymentMethod.commission_percentage) / 100;
+        paymentCommission = ((subtotal + finalShippingCost) * paymentMethod.commission_percentage) / 100;
     }
     
-    const total = subtotal + shippingCost + paymentCommission;
+    const total = subtotal + finalShippingCost + paymentCommission;
     
     if (loading) {
         return (
@@ -82,20 +138,43 @@ const CartSummary = ({
                 <div className="mb-4">
                     <h3 className="font-medium text-gray-600 mb-2">Productos ({cartItems.length})</h3>
                     <div className="max-h-48 overflow-y-auto mb-4">
-                        {cartItems.map((item) => (
-                            <div key={item._id} className="flex items-start py-2 border-b">
-                                <div className="h-12 w-12 rounded-md overflow-hidden mr-3 flex-shrink-0">
-                                    <img src={getImageUrl(item.multimedia.imagenes[0].url)} alt={item.nombre} className="h-full w-full object-cover" />
-                                </div>
-                                <div className="flex-grow">
-                                    <p className="text-sm font-medium truncate">{item.nombre}</p>
-                                    <div className="flex justify-between text-sm text-gray-500">
-                                        <span>{item.quantity} x {formatCurrency(item.precioFinal)}</span>
-                                        <span>{formatCurrency(item.precioFinal * item.quantity)}</span>
+                        {cartItems.map((item, index) => {
+                            const product = item.productId;
+                            const variant = item.variant;
+                            
+                            // Buscar información de precio para esta variante
+                            const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
+                            const price = variantInfo?.precioFinal || variant.precio;
+                            const totalItemPrice = price * item.quantity;
+                            
+                            // Conseguir la URL de la imagen principal
+                            const getImageUrl = () => {
+                                if (product && product.multimedia && product.multimedia.imagenes && product.multimedia.imagenes.length > 0) {
+                                    return product.multimedia.imagenes[0].url;
+                                }
+                                return '/images/placeholder.png'; // Imagen por defecto
+                            };
+                            
+                            return (
+                                <div key={`${product._id}-${variant.pesoId}-${index}`} className="flex items-start py-2 border-b">
+                                    <div className="h-12 w-12 rounded-md overflow-hidden mr-3 flex-shrink-0">
+                                        <img 
+                                            src={getImageUrl()} 
+                                            alt={product.nombre} 
+                                            className="h-full w-full object-cover" 
+                                        />
+                                    </div>
+                                    <div className="flex-grow">
+                                        <p className="text-sm font-medium truncate">{product.nombre}</p>
+                                        <p className="text-xs text-gray-500">{variant.peso} {variant.unidad}</p>
+                                        <div className="flex justify-between text-sm text-gray-500">
+                                            <span>{item.quantity} x {formatCurrency(price)}</span>
+                                            <span>{formatCurrency(totalItemPrice)}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -109,11 +188,11 @@ const CartSummary = ({
                 <div className="flex justify-between">
                     <span className="text-gray-500">Envío</span>
                     <span>
-                        {shippingCost === 0 && !shippingMethod && !shippingInfo
+                        {finalShippingCost === 0 && !shippingMethod && !shippingInfo
                             ? 'Se calcula en el siguiente paso'
                             : isShippingFree
                             ? 'Gratis'
-                            : formatCurrency(shippingCost)
+                            : formatCurrency(finalShippingCost)
                         }
                     </span>
                 </div>
@@ -180,7 +259,10 @@ CartSummary.propTypes = {
     paymentMethod: PropTypes.object,
     showButton: PropTypes.bool,
     buttonText: PropTypes.string,
-    loading: PropTypes.bool
+    loading: PropTypes.bool,
+    calculateSubtotal: PropTypes.func,
+    calculateTotalWeight: PropTypes.func,
+    shippingCost: PropTypes.number
 };
 
 export default CartSummary;

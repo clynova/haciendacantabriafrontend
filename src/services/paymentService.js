@@ -615,19 +615,28 @@ const removeProductFromCart = async (productId, variantId, token) => {
 }*/
 const updateProductQuantity = async (productId, variantId, quantity, action, token) => {
   try {
-    // action puede ser 'increment' o 'decrement'
-    // quantity, variantId, action
-    const response = await api.put(`/api/cart/update-quantity/${productId}`, {
+    // Validar que la acción sea una de las permitidas
+    const validActions = ['increment', 'decrement', 'set'];
+    if (!validActions.includes(action)) {
+      action = 'set'; // Por defecto, establecer un valor exacto
+    }
+    
+    // Preparar los datos para la solicitud
+    const requestData = {
       variantId,
       quantity,
       action
-    }, {
+    };
+    
+    // Enviar la solicitud al servidor
+    const response = await api.put(`/api/cart/update-quantity/${productId}`, requestData, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
     return response.data;
   } catch (error) {
+    console.error("Error updating product quantity:", error.response?.data || error);
     throw error.response?.data || error;
   }
 }
