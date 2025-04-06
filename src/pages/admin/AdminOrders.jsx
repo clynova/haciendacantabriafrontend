@@ -39,7 +39,7 @@ const AdminOrders = () => {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const response = await getAllOrders(token);
+            const response = await getAllOrders(token, statusFilter !== 'all' ? statusFilter : '');
             if (response.success) {
                 setOrders(response.orders);
             } else {
@@ -55,7 +55,7 @@ const AdminOrders = () => {
 
     useEffect(() => {
         fetchOrders();
-    }, [token]);
+    }, [token, statusFilter]);
 
     const handleStatusUpdate = async (orderId, newStatus) => {
         if (!window.confirm(`¿Estás seguro de cambiar el estado a ${newStatus}?`)) {
@@ -117,28 +117,35 @@ const AdminOrders = () => {
     };
 
     const filteredOrders = orders.filter(order => {
-        const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+        if (statusFilter !== 'all' && order.status !== statusFilter) {
+            return false;
+        }
+        
         const matchesSearch = searchTerm === '' || 
             order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
             order.userId.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             order.userId.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             order.userId.email.toLowerCase().includes(searchTerm.toLowerCase());
+            
         const orderDate = new Date(order.orderDate);
         const matchesDate = (!dateRange.start || orderDate >= new Date(dateRange.start)) &&
                           (!dateRange.end || orderDate <= new Date(dateRange.end));
         
-        return matchesStatus && matchesSearch && matchesDate;
+        return matchesSearch && matchesDate;
     });
 
     const exportToCSV = () => {
-        const headers = ['ID', 'Cliente', 'Estado', 'Fecha', 'Total', 'Método de Pago', 'Estado de Pago'];
+        const headers = ['ID', 'Cliente', 'Email', 'Estado', 'Fecha', 'Subtotal', 'Envío', 'Total', 'Método de Pago', 'Estado de Pago'];
         const data = filteredOrders.map(order => [
             order._id,
             `${order.userId.firstName} ${order.userId.lastName}`,
-            order.status,
+            order.userId.email,
+            getStatusLabel(order.status),
             formatDate(order.orderDate),
+            order.subtotal,
+            order.shippingCost,
             order.total,
-            order.payment.provider,
+            order.paymentMethod.name,
             order.payment.status
         ]);
 
@@ -266,81 +273,112 @@ const AdminOrders = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
-                            {filteredOrders.map((order) => (
-                                <tr key={order._id} className="hover:bg-slate-700/30">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-medium text-slate-200">
-                                                {order.userId.firstName} {order.userId.lastName}
+                            {filteredOrders.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="px-6 py-4 text-center text-slate-400">
+                                        No se encontraron pedidos con los filtros actuales
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredOrders.map((order) => (
+                                    <tr key={order._id} className="hover:bg-slate-700/30">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-medium text-slate-200">
+                                                    {order.userId.firstName} {order.userId.lastName}
+                                                </span>
+                                                <span className="text-sm text-slate-400">{order.userId.email}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
+                                            {formatDate(order.orderDate)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status)}`}>
+                                                {getStatusLabel(order.status)}
                                             </span>
-                                            <span className="text-sm text-slate-400">{order.userId.email}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                                        {formatDate(order.orderDate)}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status)}`}>
-                                            {getStatusLabel(order.status)}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                                        {formatCurrency(order.total)}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                                        {order.payment.provider}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            order.payment.status === 'completed'
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                            {order.payment.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                                        <div className="flex justify-end space-x-2">
-                                            {order.status === 'pending' && (
-                                                <>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
+                                            {formatCurrency(order.total)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
+                                            {order.paymentMethod?.name || order.payment.provider}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                order.payment.status === 'completed'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : order.payment.status === 'failed'
+                                                    ? 'bg-red-100 text-red-800'
+                                                    : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                                {order.payment.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                                            <div className="flex justify-end space-x-2">
+                                                {order.status === 'pending' && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleStatusUpdate(order._id, 'completed')}
+                                                            disabled={isUpdatingStatus}
+                                                            className="text-green-400 hover:text-green-300 disabled:opacity-50"
+                                                            title="Marcar como En Curso"
+                                                        >
+                                                            <HiCheckCircle className="h-5 w-5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleStatusUpdate(order._id, 'canceled')}
+                                                            disabled={isUpdatingStatus}
+                                                            className="text-red-400 hover:text-red-300 disabled:opacity-50"
+                                                            title="Cancelar"
+                                                        >
+                                                            <HiXCircle className="h-5 w-5" />
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {order.status === 'completed' && (
                                                     <button
-                                                        onClick={() => handleStatusUpdate(order._id, 'completed')}
-                                                        className="text-green-400 hover:text-green-300"
-                                                        title="En Curso"
+                                                        onClick={() => handleStatusUpdate(order._id, 'finalized')}
+                                                        disabled={isUpdatingStatus}
+                                                        className="text-blue-400 hover:text-blue-300 disabled:opacity-50"
+                                                        title="Marcar como Finalizado"
                                                     >
                                                         <HiCheckCircle className="h-5 w-5" />
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleStatusUpdate(order._id, 'canceled')}
-                                                        className="text-red-400 hover:text-red-300"
-                                                        title="Cancelar"
-                                                    >
-                                                        <HiXCircle className="h-5 w-5" />
-                                                    </button>
-                                                </>
-                                            )}
-                                            <button
-                                                onClick={() => handleSendEmail(order._id)}
-                                                disabled={sendingEmail}
-                                                className="text-blue-400 hover:text-blue-300"
-                                                title="Enviar detalles por correo al cliente"
-                                            >
-                                                <HiMail className="h-5 w-5" />
-                                            </button>
-                                            <button
-                                                onClick={() => navigate(`/admin/orders/${order._id}`)}
-                                                className="text-blue-400 hover:text-blue-300"
-                                                title="Ver detalles"
-                                            >
-                                                <HiEye className="h-5 w-5" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                                )}
+                                                <button
+                                                    onClick={() => handleSendEmail(order._id)}
+                                                    disabled={sendingEmail}
+                                                    className="text-blue-400 hover:text-blue-300 disabled:opacity-50"
+                                                    title="Enviar detalles por correo al cliente"
+                                                >
+                                                    <HiMail className="h-5 w-5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => navigate(`/admin/orders/${order._id}`)}
+                                                    className="text-blue-400 hover:text-blue-300"
+                                                    title="Ver detalles"
+                                                >
+                                                    <HiEye className="h-5 w-5" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
+                
+                {/* Paginación - Ejemplo simple, ajustar según necesidad */}
+                {orders.length > 0 && (
+                    <div className="bg-slate-700/30 px-6 py-4 flex justify-between items-center">
+                        <div className="text-sm text-slate-400">
+                            Mostrando {filteredOrders.length} de {orders.length} pedidos
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
