@@ -15,8 +15,7 @@ const updateProfile = async (formData, token) => {
 }
 
 
-/*
-
+/* example response getOrders
 
 {
     "success": true,
@@ -30,28 +29,28 @@ const updateProfile = async (formData, token) => {
                 "zipCode": "8059001",
                 "reference": "Casa linda",
                 "phoneContact": "+56952230120",
-                "recipientName": "Pedro Sanchez",
-                "additionalInstructions": "casa bonita"
+                "recipientName": "pedro sanchez",
+                "additionalInstructions": "sadasdasdas"
             },
             "payment": {
                 "status": "completed",
                 "provider": "webpay",
-                "amount": 12100,
+                "amount": 9250,
                 "currency": "CLP",
                 "commissionPercentage": 0,
                 "commissionAmount": 0,
-                "paymentDate": "2025-04-06T01:07:45.110Z",
+                "paymentDate": "2025-04-06T21:38:26.331Z",
                 "paymentDetails": {
                     "vci": "TSY",
-                    "amount": 12100,
+                    "amount": 9250,
                     "status": "AUTHORIZED",
-                    "buy_order": "OC922b9d10e619",
+                    "buy_order": "OC5b8ba47a576f",
                     "session_id": "67e213b9ef679c056df168a6",
                     "card_detail": {
                         "card_number": "6623"
                     },
-                    "accounting_date": "0405",
-                    "transaction_date": "2025-04-06T01:07:10.714Z",
+                    "accounting_date": "0406",
+                    "transaction_date": "2025-04-06T21:38:02.129Z",
                     "authorization_code": "1213",
                     "payment_type_code": "VN",
                     "response_code": 0,
@@ -82,14 +81,19 @@ const updateProfile = async (formData, token) => {
                 "cost": 5000,
                 "trackingNumber": null
             },
-            "_id": "67f1d3be96ea922b9d10e619",
-            "userId": "67e213b9ef679c056df168a6",
-            "orderDate": "2025-04-06T01:07:10.465Z",
+            "_id": "67f2f4391db25b8ba47a576f",
+            "userId": {
+                "_id": "67e213b9ef679c056df168a6",
+                "firstName": "cly",
+                "lastName": "nova",
+                "email": "clynova.dev@gmail.com"
+            },
+            "orderDate": "2025-04-06T21:38:01.256Z",
             "status": "completed",
-            "subtotal": 7100,
+            "subtotal": 4250,
             "shippingCost": 5000,
             "paymentCommission": 0,
-            "total": 12100,
+            "total": 9250,
             "paymentMethod": {
                 "_id": "67e22eaa10b78bad52fdb7d4",
                 "name": "webpay",
@@ -105,44 +109,15 @@ const updateProfile = async (formData, token) => {
                 "updatedAt": "2025-03-25T04:18:50.995Z",
                 "__v": 0
             },
-            "estimatedDeliveryDate": "2025-04-13T02:07:10.218Z",
+            "estimatedDeliveryDate": "2025-04-13T21:38:01.065Z",
             "quotationId": null,
-            "createdAt": "2025-04-06T01:07:10.467Z",
-            "updatedAt": "2025-04-06T01:07:45.110Z",
+            "comprobanteTipo": "factura",
+            "rut": "18597046-9",
+            "createdAt": "2025-04-06T21:38:01.256Z",
+            "updatedAt": "2025-04-06T21:38:26.331Z",
             "__v": 0,
+            "id": "67f2f4391db25b8ba47a576f",
             "details": [
-                {
-                    "variant": {
-                        "pesoId": "67f087e3ddc8c38ace4961fe",
-                        "peso": 1,
-                        "unidad": "L",
-                        "sku": "ACEITE-001-1L"
-                    },
-                    "priceInfo": {
-                        "basePrice": 3000,
-                        "discountPercentage": 5,
-                        "finalPrice": 2850
-                    },
-                    "productSnapshot": {
-                        "nombre": "Aceite de Oliva Extra Virgen",
-                        "categoria": "ACEITE",
-                        "tipoProducto": "ProductoAceite",
-                        "imagen": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/40161b980d1f9033380ccfecd2bf4f23/detailed"
-                    },
-                    "_id": "67f1d3be96ea922b9d10e61b",
-                    "orderId": "67f1d3be96ea922b9d10e619",
-                    "productId": "67f087e3ddc8c38ace4961fb",
-                    "quantity": 1,
-                    "subtotal": 2850,
-                    "createdAt": "2025-04-06T01:07:10.533Z",
-                    "updatedAt": "2025-04-06T01:07:10.533Z",
-                    "__v": 0,
-                    "currentProduct": {
-                        "nombre": "Aceite de Oliva Extra Virgen",
-                        "disponible": true,
-                        "imagen": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/40161b980d1f9033380ccfecd2bf4f23/detailed"
-                    }
-                },
                 {
                     "variant": {
                         "pesoId": "67f087c0ddc8c38ace4961f2",
@@ -161,22 +136,16 @@ const updateProfile = async (formData, token) => {
                         "tipoProducto": "ProductoCarne",
                         "imagen": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/cedbe657dafb02e19fffa457d73437d0/detailed"
                     },
-                    "_id": "67f1d3be96ea922b9d10e621",
-                    "orderId": "67f1d3be96ea922b9d10e619",
+                    "_id": "67f2f4391db25b8ba47a5771",
+                    "orderId": "67f2f4391db25b8ba47a576f",
                     "productId": "67f087c0ddc8c38ace4961ef",
                     "quantity": 1,
                     "subtotal": 4250,
-                    "createdAt": "2025-04-06T01:07:10.665Z",
-                    "updatedAt": "2025-04-06T01:07:10.665Z",
-                    "__v": 0,
-                    "currentProduct": {
-                        "nombre": "Bife Angosto",
-                        "disponible": true,
-                        "imagen": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/cedbe657dafb02e19fffa457d73437d0/detailed"
-                    }
+                    "createdAt": "2025-04-06T21:38:01.324Z",
+                    "updatedAt": "2025-04-06T21:38:01.324Z",
+                    "__v": 0
                 }
-            ],
-            "id": "67f1d3be96ea922b9d10e619"
+            ]
         },
         {
             "shippingAddress": {
@@ -186,17 +155,17 @@ const updateProfile = async (formData, token) => {
                 "country": "Chile",
                 "zipCode": "8059001",
                 "reference": "Casa linda",
-                "phoneContact": "+56912345678",
-                "recipientName": "María González",
-                "additionalInstructions": "El portón es azul, por favor tocar el timbre"
+                "phoneContact": "+56952230120",
+                "recipientName": "pedro sanchez",
+                "additionalInstructions": "sadasdasd"
             },
             "payment": {
-                "status": "pending",
-                "provider": "Transbank",
-                "amount": 59550,
+                "status": "processing",
+                "provider": "webpay",
+                "amount": 14550,
                 "currency": "CLP",
                 "commissionPercentage": 0,
-                "commissionAmount": 0
+                "commissionAmount": 0,
             },
             "shipping": {
                 "carrier": {
@@ -219,17 +188,22 @@ const updateProfile = async (formData, token) => {
                     "__v": 1
                 },
                 "method": "Envío Estándar",
-                "cost": 0,
+                "cost": 5000,
                 "trackingNumber": null
             },
-            "_id": "67f1d19596ea922b9d10e4b2",
-            "userId": "67e213b9ef679c056df168a6",
-            "orderDate": "2025-04-06T00:57:57.908Z",
+            "_id": "67f2f3c81db25b8ba47a562a",
+            "userId": {
+                "_id": "67e213b9ef679c056df168a6",
+                "firstName": "cly",
+                "lastName": "nova",
+                "email": "clynova.dev@gmail.com"
+            },
+            "orderDate": "2025-04-06T21:36:08.230Z",
             "status": "pending",
-            "subtotal": 59550,
-            "shippingCost": 0,
+            "subtotal": 9550,
+            "shippingCost": 5000,
             "paymentCommission": 0,
-            "total": 59550,
+            "total": 14550,
             "paymentMethod": {
                 "_id": "67e22eaa10b78bad52fdb7d4",
                 "name": "webpay",
@@ -245,44 +219,15 @@ const updateProfile = async (formData, token) => {
                 "updatedAt": "2025-03-25T04:18:50.995Z",
                 "__v": 0
             },
-            "estimatedDeliveryDate": "2025-04-13T01:57:57.649Z",
+            "estimatedDeliveryDate": "2025-04-13T21:36:07.990Z",
             "quotationId": null,
-            "createdAt": "2025-04-06T00:57:57.910Z",
-            "updatedAt": "2025-04-06T00:57:57.910Z",
+            "comprobanteTipo": "factura",
+            "rut": null,
+            "createdAt": "2025-04-06T21:36:08.231Z",
+            "updatedAt": "2025-04-06T21:36:09.229Z",
             "__v": 0,
+            "id": "67f2f3c81db25b8ba47a562a",
             "details": [
-                {
-                    "variant": {
-                        "pesoId": "67f087e3ddc8c38ace4961fe",
-                        "peso": 1,
-                        "unidad": "L",
-                        "sku": "ACEITE-001-1L"
-                    },
-                    "priceInfo": {
-                        "basePrice": 3000,
-                        "discountPercentage": 5,
-                        "finalPrice": 2850
-                    },
-                    "productSnapshot": {
-                        "nombre": "Aceite de Oliva Extra Virgen",
-                        "categoria": "ACEITE",
-                        "tipoProducto": "ProductoAceite",
-                        "imagen": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/40161b980d1f9033380ccfecd2bf4f23/detailed"
-                    },
-                    "_id": "67f1d19596ea922b9d10e4b4",
-                    "orderId": "67f1d19596ea922b9d10e4b2",
-                    "productId": "67f087e3ddc8c38ace4961fb",
-                    "quantity": 3,
-                    "subtotal": 8550,
-                    "createdAt": "2025-04-06T00:57:57.988Z",
-                    "updatedAt": "2025-04-06T00:57:57.988Z",
-                    "__v": 0,
-                    "currentProduct": {
-                        "nombre": "Aceite de Oliva Extra Virgen",
-                        "disponible": true,
-                        "imagen": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/40161b980d1f9033380ccfecd2bf4f23/detailed"
-                    }
-                },
                 {
                     "variant": {
                         "pesoId": "67f087c0ddc8c38ace4961f2",
@@ -301,27 +246,55 @@ const updateProfile = async (formData, token) => {
                         "tipoProducto": "ProductoCarne",
                         "imagen": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/cedbe657dafb02e19fffa457d73437d0/detailed"
                     },
-                    "_id": "67f1d19696ea922b9d10e4ba",
-                    "orderId": "67f1d19596ea922b9d10e4b2",
+                    "_id": "67f2f3c81db25b8ba47a562c",
+                    "orderId": "67f2f3c81db25b8ba47a562a",
                     "productId": "67f087c0ddc8c38ace4961ef",
-                    "quantity": 12,
-                    "subtotal": 51000,
-                    "createdAt": "2025-04-06T00:57:58.135Z",
-                    "updatedAt": "2025-04-06T00:57:58.135Z",
-                    "__v": 0,
-                    "currentProduct": {
-                        "nombre": "Bife Angosto",
-                        "disponible": true,
-                        "imagen": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/cedbe657dafb02e19fffa457d73437d0/detailed"
-                    }
+                    "quantity": 2,
+                    "subtotal": 8500,
+                    "createdAt": "2025-04-06T21:36:08.316Z",
+                    "updatedAt": "2025-04-06T21:36:08.316Z",
+                    "__v": 0
+                },
+                {
+                    "variant": {
+                        "pesoId": "67f087e3ddc8c38ace4961fe",
+                        "peso": 1,
+                        "unidad": "L",
+                        "sku": "ACEITE-001-1L"
+                    },
+                    "priceInfo": {
+                        "basePrice": 3500,
+                        "discountPercentage": 70,
+                        "finalPrice": 1050.0000000000002
+                    },
+                    "productSnapshot": {
+                        "nombre": "Aceite de Oliva Extra Virgen",
+                        "categoria": "ACEITE",
+                        "tipoProducto": "ProductoAceite",
+                        "imagen": "https://res-console.cloudinary.com/djgegk8jp/media_explorer_thumbnails/40161b980d1f9033380ccfecd2bf4f23/detailed"
+                    },
+                    "_id": "67f2f3c81db25b8ba47a5633",
+                    "orderId": "67f2f3c81db25b8ba47a562a",
+                    "productId": "67f087e3ddc8c38ace4961fb",
+                    "quantity": 1,
+                    "subtotal": 1050.0000000000002,
+                    "createdAt": "2025-04-06T21:36:08.464Z",
+                    "updatedAt": "2025-04-06T21:36:08.464Z",
+                    "__v": 0
                 }
-            ],
-            "id": "67f1d19596ea922b9d10e4b2"
+            ]
         }
-    ]
+    ],
+    "pagination": {
+        "total": 2,
+        "page": 1,
+        "limit": 10,
+        "pages": 1
+    }
 }
 
 */
+
 
 const getOrders = async (token) => {
     try {

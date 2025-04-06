@@ -214,6 +214,11 @@ const MyOrders = () => {
                                     <div className="text-xs text-gray-500 dark:text-gray-400">
                                         <p>Envío: {order.shipping.method}</p>
                                         <p>Pago: {order.paymentMethod.name}</p>
+                                        <p>Comprobante: {order.comprobanteTipo || 'No especificado'}
+                                        {order.comprobanteTipo === 'factura' ? 
+                                            ` - RUT: ${order.rut || 'No especificado'}` : 
+                                            order.comprobanteTipo === 'boleta' ? ' - RUT: No Aplica' : ''}
+                                        </p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
