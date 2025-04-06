@@ -359,7 +359,6 @@ const getPaymentMethodById = async (methodId, token) => {
                 "currency": "CLP",
                 "commissionPercentage": 0,
                 "commissionAmount": 0,
-                "token": "01ab7a5552fd466cf16c1fd658d4e9ea4e2cf64a1d2412fc94305da55bd689e0",
                 "paymentDate": "2025-04-06T01:47:35.240Z",
                 "paymentDetails": {
                     "vci": "TSY",
@@ -512,7 +511,6 @@ const getPaymentMethodById = async (methodId, token) => {
                 "currency": "CLP",
                 "commissionPercentage": 0,
                 "commissionAmount": 0,
-                "token": "01abc630e79bb2414e48024216d49c6f842278afae6a7f6c11d251aa623d4ad9",
                 "paymentDetails": {
                     "vci": "TSN",
                     "amount": 12100,
@@ -664,7 +662,6 @@ const getPaymentMethodById = async (methodId, token) => {
                 "currency": "CLP",
                 "commissionPercentage": 0,
                 "commissionAmount": 0,
-                "token": "01ab207d0ebf6acdfa5df1d3b342e4d043582cea0d4ef1df24e0e987f1aac685",
                 "paymentDate": "2025-04-06T01:07:45.110Z",
                 "paymentDetails": {
                     "vci": "TSY",
