@@ -5,10 +5,83 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { getPaymentMethods } from '../../services/paymentMethods';
 import { createOrder, initiatePayment, getPaymentStatus } from '../../services/checkoutService';
-import { FiArrowLeft, FiArrowRight, FiLock, FiCreditCard, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
+import { FiArrowLeft, FiArrowRight, FiLock, FiCreditCard, FiCheckCircle, FiAlertTriangle, FiMapPin, FiUser, FiPackage, FiTruck } from 'react-icons/fi';
 import { BsPaypal, BsBank, BsShieldLock, BsCreditCard2Front } from 'react-icons/bs';
 import { HiShieldCheck } from 'react-icons/hi';
 import CartSummary from '../../components/Cart/CartSummary';
+import { formatCurrency } from '../../utils/funcionesReutilizables';
+
+// Componente para mostrar la información de envío no editable
+const ShippingInfoDisplay = ({ shippingInfo }) => {
+    if (!shippingInfo || !shippingInfo.address) return null;
+    
+    return (
+        <div className="bg-white p-6 rounded-lg shadow-md mb-8 border border-gray-100">
+            <h2 className="text-xl font-bold mb-4 text-gray-600 flex items-center">
+                <FiMapPin className="mr-2" /> Información de Envío
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 className="font-medium text-gray-700 mb-2">Dirección de Entrega</h3>
+                    <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
+                        <p className="text-gray-700">{shippingInfo.address.recipient}</p>
+                        <p className="text-gray-700">
+                            {shippingInfo.address.street} {shippingInfo.address.number}
+                            {shippingInfo.address.interior && `, Int. ${shippingInfo.address.interior}`}
+                        </p>
+                        <p className="text-gray-700">
+                            {shippingInfo.address.suburb}, {shippingInfo.address.city}
+                        </p>
+                        <p className="text-gray-700">{shippingInfo.address.state}</p>
+                        <p className="text-gray-700">CP: {shippingInfo.address.zipCode}</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 className="font-medium text-gray-700 mb-2">Datos del Destinatario</h3>
+                    <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
+                        <div className="flex items-start">
+                            <FiUser className="text-blue-500 mr-2 mt-1" />
+                            <p className="text-gray-700">{shippingInfo.recipientInfo.recipientName}</p>
+                        </div>
+                        <div className="flex items-start mt-2">
+                            <FiPackage className="text-blue-500 mr-2 mt-1" />
+                            <p className="text-gray-700">Teléfono: {shippingInfo.recipientInfo.phoneContact}</p>
+                        </div>
+                        {shippingInfo.recipientInfo.additionalInstructions && (
+                            <div className="flex items-start mt-2">
+                                <FiAlertTriangle className="text-amber-500 mr-2 mt-1" />
+                                <p className="text-gray-700">{shippingInfo.recipientInfo.additionalInstructions}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+            
+            <div className="mt-6">
+                <h3 className="font-medium text-gray-700 mb-2">Método de Envío</h3>
+                <div className="bg-blue-50 p-4 rounded-md border border-blue-100 flex items-center">
+                    <FiTruck className="text-blue-500 mr-3" size={20} />
+                    <div>
+                        <p className="text-blue-700 font-medium">{shippingInfo.carrierName}</p>
+                        <p className="text-blue-600">{shippingInfo.methodName}</p>
+                        <p className="text-blue-600 text-sm">Tiempo estimado: {shippingInfo.deliveryTime}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="mt-4 text-right">
+                <Link
+                    to="/checkout/envio"
+                    className="text-blue-500 hover:text-blue-700 text-sm font-medium"
+                >
+                    Editar información de envío
+                </Link>
+            </div>
+        </div>
+    );
+};
 
 // Componente para la tarjeta de método de pago
 const PaymentMethodCard = ({ method, selected, onSelect }) => {
@@ -51,8 +124,6 @@ const PaymentMethodCard = ({ method, selected, onSelect }) => {
         </div>
     );
 };
-
-
 
 // Barra de progreso para el checkout
 const CheckoutProgress = () => (
@@ -110,10 +181,66 @@ const SistemaDePago = () => {
         ? paymentMethods.find(method => method._id === selectedMethod)
         : null;
 
+    // Calcular el subtotal del carrito usando la nueva estructura de datos
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => {
+            const product = item.productId;
+            const variant = item.variant;
+            
+            // Buscar la información de precio para esta variante
+            const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
+            
+            // Usar el precio final si está disponible, de lo contrario usar el precio normal
+            const price = variantInfo?.precioFinal || variant.precio;
+            
+            return total + (price * item.quantity);
+        }, 0);
+    };
+
+    // Calcular el peso total del carrito (necesario para calcular costos de envío)
+    const calculateTotalWeight = () => {
+        return cartItems.reduce((total, item) => {
+            const variant = item.variant;
+            let weight = variant.peso || 0;
+            
+            // Convertir a kg si es necesario para uniformidad
+            if (variant.unidad === 'g') {
+                weight = weight / 1000;
+            }
+            
+            return total + (weight * item.quantity);
+        }, 0);
+    };
+
+    // Determinar el costo de envío basado en el método seleccionado
+    const getShippingCost = () => {
+        if (shippingInfo && shippingInfo.baseCost) {
+            // Verificar si aplica envío gratis por monto mínimo
+            if (shippingInfo.free_shipping_threshold) {
+                const subtotal = calculateSubtotal();
+                if (subtotal >= shippingInfo.free_shipping_threshold) {
+                    return 0;
+                }
+            }
+            
+            // Cálculo de envío basado en peso si hay costo extra por kg
+            if (shippingInfo.extraCostPerKg) {
+                const totalWeight = calculateTotalWeight();
+                // Si el peso total es mayor que 1kg, calcular el costo adicional
+                const extraWeight = Math.max(0, totalWeight - 1); // Peso adicional después del primer kg
+                return shippingInfo.baseCost + (extraWeight * shippingInfo.extraCostPerKg);
+            }
+            
+            // Devolver el costo base de envío
+            return parseFloat(shippingInfo.baseCost);
+        }
+        return 0;
+    };
+
     const calculatePaymentCommission = () => {
         if (selectedPaymentMethod?.commission_percentage) {
-            const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-            const shipping = shippingInfo?.baseCost ? parseFloat(shippingInfo.baseCost) : 0;
+            const subtotal = calculateSubtotal();
+            const shipping = getShippingCost();
             return ((subtotal + shipping) * selectedPaymentMethod.commission_percentage) / 100;
         }
         return 0;
@@ -151,7 +278,27 @@ const SistemaDePago = () => {
         }
     }, [shippingInfo, navigate]);
 
-
+    // Función para validar el stock de los productos en el carrito
+    const validateCartItemsStock = () => {
+        for (const item of cartItems) {
+            const product = item.productId;
+            const variant = item.variant;
+            
+            // Buscar la información de stock para esta variante
+            const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
+            
+            // Verificar si hay suficiente stock
+            if (!variantInfo || variantInfo.stockDisponible < item.quantity) {
+                const productName = product.nombre;
+                const variantSize = `${variant.peso}${variant.unidad}`;
+                const availableStock = variantInfo ? variantInfo.stockDisponible : 0;
+                
+                toast.error(`No hay suficiente stock para ${productName} (${variantSize}). Stock disponible: ${availableStock}`);
+                return false;
+            }
+        }
+        return true;
+    };
 
     const checkPaymentStatus = async (orderId) => {
         try {
@@ -191,7 +338,7 @@ const SistemaDePago = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!validateCartStock()) {
+        if (!validateCartItemsStock()) {
             return;
         }
 
@@ -204,6 +351,7 @@ const SistemaDePago = () => {
         toast.loading('Procesando tu pago...', { id: 'payment' });
 
         try {
+
             const orderData = {
                 shippingAddressId: shippingInfo.address._id,
                 paymentMethod: selectedMethod,
@@ -212,6 +360,17 @@ const SistemaDePago = () => {
                 phoneContact: shippingInfo.recipientInfo.phoneContact,
                 additionalInstructions: shippingInfo.recipientInfo.additionalInstructions || ''
             };
+
+            console.log('shippingInfo', shippingInfo);
+
+            console.log('orderData', orderData);
+            // shippingAddressId
+            console.log('shippingAddressId', shippingInfo.address._id);
+            // paymentMethod
+            console.log('paymentMethod', selectedMethod);
+            // shippingMethod
+            console.log('shippingMethod', shippingInfo.carrierId);
+
 
             const orderResponse = await createOrder(orderData, token);
 
@@ -245,7 +404,6 @@ const SistemaDePago = () => {
             const checkWindowClosed = setInterval(() => {
                 if (paymentWindow.closed) {
                     clearInterval(checkWindowClosed);
-
                     checkPaymentStatus(orderResponse.order._id);
                 }
             }, 5000);
@@ -276,6 +434,8 @@ const SistemaDePago = () => {
             <p className="text-gray-500 mb-6">Complete los detalles de pago para finalizar su compra.</p>
 
             <CheckoutProgress />
+
+            <ShippingInfoDisplay shippingInfo={shippingInfo} />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
@@ -308,6 +468,59 @@ const SistemaDePago = () => {
                                     <span className="text-sm">Transacción Protegida</span>
                                 </div>
                             </div>
+
+                            {cartItems.length > 0 && (
+                                <div className="mt-8 border-t border-gray-200 pt-4">
+                                    <h3 className="font-medium mb-3">Resumen de Productos</h3>
+                                    <div className="space-y-3 max-h-56 overflow-y-auto pr-2">
+                                        {cartItems.map((item, index) => {
+                                            const product = item.productId;
+                                            const variant = item.variant;
+                                            const variantInfo = product.precioVariantesPorPeso?.find(
+                                                v => v.pesoId === variant.pesoId
+                                            );
+                                            const price = variantInfo?.precioFinal || variant.precio;
+                                            
+                                            // Obtener la URL de la imagen principal
+                                            const getImageUrl = () => {
+                                                if (product.multimedia?.imagenes && product.multimedia.imagenes.length > 0) {
+                                                    return product.multimedia.imagenes[0].url;
+                                                }
+                                                return '/images/placeholder.png';
+                                            };
+                                            
+                                            return (
+                                                <div key={`${product._id}-${variant.pesoId}-${index}`} 
+                                                     className="flex items-center py-2 border-b border-gray-100 last:border-b-0">
+                                                    <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 border border-gray-200">
+                                                        <img 
+                                                            src={getImageUrl()}
+                                                            alt={product.nombre}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => { e.target.src = '/images/placeholder.png' }}
+                                                        />
+                                                    </div>
+                                                    <div className="ml-3 flex-grow">
+                                                        <p className="font-medium text-gray-800 line-clamp-1">{product.nombre}</p>
+                                                        <div className="flex flex-wrap gap-2 mt-1">
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                                {variant.peso}{variant.unidad}
+                                                            </span>
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                                                Cant: {item.quantity}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="ml-2 text-right">
+                                                        <div className="font-semibold text-gray-900">{formatCurrency(price * item.quantity)}</div>
+                                                        <div className="text-xs text-gray-500">({formatCurrency(price)} c/u)</div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex justify-between mt-8">
@@ -337,13 +550,53 @@ const SistemaDePago = () => {
                 </div>
 
                 <div className="lg:col-span-1">
-                    <CartSummary
-                        cartItems={cartItems}
-                        shippingInfo={shippingInfo}
-                        paymentMethod={selectedPaymentMethod}
-                        showButton={false}
-                        loading={loading}
-                    />
+                    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <h2 className="font-semibold text-xl mb-4">Resumen de tu compra</h2>
+                        
+                        <div className="space-y-3 mb-6">
+                            {cartItems.map((item, index) => {
+                                const product = item.productId;
+                                const variant = item.variant;
+                                
+                                // Buscar información de precio para esta variante
+                                const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
+                                const price = variantInfo?.precioFinal || variant.precio;
+                                const totalItemPrice = price * item.quantity;
+                                
+                                return (
+                                    <div key={`${product._id}-${variant.pesoId}-${index}`} className="flex justify-between">
+                                        <div className="flex-1 text-gray-600 truncate">
+                                            <span className="font-medium">{item.quantity}x</span> {product.nombre} - {variant.peso}{variant.unidad}
+                                        </div>
+                                        <div className="font-medium">{formatCurrency(totalItemPrice)}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        
+                        <div className="border-t border-gray-200 pt-4 space-y-2">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Subtotal</span>
+                                <span className="font-medium">{formatCurrency(calculateSubtotal())}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Envío</span>
+                                <span className="font-medium">{formatCurrency(getShippingCost())}</span>
+                            </div>
+                            {paymentCommission > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Comisión de pago ({selectedPaymentMethod.commission_percentage}%)</span>
+                                    <span className="font-medium">{formatCurrency(paymentCommission)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                                <span className="text-lg font-semibold">Total</span>
+                                <span className="text-lg font-semibold">
+                                    {formatCurrency(calculateSubtotal() + getShippingCost() + paymentCommission)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
 
                     <GuaranteesAndPolicies />
                 </div>

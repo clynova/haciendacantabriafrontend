@@ -3,15 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getCart } from '../../services/paymentService';
-import { getProductById } from '../../services/productService';
+import { getCart, removeProductFromCart } from '../../services/paymentService';
 import { FiTrash2, FiShoppingBag, FiArrowRight, FiLock } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import CartSummary from '../../components/Cart/CartSummary';
-import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables';
+import { formatCurrency } from '../../utils/funcionesReutilizables';
 
-// Componente para el producto en el carrito
-const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
+// Componente para el producto en el carrito con nueva estructura de datos
+const CartItem = ({ item, updateQuantity, removeFromCart, validateStock, addToCart }) => {
     // Referencia para controlar las operaciones pendientes por ID de producto
     const pendingOperation = useRef(false);
     // Estado para controlar la edición manual de cantidad
@@ -20,6 +19,17 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
     // Referencia para el input de cantidad
     const inputRef = useRef(null);
 
+    // Obtener información del producto y la variante
+    const product = item.productId;
+    const variant = item.variant;
+    
+    // Buscar la información de precio y stock para esta variante
+    const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
+    
+    // Usar el precio final si está disponible, de lo contrario usar el precio normal
+    const price = variantInfo?.precioFinal || variant.precio;
+    const availableStock = variantInfo?.stockDisponible || 0;
+    
     // Efecto para enfocar el input cuando se activa la edición
     useEffect(() => {
         if (isEditing && inputRef.current) {
@@ -33,29 +43,32 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
     }, [item.quantity]);
 
     // Función para manejar el incremento/decremento con mecanismo de bloqueo
-    const handleQuantityUpdate = (productId, newQuantity) => {
+    const handleQuantityUpdate = (change) => {
         // Si hay una operación pendiente, ignorar el clic adicional
         if (pendingOperation.current) {
-            console.log(`Operación en curso para el producto ${productId}, ignorando clic adicional`);
+            console.log(`Operación en curso para el producto ${product._id}, ignorando clic adicional`);
             return;
         }
 
+        const newQuantity = change > 0 ? item.quantity + 1 : item.quantity - 1;
+
         // Validar que la cantidad no exceda el stock
-        if (newQuantity > item.inventario.stockUnidades) {
-            toast.error(`Solo hay ${item.inventario.stockUnidades} unidades disponibles`);
+        if (newQuantity > availableStock) {
+            toast.error(`Solo hay ${availableStock} unidades disponibles`);
             return;
         }
 
         // Validar que la cantidad sea al menos 1
         if (newQuantity < 1) {
-            newQuantity = 1;
+            return;
         }
 
         // Establecer el bloqueo
         pendingOperation.current = true;
 
-        // Actualizar la cantidad
-        updateQuantity(productId, newQuantity)
+        // Actualizar la cantidad - enviamos solo +1 o -1 como cantidad, no la cantidad total
+        // Esto soluciona el problema de multiplicación exponencial de cantidades
+        updateQuantity(product._id, variant.pesoId, 1, change > 0 ? 'increment' : 'decrement')
             .finally(() => {
                 // Asegurar que el bloqueo siempre se libera cuando termina la operación
                 setTimeout(() => {
@@ -81,14 +94,23 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
         }
         
         // Si excede el stock, limitar al stock disponible
-        if (newQuantity > item.inventario.stockUnidades) {
-            newQuantity = item.inventario.stockUnidades;
-            toast.error(`La cantidad ha sido ajustada al stock disponible: ${item.inventario.stockUnidades}`);
+        if (newQuantity > availableStock) {
+            newQuantity = availableStock;
+            toast.error(`La cantidad ha sido ajustada al stock disponible: ${availableStock}`);
         }
         
         // Actualizar solo si la cantidad cambió
         if (newQuantity !== item.quantity) {
-            handleQuantityUpdate(item._id, newQuantity);
+            // Establecer el bloqueo para evitar múltiples operaciones
+            pendingOperation.current = true;
+            
+            // Usar updateQuantity con action="set" para actualizar la cantidad directamente
+            updateQuantity(product._id, variant.pesoId, newQuantity, 'set')
+                .finally(() => {
+                    setTimeout(() => {
+                        pendingOperation.current = false;
+                    }, 300);
+                });
         }
         
         setInputQuantity(newQuantity);
@@ -105,6 +127,14 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
         }
     };
 
+    // Función para obtener la URL de la imagen principal
+    const getImageUrl = () => {
+        if (product && product.multimedia && product.multimedia.imagenes && product.multimedia.imagenes.length > 0) {
+            return product.multimedia.imagenes[0].url;
+        }
+        return '/images/placeholder.png'; // Imagen por defecto
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -114,18 +144,19 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
             <div className="flex items-center space-x-4 w-full md:w-auto mb-4 md:mb-0">
                 <div className="relative h-24 w-24 overflow-hidden rounded-md">
                     <img
-                        src={getImageUrl(item.multimedia.imagenes[0].url)}
-                        alt={item.nombre}
+                        src={getImageUrl()}
+                        alt={product.nombre}
                         className="h-full w-full object-cover transition-transform hover:scale-110"
                     />
                 </div>
                 <div>
-                    <Link to={`/product/${item.slug}`} className="font-medium text-lg text-gray-800 hover:text-blue-600 transition-colors">
-                        {item.nombre}
+                    <Link to={`/product/${product.slug}`} className="font-medium text-lg text-gray-800 hover:text-blue-600 transition-colors">
+                        {product.nombre}
                     </Link>
-                    <p className="text-blue-600 font-bold">{formatCurrency(item.precioFinal)}</p>
+                    <p className="text-sm text-gray-600">{variant.peso} {variant.unidad}</p>
+                    <p className="text-blue-600 font-bold">{formatCurrency(price)}</p>
                     <p className="text-sm text-gray-500">
-                        Stock disponible: {item.inventario.stockUnidades}
+                        Stock disponible: {availableStock}
                     </p>
                 </div>
             </div>
@@ -133,7 +164,7 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
             <div className="flex items-center space-x-6">
                 <div className="flex items-center space-x-2">
                     <button
-                        onClick={() => handleQuantityUpdate(item._id, item.quantity - 1)}
+                        onClick={() => handleQuantityUpdate(-1)}
                         className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100"
                         disabled={item.quantity <= 1 || pendingOperation.current}
                     >
@@ -161,20 +192,20 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
                     )}
                     
                     <button
-                        onClick={() => handleQuantityUpdate(item._id, item.quantity + 1)}
+                        onClick={() => handleQuantityUpdate(1)}
                         className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-r-md bg-gray-50 hover:bg-gray-100"
-                        disabled={item.quantity >= item.inventario.stockUnidades || pendingOperation.current}
+                        disabled={item.quantity >= availableStock || pendingOperation.current}
                     >
                         +
                     </button>
                 </div>
 
                 <div className="text-right">
-                    <p className="font-bold">{formatCurrency(item.precioFinal * item.quantity)}</p>
+                    <p className="font-bold">{formatCurrency(price * item.quantity)}</p>
                 </div>
 
                 <button
-                    onClick={() => removeFromCart(item._id)}
+                    onClick={() => removeFromCart(product._id, variant.pesoId)}
                     className="ml-2 text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
                     aria-label="Eliminar producto"
                     disabled={pendingOperation.current}
@@ -187,88 +218,20 @@ const CartItem = ({ item, updateQuantity, removeFromCart, getValidStock }) => {
 };
 
 const CarroDeCompras = () => {
-    const { cartItems, removeFromCart, updateQuantity, validateCartStock } = useCart();
+    const { cartItems, removeFromCart, updateQuantity, validateCartStock, addToCart } = useCart();
     const { token, isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [localCartItems, setLocalCartItems] = useState([]);
 
-    // Efecto para recargar los datos del carrito desde la base de datos
+    // Efecto para mantener actualizado el carrito local desde el servidor
     useEffect(() => {
         const refreshCartFromServer = async () => {
             if (isAuthenticated && token && !isRefreshing) {
-                const lastRefreshTime = localStorage.getItem('lastCartRefresh');
-                const now = Date.now();
-
-                if (lastRefreshTime && (now - parseInt(lastRefreshTime)) < 3000) {
-                    console.log('Recarga reciente detectada, omitiendo actualización');
-                    return;
-                }
-
                 setIsRefreshing(true);
-                localStorage.setItem('lastCartRefresh', now.toString());
-
                 try {
-                    const serverCartResponse = await getCart(token);
-
-                    if (!serverCartResponse?.cart?.products?.length) {
-                        setIsRefreshing(false);
-                        return;
-                    }
-
-                    const serverCartItems = [];
-
-                    for (const item of serverCartResponse.cart.products) {
-                        try {
-                            // Verificar si tenemos el ID del producto, ya sea como string o como objeto
-                            const productId = typeof item.productId === 'object' ? item.productId._id : item.productId;
-                            
-                            if (!productId) {
-                                console.warn('Item sin productId encontrado en el carrito');
-                                continue;
-                            }
-
-                            const productResponse = await getProductById(productId);
-                            
-                            if (!productResponse.success || !productResponse.product) {
-                                console.warn(`No se pudo obtener el producto ${productId}: ${productResponse.msg}`);
-                                continue;
-                            }
-
-                            const product = productResponse.product;
-
-                            if (!product.nombre || !product.multimedia?.imagenes || !product.precioFinal) {
-                                console.warn(`Producto ${productId} con datos incompletos:`, product);
-                                continue;
-                            }
-
-                            serverCartItems.push({
-                                _id: productId,
-                                nombre: product.nombre,
-                                precioFinal: product.precioFinal,
-                                precioTransferencia: product.precioTransferencia,
-                                multimedia: product.multimedia,
-                                quantity: item.quantity || 1,
-                                inventario: product.inventario || { stockUnidades: 0 },
-                                ...product
-                            });
-                        } catch (error) {
-                            console.error(`Error al obtener detalles del producto ${item.productId}:`, error);
-                            toast.error(`No se pudo cargar un producto del carrito`);
-                        }
-                    }
-
-                    if (serverCartItems.length > 0) {
-                        setLocalCartItems(serverCartItems);
-                        localStorage.setItem('cart', JSON.stringify(serverCartItems));
-                    } else if (serverCartResponse.cart.products.length > 0) {
-                        toast.error('Hubo problemas al cargar algunos productos del carrito');
-                    }
+                    await getCart(token);
                 } catch (error) {
                     console.error('Error al obtener el carrito del servidor:', error);
-                    if (error?.response?.status !== 400) {
-                        toast.error('Error al cargar el carrito');
-                    }
                 } finally {
                     setIsRefreshing(false);
                 }
@@ -276,17 +239,21 @@ const CarroDeCompras = () => {
         };
 
         refreshCartFromServer();
-    }, [isAuthenticated, token]);
+    }, [isAuthenticated, token, isRefreshing]);
 
-    // Sincronizamos localCartItems con cartItems del contexto
-    useEffect(() => {
-        if (localCartItems.length > 0) {
-            setLocalCartItems([]); // Limpiamos después de actualizar localStorage
-        }
-    }, [localCartItems]);
+    // Función para actualizar la cantidad de un producto con la nueva estructura
+    const handleUpdateQuantity = async (productId, variantId, quantity, action) => {
+        return updateQuantity(productId, variantId, quantity, action);
+    };
 
-    const calculateTotal = () => {
-        return cartItems.reduce((total, item) => total + (item.precioFinal * item.quantity), 0);
+    // Función para eliminar un producto del carrito con la nueva estructura
+    const handleRemoveFromCart = async (productId, variantId) => {
+        return removeFromCart(productId, variantId);
+    };
+    
+    // Función para agregar un producto al carrito (usada en la edición manual de cantidades)
+    const handleAddToCart = async (product, variant, quantity, showNotification) => {
+        return addToCart(product, variant, quantity, showNotification);
     };
 
     const handleContinue = () => {
@@ -294,16 +261,6 @@ const CarroDeCompras = () => {
             return;
         }
         navigate('/checkout/envio');
-    };
-
-    // Función auxiliar para asegurar que el stock es un número válido y positivo
-    const getValidStock = (stock) => {
-        // Si stock es undefined, null o NaN, devolvemos 1 como valor por defecto
-        if (stock === undefined || stock === null || isNaN(stock) || stock < 1) {
-            return 1;
-        }
-        // Aseguramos que el valor es un entero
-        return Math.floor(stock);
     };
 
     // Barra de progreso para el checkout
@@ -320,6 +277,22 @@ const CarroDeCompras = () => {
             </div>
         </div>
     );
+
+    // Calcular el subtotal del carrito usando la nueva estructura
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => {
+            const product = item.productId;
+            const variant = item.variant;
+            
+            // Buscar la información de precio para esta variante
+            const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
+            
+            // Usar el precio final si está disponible, de lo contrario usar el precio normal
+            const price = variantInfo?.precioFinal || variant.precio;
+            
+            return total + (price * item.quantity);
+        }, 0);
+    };
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -353,13 +326,14 @@ const CarroDeCompras = () => {
                         </div>
 
                         <div className="space-y-4">
-                            {cartItems.map((item) => (
+                            {cartItems.map((item, index) => (
                                 <CartItem
-                                    key={item._id}
+                                    key={`${item.productId._id}-${item.variant.pesoId}-${index}`}
                                     item={item}
-                                    updateQuantity={updateQuantity}
-                                    removeFromCart={removeFromCart}
-                                    getValidStock={getValidStock}
+                                    updateQuantity={handleUpdateQuantity}
+                                    removeFromCart={handleRemoveFromCart}
+                                    validateStock={validateCartStock}
+                                    addToCart={handleAddToCart}
                                 />
                             ))}
                         </div>
@@ -369,6 +343,7 @@ const CarroDeCompras = () => {
                         <CartSummary
                             cartItems={cartItems}
                             onContinue={handleContinue}
+                            calculateSubtotal={calculateSubtotal}
                             buttonText="Continuar con el envío"
                         />
                     </div>
