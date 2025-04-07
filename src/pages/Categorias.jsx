@@ -341,6 +341,26 @@ const Categorias = () => {
         );
     };
 
+    const checkProductAvailability = (product) => {
+        // Verificar si hay al menos un peso estándar activo
+        const hasActiveWeight = product.opcionesPeso?.pesosEstandar?.some(
+            peso => peso.estado !== false && peso.stockDisponible > 0
+        );
+    
+        // Verificar variante predeterminada
+        const defaultVariant = product.variantePredeterminada;
+        const firstVariant = product.precioVariantesPorPeso?.[0];
+    
+        return {
+            isAvailable: hasActiveWeight,
+            defaultVariant,
+            firstVariant,
+            finalPrice: hasActiveWeight ? 
+                (defaultVariant?.precioFinal || firstVariant?.precioFinal || 0) : 
+                null
+        };
+    };
+
     const renderGridView = () => (
         <motion.div
             variants={containerVariants}
@@ -349,6 +369,7 @@ const Categorias = () => {
             className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6"
         >
             {sortedProducts.map((product) => {
+                const availability = checkProductAvailability(product);
                 const defaultVariant = product.variantePredeterminada;
                 const firstVariant = product.precioVariantesPorPeso?.[0];
                 const hasStock = defaultVariant?.stockDisponible > 0 ||
@@ -433,12 +454,20 @@ const Categorias = () => {
                                 )}
 
                                 <div className="mt-2 flex items-center justify-between">
-                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                                        {formatCurrency(finalPrice)}
-                                    </span>
-                                    {basePrice > finalPrice && (
-                                        <span className="text-xs text-gray-500 line-through">
-                                            {formatCurrency(basePrice)}
+                                    {availability.isAvailable ? (
+                                        <>
+                                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                {formatCurrency(availability.finalPrice)}
+                                            </span>
+                                            {basePrice > availability.finalPrice && (
+                                                <span className="text-xs text-gray-500 line-through">
+                                                    {formatCurrency(basePrice)}
+                                                </span>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <span className="text-sm text-red-600 dark:text-red-400 font-medium">
+                                            Producto no disponible
                                         </span>
                                     )}
                                 </div>
@@ -481,14 +510,14 @@ const Categorias = () => {
 
                                 <button
                                     onClick={(e) => handleAddToCart(product, e)}
-                                    disabled={!hasStock}
+                                    disabled={!availability.isAvailable}
                                     className="mt-3 w-full px-3 py-2 text-sm font-medium 
                                              bg-blue-600 text-white rounded-lg
                                              hover:bg-blue-700 transition-colors duration-200 
                                              disabled:bg-gray-400 disabled:cursor-not-allowed
                                              flex items-center justify-center"
                                 >
-                                    {hasStock ? (
+                                    {availability.isAvailable ? (
                                         <>
                                             <svg className="w-4 h-4 mr-1" fill="none" strokeLinecap="round"
                                                 strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24"
@@ -515,6 +544,7 @@ const Categorias = () => {
             className="space-y-4"
         >
             {sortedProducts.map((product) => {
+                const availability = checkProductAvailability(product);
                 const defaultVariant = product.variantePredeterminada;
                 const firstVariant = product.precioVariantesPorPeso?.[0];
                 const hasStock = defaultVariant?.stockDisponible > 0 ||
@@ -613,12 +643,20 @@ const Categorias = () => {
 
                                 <div className="mt-4 flex items-center justify-between">
                                     <div>
-                                        <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                                            {formatCurrency(finalPrice)}
-                                        </span>
-                                        {basePrice > finalPrice && (
-                                            <span className="ml-2 text-sm text-gray-500 line-through">
-                                                {formatCurrency(basePrice)}
+                                        {availability.isAvailable ? (
+                                            <>
+                                                <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                    {formatCurrency(availability.finalPrice)}
+                                                </span>
+                                                {basePrice > availability.finalPrice && (
+                                                    <span className="ml-2 text-sm text-gray-500 line-through">
+                                                        {formatCurrency(basePrice)}
+                                                    </span>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <span className="text-sm text-red-600 dark:text-red-400 font-medium">
+                                                Producto no disponible
                                             </span>
                                         )}
                                         
@@ -662,14 +700,14 @@ const Categorias = () => {
 
                                     <button
                                         onClick={(e) => handleAddToCart(product, e)}
-                                        disabled={!hasStock}
+                                        disabled={!availability.isAvailable}
                                         className="px-4 py-2 text-sm font-medium 
                                                  bg-blue-600 text-white rounded-lg
                                                  hover:bg-blue-700 transition-colors duration-200 
                                                  disabled:bg-gray-400 disabled:cursor-not-allowed
                                                  flex items-center"
                                     >
-                                        {hasStock ? (
+                                        {availability.isAvailable ? (
                                             <>
                                                 <svg className="w-4 h-4 mr-1" fill="none" strokeLinecap="round"
                                                     strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24"

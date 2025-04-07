@@ -57,7 +57,6 @@ const AdminProductCreate = () => {
         tipoProducto: 'ProductoBase',
         categoria: 'ACCESORIO', // Por defecto
         estado: true,
-        destacado: false,
         descripcion: {
             corta: '',
             completa: ''
@@ -105,7 +104,7 @@ const AdminProductCreate = () => {
         caracteristicasAceite: {
             aditivos: [],
             filtracion: '',
-            acidez: '',
+            acidez: 0,           // Cambiado a 0
             extraccion: ''
         },
         usosRecomendados: [], 
@@ -125,16 +124,16 @@ const AdminProductCreate = () => {
         // Información nutricional común
         infoNutricional: {
             porcion: '',
-            calorias: '',         // Cambiar de 0 a ''
-            proteinas: '',        // Cambiar de 0 a ''
-            grasaTotal: '',       // Cambiar de 0 a ''
-            grasaSaturada: '',    // Cambiar de 0 a ''
-            grasaTrans: '',       // Cambiar de 0 a ''
-            grasaPoliinsaturada: '', // Cambiar de 0 a ''
-            grasaMonoinsaturada: '', // Cambiar de 0 a ''
-            colesterol: '',       // Cambiar de 0 a ''
-            sodio: '',            // Cambiar de 0 a ''
-            carbohidratos: ''     // Cambiar de 0 a ''
+            calorias: 0,         // Cambiado a 0
+            proteinas: 0,        // Cambiado a 0
+            grasaTotal: 0,       // Cambiado a 0
+            grasaSaturada: 0,    // Cambiado a 0
+            grasaTrans: 0,       // Cambiado a 0
+            grasaPoliinsaturada: 0,
+            grasaMonoinsaturada: 0,
+            colesterol: 0,       
+            sodio: 0,            
+            carbohidratos: 0     
         },
         produccion: {
             metodo: '',
@@ -211,7 +210,7 @@ const AdminProductCreate = () => {
 
     // Update the handleInputChange function to handle discounts correctly
     const handleInputChange = (e, section) => {
-        const { name, value, type, checked } = e.target;
+        const { name, value, type } = e.target;
         
         setFormData(prev => {
             // Manejo especial para información nutricional
@@ -232,7 +231,18 @@ const AdminProductCreate = () => {
                     }
                 };
             }
-            
+
+            // Manejo especial para acidez
+            if (section === 'caracteristicasAceite' && name === 'acidez') {
+                return {
+                    ...prev,
+                    caracteristicasAceite: {
+                        ...prev.caracteristicasAceite,
+                        acidez: Number(value) || 0
+                    }
+                };
+            }
+
             // Handle special case for discounts
             if (section === 'precios' && name === 'regular') {
                 const discountValue = Math.min(Math.max(Number(value) || 0, 0), 100); // Clamp between 0 and 100
@@ -253,16 +263,6 @@ const AdminProductCreate = () => {
                 return {
                     ...prev,
                     [name]: value // value is already an array here
-                };
-            }
-
-            if (section === 'caracteristicasAceite' && name === 'acidez') {
-                return {
-                    ...prev,
-                    caracteristicasAceite: {
-                        ...prev.caracteristicasAceite,
-                        acidez: Number(value) || 0
-                    }
                 };
             }
 
@@ -597,7 +597,8 @@ const AdminProductCreate = () => {
                         descuentos: {
                             regular: Number(peso.descuentos?.regular || 0)
                         },
-                        ultimaActualizacion: new Date().toISOString()
+                        ultimaActualizacion: new Date().toISOString(),
+                        estado: peso.estado !== false // Asegurarse de que el estado se envíe correctamente
                     })),
                     rangosPreferidos: formData.opcionesPeso.rangosPreferidos.map(rango => ({
                         nombre: rango.nombre,
@@ -713,6 +714,24 @@ const AdminProductCreate = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // En la sección donde se manejan los pesosEstandar
+    const addStandardWeight = () => {
+        const newPesoEstandar = {
+            peso: '',
+            estado: true, // Agregar estado por defecto
+            unidad: formData.categoria === 'ACEITE' ? 'ml' : 'g',
+            esPredeterminado: false,
+            precio: '',
+            sku: '',
+            stockDisponible: 0,
+            umbralStockBajo: 5,
+            descuentos: {
+                regular: 0
+            }
+        };
+        // ... resto del código
     };
 
     return (

@@ -73,6 +73,10 @@ const ActionButtons = ({ product, addToCart, selectedWeightOption }) => {
         }
     };
 
+    const hasActiveOptions = product.opcionesPeso?.pesosEstandar?.some(
+        option => option.estado !== false
+    );
+
     return (
         <div className="mt-10 flex flex-col space-y-4">
             <button
@@ -136,6 +140,51 @@ const ActionButtons = ({ product, addToCart, selectedWeightOption }) => {
             </div>
         </div>
     );
+
+            <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+                    <button
+                        onClick={handleAddToWishlist}
+                        disabled={isLoading.wishlist}
+                        className="w-full flex items-center justify-center space-x-2 px-6 py-3 
+                                 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200
+                                 border border-gray-300 dark:border-gray-600 rounded-lg
+                                 hover:bg-gray-50 dark:hover:bg-gray-700
+                                 transition-colors duration-200"
+                    >
+                        {isLoading.wishlist ? (
+                            <div className="w-5 h-5 border-2 border-gray-600 dark:border-gray-300 
+                                          border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                            <>
+                                <FaHeart className={`w-5 h-5 ${isLoading.wishlist ? 'animate-pulse' : ''}`} />
+                                <span>Guardar</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+
+                <div className="relative">
+                    <button
+                        onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
+                        className="w-full flex items-center justify-center space-x-2 px-6 py-3 
+                                 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200
+                                 border border-gray-300 dark:border-gray-600 rounded-lg
+                                 hover:bg-gray-50 dark:hover:bg-gray-700
+                                 transition-colors duration-200"
+                    >
+                        <FaShare className="w-5 h-5" />
+                        <span>Compartir</span>
+                    </button>
+
+                    <ShareMenu
+                        url={shareUrl}
+                        title={shareTitle}
+                        isOpen={isShareMenuOpen}
+                        onClose={() => setIsShareMenuOpen(false)}
+                    />
+                </div>
+            </div>
 };
 
 ActionButtons.propTypes = {
