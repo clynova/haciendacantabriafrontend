@@ -184,9 +184,19 @@ const QuotationsCheckout = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [comprobanteTipo, setComprobanteTipo] = useState("Boleta");
-    const [rut, setRut] = useState("");
-    const [rutError, setRutError] = useState("");
+    const [facturacion, setFacturacion] = useState({
+        comprobanteTipo: "boleta",
+        razonSocial: "",
+        rut: "",
+        giro: "",
+        direccionFacturacion: ""
+    });
+    const [facturacionErrors, setFacturacionErrors] = useState({
+        razonSocial: "",
+        rut: "",
+        giro: "",
+        direccionFacturacion: ""
+    });
 
     const selectedPaymentMethod = selectedMethod
         ? paymentMethods.find(method => method._id === selectedMethod)
@@ -196,6 +206,22 @@ const QuotationsCheckout = () => {
     const isQuotationValid = (quotation) => {
         if (!quotation?.validUntil) return false;
         return new Date(quotation.validUntil) > new Date();
+    };
+
+    // Validar el formulario de facturación
+    const isFormValid = () => {
+        if (facturacion.comprobanteTipo === "Boleta") {
+            return true; // No se requieren campos adicionales para boleta
+        } else if (facturacion.comprobanteTipo === "factura") {
+            // Verificar que todos los campos requeridos para factura estén completos
+            return (
+                facturacion.rut.trim() !== "" &&
+                facturacion.razonSocial.trim() !== "" &&
+                facturacion.giro.trim() !== "" &&
+                facturacion.direccionFacturacion.trim() !== ""
+            );
+        }
+        return false;
     };
 
     // Cargar la cotización y los métodos de pago
@@ -296,11 +322,36 @@ const QuotationsCheckout = () => {
             return;
         }
 
-        // Validar el RUT si se seleccionó Factura
-        if (comprobanteTipo === "Factura" && !rut.trim()) {
-            setRutError("El RUT es obligatorio para factura");
-            toast.error("Debes ingresar un RUT para la factura");
-            return;
+        // Validar todos los campos si se seleccionó Factura
+        if (facturacion.comprobanteTipo === "factura") {
+            let hasErrors = false;
+            const newErrors = { ...facturacionErrors };
+
+            if (!facturacion.rut.trim()) {
+                newErrors.rut = "El RUT es obligatorio para factura";
+                hasErrors = true;
+            }
+
+            if (!facturacion.razonSocial.trim()) {
+                newErrors.razonSocial = "La razón social es obligatoria para factura";
+                hasErrors = true;
+            }
+
+            if (!facturacion.giro.trim()) {
+                newErrors.giro = "El giro es obligatorio para factura";
+                hasErrors = true;
+            }
+
+            if (!facturacion.direccionFacturacion.trim()) {
+                newErrors.direccionFacturacion = "La dirección de facturación es obligatoria";
+                hasErrors = true;
+            }
+
+            if (hasErrors) {
+                setFacturacionErrors(newErrors);
+                toast.error("Por favor completa todos los campos requeridos para la factura");
+                return;
+            }
         }
 
         setIsProcessing(true);
@@ -312,10 +363,7 @@ const QuotationsCheckout = () => {
                 quotationId, 
                 selectedMethod, 
                 token,
-                {
-                    comprobanteTipo: comprobanteTipo,
-                    rut: comprobanteTipo === "Factura" ? rut : ""
-                }
+                facturacion
             );
 
             if (!orderResponse.success) {
@@ -450,8 +498,11 @@ const QuotationsCheckout = () => {
                                     <select
                                         id="comprobanteTipo"
                                         name="comprobanteTipo"
-                                        value={comprobanteTipo}
-                                        onChange={(e) => setComprobanteTipo(e.target.value)}
+                                        value={facturacion.comprobanteTipo}
+                                        onChange={(e) => setFacturacion(prevFacturacion => ({
+                                            ...prevFacturacion,
+                                            comprobanteTipo: e.target.value
+                                        }))}
                                         className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                         required
                                     >
@@ -460,34 +511,160 @@ const QuotationsCheckout = () => {
                                     </select>
                                 </div>
 
-                                {comprobanteTipo === "Factura" && (
-                                    <div className="mb-4">
-                                        <label htmlFor="rut" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            RUT*
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="rut"
-                                            name="rut"
-                                            value={rut}
-                                            onChange={(e) => {
-                                                setRut(e.target.value);
-                                                if (!e.target.value.trim() && comprobanteTipo === "Factura") {
-                                                    setRutError("El RUT es obligatorio para factura");
-                                                } else {
-                                                    setRutError("");
-                                                }
-                                            }}
-                                            className={`mt-1 block w-full rounded-md border ${
-                                                rutError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                            } py-2 px-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
-                                            placeholder="Ingrese el RUT para la factura"
-                                            required={comprobanteTipo === "Factura"}
-                                        />
-                                        {rutError && (
-                                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{rutError}</p>
-                                        )}
-                                    </div>
+                                {facturacion.comprobanteTipo === "factura" && (
+                                    <>
+                                        <div className="mb-4">
+                                            <label htmlFor="rut" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                RUT*
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="rut"
+                                                name="rut"
+                                                value={facturacion.rut}
+                                                onChange={(e) => {
+                                                    const newRut = e.target.value;
+                                                    setFacturacion(prevFacturacion => ({
+                                                        ...prevFacturacion,
+                                                        rut: newRut
+                                                    }));
+                                                    if (!newRut.trim() && facturacion.comprobanteTipo === "factura") {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            rut: "El RUT es obligatorio para factura"
+                                                        }));
+                                                    } else {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            rut: ""
+                                                        }));
+                                                    }
+                                                }}
+                                                className={`mt-1 block w-full rounded-md border ${
+                                                    facturacionErrors.rut ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                                                } py-2 px-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                placeholder="Ingrese el RUT para la factura"
+                                                required={facturacion.comprobanteTipo === "factura"}
+                                            />
+                                            {facturacionErrors.rut && (
+                                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{facturacionErrors.rut}</p>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="mb-4">
+                                            <label htmlFor="razonSocial" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Razón Social*
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="razonSocial"
+                                                name="razonSocial"
+                                                value={facturacion.razonSocial}
+                                                onChange={(e) => {
+                                                    const newRazonSocial = e.target.value;
+                                                    setFacturacion(prevFacturacion => ({
+                                                        ...prevFacturacion,
+                                                        razonSocial: newRazonSocial
+                                                    }));
+                                                    if (!newRazonSocial.trim() && facturacion.comprobanteTipo === "factura") {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            razonSocial: "La razón social es obligatoria para factura"
+                                                        }));
+                                                    } else {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            razonSocial: ""
+                                                        }));
+                                                    }
+                                                }}
+                                                className={`mt-1 block w-full rounded-md border ${
+                                                    facturacionErrors.razonSocial ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                                                } py-2 px-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                placeholder="Ingrese la razón social"
+                                                required={facturacion.comprobanteTipo === "factura"}
+                                            />
+                                            {facturacionErrors.razonSocial && (
+                                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{facturacionErrors.razonSocial}</p>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="mb-4">
+                                            <label htmlFor="giro" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Giro*
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="giro"
+                                                name="giro"
+                                                value={facturacion.giro}
+                                                onChange={(e) => {
+                                                    const newGiro = e.target.value;
+                                                    setFacturacion(prevFacturacion => ({
+                                                        ...prevFacturacion,
+                                                        giro: newGiro
+                                                    }));
+                                                    if (!newGiro.trim() && facturacion.comprobanteTipo === "factura") {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            giro: "El giro es obligatorio para factura"
+                                                        }));
+                                                    } else {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            giro: ""
+                                                        }));
+                                                    }
+                                                }}
+                                                className={`mt-1 block w-full rounded-md border ${
+                                                    facturacionErrors.giro ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                                                } py-2 px-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                placeholder="Ingrese el giro"
+                                                required={facturacion.comprobanteTipo === "factura"}
+                                            />
+                                            {facturacionErrors.giro && (
+                                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{facturacionErrors.giro}</p>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="mb-4">
+                                            <label htmlFor="direccionFacturacion" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Dirección de Facturación*
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="direccionFacturacion"
+                                                name="direccionFacturacion"
+                                                value={facturacion.direccionFacturacion}
+                                                onChange={(e) => {
+                                                    const newDireccion = e.target.value;
+                                                    setFacturacion(prevFacturacion => ({
+                                                        ...prevFacturacion,
+                                                        direccionFacturacion: newDireccion
+                                                    }));
+                                                    if (!newDireccion.trim() && facturacion.comprobanteTipo === "factura") {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            direccionFacturacion: "La dirección de facturación es obligatoria"
+                                                        }));
+                                                    } else {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            direccionFacturacion: ""
+                                                        }));
+                                                    }
+                                                }}
+                                                className={`mt-1 block w-full rounded-md border ${
+                                                    facturacionErrors.direccionFacturacion ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                                                } py-2 px-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                placeholder="Ingrese la dirección de facturación"
+                                                required={facturacion.comprobanteTipo === "factura"}
+                                            />
+                                            {facturacionErrors.direccionFacturacion && (
+                                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{facturacionErrors.direccionFacturacion}</p>
+                                            )}
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -501,9 +678,9 @@ const QuotationsCheckout = () => {
                             </Link>
                             <button
                                 type="submit"
-                                disabled={isProcessing || !selectedMethod}
+                                disabled={isProcessing || !selectedMethod || (facturacion.comprobanteTipo === "factura" && !isFormValid())}
                                 className={`py-3 px-6 rounded-lg flex items-center ${
-                                    isProcessing
+                                    isProcessing || (facturacion.comprobanteTipo === "factura" && !isFormValid())
                                         ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
                                         : 'bg-blue-500 hover:bg-blue-600 text-white'
                                 }`}

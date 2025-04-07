@@ -14,13 +14,13 @@ import { formatCurrency } from '../../utils/funcionesReutilizables';
 // Componente para mostrar la información de envío no editable
 const ShippingInfoDisplay = ({ shippingInfo }) => {
     if (!shippingInfo || !shippingInfo.address) return null;
-    
+
     return (
         <div className="bg-white p-6 rounded-lg shadow-md mb-8 border border-gray-100">
             <h2 className="text-xl font-bold mb-4 text-gray-600 flex items-center">
                 <FiMapPin className="mr-2" /> Información de Envío
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <h3 className="font-medium text-gray-700 mb-2">Dirección de Entrega</h3>
@@ -37,7 +37,7 @@ const ShippingInfoDisplay = ({ shippingInfo }) => {
                         <p className="text-gray-700">CP: {shippingInfo.address.zipCode}</p>
                     </div>
                 </div>
-                
+
                 <div>
                     <h3 className="font-medium text-gray-700 mb-2">Datos del Destinatario</h3>
                     <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
@@ -58,7 +58,7 @@ const ShippingInfoDisplay = ({ shippingInfo }) => {
                     </div>
                 </div>
             </div>
-            
+
             <div className="mt-6">
                 <h3 className="font-medium text-gray-700 mb-2">Método de Envío</h3>
                 <div className="bg-blue-50 p-4 rounded-md border border-blue-100 flex items-center">
@@ -70,7 +70,7 @@ const ShippingInfoDisplay = ({ shippingInfo }) => {
                     </div>
                 </div>
             </div>
-            
+
             <div className="mt-4 text-right">
                 <Link
                     to="/checkout/envio"
@@ -103,8 +103,8 @@ const PaymentMethodCard = ({ method, selected, onSelect }) => {
         <div
             onClick={() => onSelect(method._id)}
             className={`border rounded-lg p-4 cursor-pointer transition-all ${selected
-                    ? 'border-blue-500 ring-2 ring-blue-200 bg-blue-50'
-                    : 'border-gray-200 hover:border-blue-300 hover:shadow-md'
+                ? 'border-blue-500 ring-2 ring-blue-200 bg-blue-50'
+                : 'border-gray-200 hover:border-blue-300 hover:shadow-md'
                 }`}
         >
             <div className="flex items-center justify-between">
@@ -176,9 +176,19 @@ const SistemaDePago = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [comprobanteTipo, setComprobanteTipo] = useState("Boleta");
-    const [rut, setRut] = useState("");
-    const [rutError, setRutError] = useState("");
+    const [facturacion, setFacturacion] = useState({
+        comprobanteTipo: "boleta",
+        razonSocial: "",
+        rut: "",
+        giro: "",
+        direccionFacturacion: ""
+    });
+    const [facturacionErrors, setFacturacionErrors] = useState({
+        razonSocial: "",
+        rut: "",
+        giro: "",
+        direccionFacturacion: ""
+    });
 
     const selectedPaymentMethod = selectedMethod
         ? paymentMethods.find(method => method._id === selectedMethod)
@@ -189,13 +199,13 @@ const SistemaDePago = () => {
         return cartItems.reduce((total, item) => {
             const product = item.productId;
             const variant = item.variant;
-            
+
             // Buscar la información de precio para esta variante
             const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
-            
+
             // Usar el precio final si está disponible, de lo contrario usar el precio normal
             const price = variantInfo?.precioFinal || variant.precio;
-            
+
             return total + (price * item.quantity);
         }, 0);
     };
@@ -205,12 +215,12 @@ const SistemaDePago = () => {
         return cartItems.reduce((total, item) => {
             const variant = item.variant;
             let weight = variant.peso || 0;
-            
+
             // Convertir a kg si es necesario para uniformidad
             if (variant.unidad === 'g') {
                 weight = weight / 1000;
             }
-            
+
             return total + (weight * item.quantity);
         }, 0);
     };
@@ -225,7 +235,7 @@ const SistemaDePago = () => {
                     return 0;
                 }
             }
-            
+
             // Cálculo de envío basado en peso si hay costo extra por kg
             if (shippingInfo.extraCostPerKg) {
                 const totalWeight = calculateTotalWeight();
@@ -233,7 +243,7 @@ const SistemaDePago = () => {
                 const extraWeight = Math.max(0, totalWeight - 1); // Peso adicional después del primer kg
                 return shippingInfo.baseCost + (extraWeight * shippingInfo.extraCostPerKg);
             }
-            
+
             // Devolver el costo base de envío
             return parseFloat(shippingInfo.baseCost);
         }
@@ -255,7 +265,7 @@ const SistemaDePago = () => {
         const fetchPaymentMethods = async () => {
             try {
                 const response = await getPaymentMethods();
-                
+
                 if (response.success && response.data) {
                     // Filtrar solo los métodos de pago activos
                     const activePaymentMethods = response.data.filter(method => method.active);
@@ -286,16 +296,16 @@ const SistemaDePago = () => {
         for (const item of cartItems) {
             const product = item.productId;
             const variant = item.variant;
-            
+
             // Buscar la información de stock para esta variante
             const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
-            
+
             // Verificar si hay suficiente stock
             if (!variantInfo || variantInfo.stockDisponible < item.quantity) {
                 const productName = product.nombre;
                 const variantSize = `${variant.peso}${variant.unidad}`;
                 const availableStock = variantInfo ? variantInfo.stockDisponible : 0;
-                
+
                 toast.error(`No hay suficiente stock para ${productName} (${variantSize}). Stock disponible: ${availableStock}`);
                 return false;
             }
@@ -338,6 +348,21 @@ const SistemaDePago = () => {
         }
     };
 
+    const isFormValid = () => {
+        if (facturacion.comprobanteTipo === "boleta") {
+            return true; // No se requieren campos adicionales para boleta
+        } else if (facturacion.comprobanteTipo === "factura") {
+            // Verificar que todos los campos requeridos para factura estén completos
+            return (
+                facturacion.rut.trim() !== "" &&
+                facturacion.razonSocial.trim() !== "" &&
+                facturacion.giro.trim() !== "" &&
+                facturacion.direccionFacturacion.trim() !== ""
+            );
+        }
+        return false;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -350,17 +375,51 @@ const SistemaDePago = () => {
             return;
         }
 
-        // Validar el RUT si se seleccionó Factura
-        if (comprobanteTipo === "factura" && !rut.trim()) {
-            setRutError("El RUT es obligatorio para factura");
-            toast.error("Debes ingresar un RUT para la factura");
-            return;
+        // Validar todos los campos si se seleccionó Factura
+        if (facturacion.comprobanteTipo === "factura") {
+            let hasErrors = false;
+            const newErrors = { ...facturacionErrors };
+
+            if (!facturacion.rut.trim()) {
+                newErrors.rut = "El RUT es obligatorio para factura";
+                hasErrors = true;
+            }
+
+            if (!facturacion.razonSocial.trim()) {
+                newErrors.razonSocial = "La razón social es obligatoria para factura";
+                hasErrors = true;
+            }
+
+            if (!facturacion.giro.trim()) {
+                newErrors.giro = "El giro es obligatorio para factura";
+                hasErrors = true;
+            }
+
+            if (!facturacion.direccionFacturacion.trim()) {
+                newErrors.direccionFacturacion = "La dirección de facturación es obligatoria";
+                hasErrors = true;
+            }
+
+            if (hasErrors) {
+                setFacturacionErrors(newErrors);
+                toast.error("Por favor completa todos los campos requeridos para la factura");
+                return;
+            }
         }
 
         setIsProcessing(true);
         toast.loading('Procesando tu pago...', { id: 'payment' });
 
         try {
+
+            const facturacionData = {
+                comprobanteTipo: facturacion.comprobanteTipo,
+                rut: facturacion.comprobanteTipo === "factura" ? facturacion.rut : "",
+                razonSocial: facturacion.comprobanteTipo === "factura" ? facturacion.razonSocial : "",
+                giro: facturacion.comprobanteTipo === "factura" ? facturacion.giro : "",
+                direccionFacturacion: facturacion.comprobanteTipo === "factura" ? facturacion.direccionFacturacion : ""
+            }
+
             const orderData = {
                 shippingAddressId: shippingInfo.address._id,
                 paymentMethod: selectedMethod,
@@ -368,8 +427,7 @@ const SistemaDePago = () => {
                 recipientName: shippingInfo.recipientInfo.recipientName,
                 phoneContact: shippingInfo.recipientInfo.phoneContact,
                 additionalInstructions: shippingInfo.recipientInfo.additionalInstructions || '',
-                comprobanteTipo: comprobanteTipo,
-                rut: comprobanteTipo === "factura" ? rut : ""
+                facturacion: facturacionData
             };
 
             console.log('orderData', orderData);
@@ -484,7 +542,7 @@ const SistemaDePago = () => {
 
                             <div className="mt-8 border-t border-gray-200 pt-6">
                                 <h3 className="font-medium mb-4 text-gray-700">Datos de Facturación</h3>
-                                
+
                                 <div className="mb-4">
                                     <label htmlFor="comprobanteTipo" className="block text-sm font-medium text-gray-700 mb-1">
                                         Tipo de Comprobante*
@@ -492,8 +550,11 @@ const SistemaDePago = () => {
                                     <select
                                         id="comprobanteTipo"
                                         name="comprobanteTipo"
-                                        value={comprobanteTipo}
-                                        onChange={(e) => setComprobanteTipo(e.target.value)}
+                                        value={facturacion.comprobanteTipo}
+                                        onChange={(e) => setFacturacion(prevFacturacion => ({
+                                            ...prevFacturacion,
+                                            comprobanteTipo: e.target.value
+                                        }))}
                                         className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                         required
                                     >
@@ -502,34 +563,156 @@ const SistemaDePago = () => {
                                     </select>
                                 </div>
 
-                                {comprobanteTipo === "factura" && (
-                                    <div className="mb-4">
-                                        <label htmlFor="rut" className="block text-sm font-medium text-gray-700 mb-1">
-                                            RUT*
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="rut"
-                                            name="rut"
-                                            value={rut}
-                                            onChange={(e) => {
-                                                setRut(e.target.value);
-                                                if (!e.target.value.trim() && comprobanteTipo === "factura") {
-                                                    setRutError("El RUT es obligatorio para factura");
-                                                } else {
-                                                    setRutError("");
-                                                }
-                                            }}
-                                            className={`mt-1 block w-full rounded-md border ${
-                                                rutError ? 'border-red-500' : 'border-gray-300'
-                                            } py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
-                                            placeholder="Ingrese el RUT para la factura"
-                                            required={comprobanteTipo === "factura"}
-                                        />
-                                        {rutError && (
-                                            <p className="mt-1 text-sm text-red-600">{rutError}</p>
-                                        )}
-                                    </div>
+                                {facturacion.comprobanteTipo === "factura" && (
+                                    <>
+                                        <div className="mb-4">
+                                            <label htmlFor="rut" className="block text-sm font-medium text-gray-700 mb-1">
+                                                RUT*
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="rut"
+                                                name="rut"
+                                                value={facturacion.rut}
+                                                onChange={(e) => {
+                                                    const newRut = e.target.value;
+                                                    setFacturacion(prevFacturacion => ({
+                                                        ...prevFacturacion,
+                                                        rut: newRut
+                                                    }));
+                                                    if (!newRut.trim() && facturacion.comprobanteTipo === "factura") {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            rut: "El RUT es obligatorio para factura"
+                                                        }));
+                                                    } else {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            rut: ""
+                                                        }));
+                                                    }
+                                                }}
+                                                className={`mt-1 block w-full rounded-md border ${facturacionErrors.rut ? 'border-red-500' : 'border-gray-300'
+                                                    } py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                placeholder="Ingrese el RUT para la factura"
+                                                required={facturacion.comprobanteTipo === "factura"}
+                                            />
+                                            {facturacionErrors.rut && (
+                                                <p className="mt-1 text-sm text-red-600">{facturacionErrors.rut}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="mb-4">
+                                            <label htmlFor="razonSocial" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Razón Social*
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="razonSocial"
+                                                name="razonSocial"
+                                                value={facturacion.razonSocial}
+                                                onChange={(e) => {
+                                                    const newRazonSocial = e.target.value;
+                                                    setFacturacion(prevFacturacion => ({
+                                                        ...prevFacturacion,
+                                                        razonSocial: newRazonSocial
+                                                    }));
+                                                    if (!newRazonSocial.trim() && facturacion.comprobanteTipo === "factura") {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            razonSocial: "La razón social es obligatoria para factura"
+                                                        }));
+                                                    } else {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            razonSocial: ""
+                                                        }));
+                                                    }
+                                                }}
+                                                className={`mt-1 block w-full rounded-md border ${facturacionErrors.razonSocial ? 'border-red-500' : 'border-gray-300'
+                                                    } py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                placeholder="Ingrese la razón social"
+                                                required={facturacion.comprobanteTipo === "factura"}
+                                            />
+                                            {facturacionErrors.razonSocial && (
+                                                <p className="mt-1 text-sm text-red-600">{facturacionErrors.razonSocial}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="mb-4">
+                                            <label htmlFor="giro" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Giro*
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="giro"
+                                                name="giro"
+                                                value={facturacion.giro}
+                                                onChange={(e) => {
+                                                    const newGiro = e.target.value;
+                                                    setFacturacion(prevFacturacion => ({
+                                                        ...prevFacturacion,
+                                                        giro: newGiro
+                                                    }));
+                                                    if (!newGiro.trim() && facturacion.comprobanteTipo === "factura") {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            giro: "El giro es obligatorio para factura"
+                                                        }));
+                                                    } else {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            giro: ""
+                                                        }));
+                                                    }
+                                                }}
+                                                className={`mt-1 block w-full rounded-md border ${facturacionErrors.giro ? 'border-red-500' : 'border-gray-300'
+                                                    } py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                placeholder="Ingrese el giro"
+                                                required={facturacion.comprobanteTipo === "factura"}
+                                            />
+                                            {facturacionErrors.giro && (
+                                                <p className="mt-1 text-sm text-red-600">{facturacionErrors.giro}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="mb-4">
+                                            <label htmlFor="direccionFacturacion" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Dirección de Facturación*
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="direccionFacturacion"
+                                                name="direccionFacturacion"
+                                                value={facturacion.direccionFacturacion}
+                                                onChange={(e) => {
+                                                    const newDireccion = e.target.value;
+                                                    setFacturacion(prevFacturacion => ({
+                                                        ...prevFacturacion,
+                                                        direccionFacturacion: newDireccion
+                                                    }));
+                                                    if (!newDireccion.trim() && facturacion.comprobanteTipo === "factura") {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            direccionFacturacion: "La dirección de facturación es obligatoria"
+                                                        }));
+                                                    } else {
+                                                        setFacturacionErrors(prevErrors => ({
+                                                            ...prevErrors,
+                                                            direccionFacturacion: ""
+                                                        }));
+                                                    }
+                                                }}
+                                                className={`mt-1 block w-full rounded-md border ${facturacionErrors.direccionFacturacion ? 'border-red-500' : 'border-gray-300'
+                                                    } py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                                                placeholder="Ingrese la dirección de facturación"
+                                                required={facturacion.comprobanteTipo === "factura"}
+                                            />
+                                            {facturacionErrors.direccionFacturacion && (
+                                                <p className="mt-1 text-sm text-red-600">{facturacionErrors.direccionFacturacion}</p>
+                                            )}
+                                        </div>
+                                    </>
                                 )}
                             </div>
 
@@ -544,7 +727,7 @@ const SistemaDePago = () => {
                                                 v => v.pesoId === variant.pesoId
                                             );
                                             const price = variantInfo?.precioFinal || variant.precio;
-                                            
+
                                             // Obtener la URL de la imagen principal
                                             const getImageUrl = () => {
                                                 if (product.multimedia?.imagenes && product.multimedia.imagenes.length > 0) {
@@ -552,12 +735,12 @@ const SistemaDePago = () => {
                                                 }
                                                 return '/images/placeholder.png';
                                             };
-                                            
+
                                             return (
-                                                <div key={`${product._id}-${variant.pesoId}-${index}`} 
-                                                     className="flex items-center py-2 border-b border-gray-100 last:border-b-0">
+                                                <div key={`${product._id}-${variant.pesoId}-${index}`}
+                                                    className="flex items-center py-2 border-b border-gray-100 last:border-b-0">
                                                     <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 border border-gray-200">
-                                                        <img 
+                                                        <img
                                                             src={getImageUrl()}
                                                             alt={product.nombre}
                                                             className="w-full h-full object-cover"
@@ -597,10 +780,10 @@ const SistemaDePago = () => {
                             </Link>
                             <button
                                 type="submit"
-                                disabled={isProcessing || !selectedMethod}
-                                className={`py-3 px-6 rounded-lg flex items-center ${isProcessing
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                disabled={isProcessing || !selectedMethod || (facturacion.comprobanteTipo === "factura" && !isFormValid())}
+                                className={`py-3 px-6 rounded-lg flex items-center ${isProcessing || (facturacion.comprobanteTipo === "factura" && !isFormValid())
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-blue-500 hover:bg-blue-600 text-white'
                                     }`}
                             >
                                 {isProcessing ? (
@@ -616,17 +799,17 @@ const SistemaDePago = () => {
                 <div className="lg:col-span-1">
                     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                         <h2 className="font-semibold text-xl mb-4">Resumen de tu compra</h2>
-                        
+
                         <div className="space-y-3 mb-6">
                             {cartItems.map((item, index) => {
                                 const product = item.productId;
                                 const variant = item.variant;
-                                
+
                                 // Buscar información de precio para esta variante
                                 const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
                                 const price = variantInfo?.precioFinal || variant.precio;
                                 const totalItemPrice = price * item.quantity;
-                                
+
                                 return (
                                     <div key={`${product._id}-${variant.pesoId}-${index}`} className="flex justify-between">
                                         <div className="flex-1 text-gray-600 truncate">
@@ -637,7 +820,7 @@ const SistemaDePago = () => {
                                 );
                             })}
                         </div>
-                        
+
                         <div className="border-t border-gray-200 pt-4 space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Subtotal</span>
