@@ -390,8 +390,8 @@ const ProductDetails = () => {
                 `}
               >
                 <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {option.peso} {product.tipoProducto === 'ProductoAceite' ? 'ml' : 'g'}
-                </span>
+                  {option.peso} {option.unidad}
+                </span>
                 
                 {isOutOfStock ? (
                   <span className="text-sm text-red-600 dark:text-red-400 mt-1">
