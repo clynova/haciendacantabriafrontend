@@ -1,35 +1,48 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { FormInput } from '../../../common/FormInputs';
-
-const CERTIFICACIONES = [
-    'HACCP',
-    'ISO_22000',
-    'BRC',
-    'IFS',
-    'FSSC_22000',
-    'ORGANICO',
-    'KOSHER',
-    'HALAL',
-    'SQF',
-    'GLOBAL_GAP'
-];
+import { HiX } from 'react-icons/hi';
 
 export const AdditionalInfoSection = ({ formData, handleInputChange }) => {
+    const [inputValue, setInputValue] = useState('');
+
     const handleCertificationChange = (e) => {
-        const { checked, value } = e.target;
-        const currentCerts = formData.infoAdicional.certificaciones || [];
+        setInputValue(e.target.value);
+    };
 
-        const updatedCerts = checked
-            ? [...currentCerts, value]
-            : currentCerts.filter(cert => cert !== value);
+    const addCertification = (newCert) => {
+        const certification = newCert.trim();
+        if (!certification) return;
 
+        const currentCertifications = formData.infoAdicional.certificaciones || [];
+        if (!currentCertifications.includes(certification)) {
+            handleInputChange({
+                target: {
+                    name: 'certificaciones',
+                    value: [...currentCertifications, certification]
+                }
+            }, 'infoAdicional');
+        }
+        setInputValue('');
+    };
+
+    const removeCertification = (certToRemove) => {
+        const updatedCertifications = (formData.infoAdicional.certificaciones || [])
+            .filter(cert => cert !== certToRemove);
+        
         handleInputChange({
             target: {
                 name: 'certificaciones',
-                value: updatedCerts
+                value: updatedCertifications
             }
         }, 'infoAdicional');
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addCertification(inputValue);
+        }
     };
 
     return (
@@ -56,28 +69,38 @@ export const AdditionalInfoSection = ({ formData, handleInputChange }) => {
                     <label className="block text-sm font-medium text-gray-200">
                         Certificaciones
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        {CERTIFICACIONES.map((cert) => (
-                            <div key={cert} className="flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    id={`cert-${cert}`}
-                                    value={cert}
-                                    checked={formData.infoAdicional.certificaciones?.includes(cert)}
-                                    onChange={handleCertificationChange}
-                                    className="w-4 h-4 text-blue-600 rounded border-gray-500 bg-gray-700"
-                                />
-                                <label
-                                    htmlFor={`cert-${cert}`}
-                                    className="text-sm text-gray-300 cursor-pointer"
+                    <div className="flex flex-wrap gap-2 mb-2">
+                        {formData.infoAdicional.certificaciones?.map((cert, index) => (
+                            <span
+                                key={index}
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-500/20 
+                                         text-blue-400 rounded-full text-sm"
+                            >
+                                {cert}
+                                <button
+                                    type="button"
+                                    onClick={() => removeCertification(cert)}
+                                    className="p-0.5 hover:bg-blue-500/20 rounded-full"
                                 >
-                                    {cert.replace(/_/g, ' ')}
-                                </label>
-                            </div>
+                                    <HiX className="w-3 h-3" />
+                                </button>
+                            </span>
                         ))}
                     </div>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={handleCertificationChange}
+                            onKeyDown={handleKeyDown}
+                            onBlur={() => addCertification(inputValue)}
+                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 
+                                     rounded-md text-white"
+                            placeholder="Ej: HACCP, ISO 22000, ORGANICO"
+                        />
+                    </div>
                     <p className="text-xs text-gray-400 mt-1">
-                        Selecciona todas las certificaciones aplicables al producto
+                        Presiona Enter, coma o clic fuera del campo para añadir una certificación
                     </p>
                 </div>
             </div>
@@ -88,6 +111,7 @@ export const AdditionalInfoSection = ({ formData, handleInputChange }) => {
 AdditionalInfoSection.propTypes = {
     formData: PropTypes.shape({
         infoAdicional: PropTypes.shape({
+            origen: PropTypes.string,
             marca: PropTypes.string,
             certificaciones: PropTypes.arrayOf(PropTypes.string)
         }).isRequired

@@ -353,7 +353,8 @@ const ProductDetails = () => {
 
   // New function to render weight options
   const renderWeightOptions = () => {
-    if (!product.opcionesPeso?.pesosEstandar || product.opcionesPeso.pesosEstandar.length === 0) {
+    if (!product.opcionesPeso?.pesosEstandar || 
+        product.opcionesPeso.pesosEstandar.filter(option => option.estado !== false).length === 0) {
       return <p className="text-red-600 dark:text-red-400">
         {product.tipoProducto === 'ProductoAceite' ? 
           'No hay opciones de volumen disponibles' : 
@@ -369,50 +370,52 @@ const ProductDetails = () => {
             'Selecciona el peso'}
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {product.opcionesPeso.pesosEstandar.map((option, index) => {
-            const isSelected = selectedWeightOption && selectedWeightOption.peso === option.peso;
-            const isOutOfStock = option.stockDisponible <= 0;
-            const isLowStock = option.stockDisponible > 0 && option.stockDisponible <= 5;
-            
-            return (
-              <button
-                key={index}
-                onClick={() => !isOutOfStock && setSelectedWeightOption(option)}
-                disabled={isOutOfStock}
-                className={`
-                  relative border rounded-lg p-3 flex flex-col items-center justify-center transition-all
-                  ${isSelected 
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-500' 
-                    : 'border-gray-300 dark:border-gray-700'}
-                  ${isOutOfStock 
-                    ? 'opacity-60 cursor-not-allowed' 
-                    : 'hover:border-blue-400 dark:hover:border-blue-600'}
-                `}
-              >
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {option.peso} {option.unidad}
-                </span>
-                
-                {isOutOfStock ? (
-                  <span className="text-sm text-red-600 dark:text-red-400 mt-1">
-                    Agotado
-                  </span>
-                ) : (
-                  <span className={`text-sm mt-1 ${isLowStock ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'}`}>
-                    {isLowStock 
-                      ? `¡Solo ${option.stockDisponible} unidades!` 
-                      : 'Disponible'}
-                  </span>
-                )}
-                
-                {isLowStock && !isOutOfStock && (
-                  <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400 text-xs font-medium">
-                    !
-                  </span>
-                )}
-              </button>
-            );
-          })}
+          {product.opcionesPeso.pesosEstandar
+            .filter(option => option.estado !== false) // Filtrar solo opciones activas
+            .map((option, index) => {
+              const isSelected = selectedWeightOption && selectedWeightOption.peso === option.peso;
+              const isOutOfStock = option.stockDisponible <= 0;
+              const isLowStock = option.stockDisponible > 0 && option.stockDisponible <= 5;
+              
+              return (
+                <button
+                  key={index}
+                  onClick={() => !isOutOfStock && setSelectedWeightOption(option)}
+                  disabled={isOutOfStock}
+                  className={`
+                    relative border rounded-lg p-3 flex flex-col items-center justify-center transition-all
+                    ${isSelected 
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-500' 
+                      : 'border-gray-300 dark:border-gray-700'}
+                    ${isOutOfStock 
+                      ? 'opacity-60 cursor-not-allowed' 
+                      : 'hover:border-blue-400 dark:hover:border-blue-600'}
+                  `}
+                >
+                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {option.peso} {option.unidad}
+                  </span>
+                  
+                  {isOutOfStock ? (
+                    <span className="text-sm text-red-600 dark:text-red-400 mt-1">
+                      Agotado
+                    </span>
+                  ) : (
+                    <span className={`text-sm mt-1 ${isLowStock ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'}`}>
+                      {isLowStock 
+                        ? `¡Solo ${option.stockDisponible} unidades!` 
+                        : 'Disponible'}
+                    </span>
+                  )}
+                  
+                  {isLowStock && !isOutOfStock && (
+                    <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400 text-xs font-medium">
+                      !
+                    </span>
+                  )}
+                </button>
+              );
+            })}
         </div>
       </div>
     );

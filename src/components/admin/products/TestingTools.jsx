@@ -9,7 +9,6 @@ const mockData = {
         tipoProducto: 'ProductoAceite',
         categoria: 'ACEITE',
         estado: true,
-        destacado: false,
         descripcion: {
             corta: 'Aceite premium de oliva extra virgen',
             completa: 'Aceite de oliva extra virgen premium elaborado con aceitunas seleccionadas'
@@ -183,7 +182,6 @@ const mockData = {
         tipoProducto: 'ProductoCarne',
         categoria: 'CARNE',
         estado: true,
-        destacado: false,
         descripcion: {
             corta: 'Lomo vetado premium de primera calidad',
             completa: 'Corte premium de vacuno con excelente marmoleo y textura'

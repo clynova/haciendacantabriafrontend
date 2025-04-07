@@ -13,6 +13,27 @@ import toast from 'react-hot-toast';
 import { formatCurrency } from '../../utils/funcionesReutilizables';
 import { motion } from 'framer-motion';
 
+// Agregar esta función después de las importaciones
+const checkProductAvailability = (product) => {
+    // Verificar si hay al menos un peso estándar activo
+    const hasActiveWeight = product.opcionesPeso?.pesosEstandar?.some(
+        peso => peso.estado !== false && peso.stockDisponible > 0
+    );
+
+    // Verificar variante predeterminada
+    const defaultVariant = product.variantePredeterminada;
+    const firstVariant = product.precioVariantesPorPeso?.[0];
+
+    return {
+        isAvailable: hasActiveWeight,
+        defaultVariant,
+        firstVariant,
+        finalPrice: hasActiveWeight ? 
+            (defaultVariant?.precioFinal || firstVariant?.precioFinal || 0) : 
+            null
+    };
+};
+
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
     const [imageError, setImageError] = useState(false);
@@ -22,11 +43,13 @@ const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
     const fallbackImage = '/images/placeholder.png';
 
-    // Usar siempre la variante predeterminada para todos los datos
-    const variant = product.variantePredeterminada || {};
+    // Reemplazar la lógica de variant y hasAvailableStock
+    const availability = checkProductAvailability(product);
+    const variant = availability.defaultVariant || {};
+    const hasAvailableStock = availability.isAvailable;
     
-    // Comprobamos el stock disponible
-    const hasAvailableStock = variant.stockDisponible > 0;
+    // Actualizar el precio mostrado para usar availability.finalPrice
+    const displayPrice = availability.finalPrice || 0;
 
     const handleImageError = () => {
         setImageError(true);
@@ -259,12 +282,20 @@ const ProductCard = ({ product }) => {
                         {/* Price */}
                         <div className="flex items-end justify-between mb-3">
                             <div className="flex flex-col">
-                                <span className="text-2xl font-bold text-gray-800 dark:text-white">
-                                    {formatCurrency(variant.precioFinal || 0)}
-                                </span>
-                                {variant.descuento > 0 && (
-                                    <span className="text-sm text-gray-500 line-through">
-                                        {formatCurrency(variant.precio || 0)}
+                                {hasAvailableStock ? (
+                                    <>
+                                        <span className="text-2xl font-bold text-gray-800 dark:text-white">
+                                            {formatCurrency(displayPrice)}
+                                        </span>
+                                        {variant.descuento > 0 && (
+                                            <span className="text-sm text-gray-500 line-through">
+                                                {formatCurrency(variant.precio || 0)}
+                                            </span>
+                                        )}
+                                    </>
+                                ) : (
+                                    <span className="text-lg font-medium text-red-600 dark:text-red-400">
+                                        Producto no disponible
                                     </span>
                                 )}
                             </div>
