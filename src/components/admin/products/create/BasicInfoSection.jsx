@@ -81,7 +81,7 @@ export const BasicInfoSection = ({
     };
 
     return (
-        <div className="bg-slate-800 rounded-lg p-5">
+        <div className="rounded-lg p-5">
             <h2 className="text-xl font-semibold text-white mb-4">Información Básica</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">

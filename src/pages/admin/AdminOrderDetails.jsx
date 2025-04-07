@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getOrderById, updateOrderStatus } from '../../services/adminService';
-import { HiArrowLeft, HiUser, HiLocationMarker, HiCreditCard } from 'react-icons/hi';
+import { HiArrowLeft, HiUser, HiLocationMarker, HiCreditCard, HiShoppingCart } from 'react-icons/hi';
 import { formatCurrency } from '../../utils/funcionesReutilizables';
 import { toast } from 'react-hot-toast';
 
@@ -82,6 +82,21 @@ const AdminOrderDetails = () => {
         }
     };
 
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case 'pending':
+                return 'Pendiente';
+            case 'completed':
+                return 'En curso';
+            case 'canceled':
+                return 'Cancelado';
+            case 'finalized':
+                return 'Finalizado';
+            default:
+                return status.charAt(0).toUpperCase() + status.slice(1);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[400px]">
@@ -124,11 +139,7 @@ const AdminOrderDetails = () => {
                         </div>
                         <div className="flex gap-2">
                             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusBadgeColor(order.status)}`}>
-                                {order.status === 'completed' ? 'En curso' :
-                                 order.status === 'pending' ? 'Pendiente' :
-                                 order.status === 'finalized' ? 'Finalizado' :
-                                 order.status === 'canceled' ? 'Cancelado' :
-                                 order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                {getStatusLabel(order.status)}
                             </span>
                         </div>
                     </div>
@@ -163,6 +174,7 @@ const AdminOrderDetails = () => {
                             <div>
                                 <h3 className="text-sm font-medium text-slate-400 mb-2">Dirección de Entrega</h3>
                                 <div className="space-y-1">
+                                    <p className="text-white font-medium">{order.shippingAddress.recipientName}</p>
                                     <p className="text-white">{order.shippingAddress.street}</p>
                                     <p className="text-slate-300">
                                         {order.shippingAddress.city}, {order.shippingAddress.state}
@@ -171,6 +183,9 @@ const AdminOrderDetails = () => {
                                     {order.shippingAddress.reference && (
                                         <p className="text-slate-300">Referencia: {order.shippingAddress.reference}</p>
                                     )}
+                                    {order.shippingAddress.additionalInstructions && (
+                                        <p className="text-slate-300">Instrucciones: {order.shippingAddress.additionalInstructions}</p>
+                                    )}
                                 </div>
                             </div>
                             <div>
@@ -178,9 +193,14 @@ const AdminOrderDetails = () => {
                                 <div className="space-y-1">
                                     <p className="text-white">{order.shipping.carrier.name}</p>
                                     <p className="text-slate-300">{order.shipping.method}</p>
-                                    <p className="text-slate-300">Costo: {formatCurrency(order.shipping.cost)}</p>
+                                    <p className="text-slate-300">Costo: {formatCurrency(order.shippingCost)}</p>
                                     {order.shipping.trackingNumber && (
                                         <p className="text-slate-300">Tracking: {order.shipping.trackingNumber}</p>
+                                    )}
+                                    {order.estimatedDeliveryDate && (
+                                        <p className="text-slate-300">
+                                            Entrega estimada: {formatDate(order.estimatedDeliveryDate)}
+                                        </p>
                                     )}
                                 </div>
                             </div>
@@ -196,7 +216,7 @@ const AdminOrderDetails = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <p className="text-slate-400 text-sm">Método</p>
-                                <p className="text-white">{order.payment.provider}</p>
+                                <p className="text-white">{order.paymentMethod.name}</p>
                             </div>
                             <div>
                                 <p className="text-slate-400 text-sm">Estado</p>
@@ -206,34 +226,65 @@ const AdminOrderDetails = () => {
                                     {order.payment.status}
                                 </span>
                             </div>
-                            <div className="col-span-2">
+                            {order.payment.paymentDate && (
+                                <div>
+                                    <p className="text-slate-400 text-sm">Fecha de pago</p>
+                                    <p className="text-white">{formatDate(order.payment.paymentDate)}</p>
+                                </div>
+                            )}
+                            <div>
                                 <p className="text-slate-400 text-sm">Monto</p>
                                 <p className="text-white">{formatCurrency(order.payment.amount)}</p>
+                            </div>
+                            {order.payment.paymentDetails && order.payment.paymentDetails.authorization_code && (
+                                <div>
+                                    <p className="text-slate-400 text-sm">Código de autorización</p>
+                                    <p className="text-white">{order.payment.paymentDetails.authorization_code}</p>
+                                </div>
+                            )}
+                            <div>
+                                <p className="text-slate-400 text-sm">Tipo de Comprobante</p>
+                                <p className="text-white">{order.comprobanteTipo || 'No especificado'}</p>
+                            </div>
+                            <div>
+                                <p className="text-slate-400 text-sm">RUT</p>
+                                <p className="text-white">
+                                    {order.comprobanteTipo === 'factura' ? order.rut || 'No especificado' : 
+                                     order.comprobanteTipo === 'boleta' ? 'No Aplica' : 'No especificado'}
+                                </p>
                             </div>
                         </div>
                     </div>
 
                     {/* Productos */}
                     <div className="bg-slate-700/30 rounded-lg p-6">
-                        <h2 className="text-lg font-semibold text-white mb-4">Productos</h2>
+                        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                            <HiShoppingCart className="h-5 w-5 text-blue-400" />
+                            Productos
+                        </h2>
                         <div className="divide-y divide-slate-600">
-                            {order.products.map((item, index) => (
-                                <div key={index} className="py-4 first:pt-0 last:pb-0">
+                            {order.details.map((item) => (
+                                <div key={item._id} className="py-4 first:pt-0 last:pb-0">
                                     <div className="flex items-start gap-4">
-                                        <img 
-                                            src={item.product.multimedia.imagenes[0].url}
-                                            alt={item.product.nombre}
-                                            className="w-16 h-16 object-cover rounded-lg"
-                                        />
+                                        {item.productSnapshot.imagen && (
+                                            <img 
+                                                src={item.productSnapshot.imagen}
+                                                alt={item.productSnapshot.nombre}
+                                                className="w-16 h-16 object-cover rounded-lg"
+                                            />
+                                        )}
                                         <div className="flex-grow">
-                                            <h3 className="text-white font-medium">{item.product.nombre}</h3>
+                                            <h3 className="text-white font-medium">{item.productSnapshot.nombre}</h3>
                                             <p className="text-slate-400 text-sm">
-                                                {item.quantity} x {formatCurrency(item.price)}
+                                                {item.variant.peso} {item.variant.unidad} - SKU: {item.variant.sku}
+                                            </p>
+                                            <p className="text-slate-400 text-sm">
+                                                {item.quantity} x {formatCurrency(item.priceInfo.finalPrice)}
                                             </p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-white font-medium">
-                                                {formatCurrency(item.price * item.quantity)}
+                                                {formatCurrency(item.subtotal)}
                                             </p>
                                         </div>
                                     </div>
@@ -252,8 +303,14 @@ const AdminOrderDetails = () => {
                                 </div>
                                 <div className="flex justify-between gap-8">
                                     <span className="text-slate-400">Envío:</span>
-                                    <span className="text-white">{formatCurrency(order.shipping.cost)}</span>
+                                    <span className="text-white">{formatCurrency(order.shippingCost)}</span>
                                 </div>
+                                {order.paymentCommission > 0 && (
+                                    <div className="flex justify-between gap-8">
+                                        <span className="text-slate-400">Comisión de pago:</span>
+                                        <span className="text-white">{formatCurrency(order.paymentCommission)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between pt-2 border-t border-slate-600 gap-8">
                                     <span className="font-medium text-white">Total:</span>
                                     <span className="font-medium text-white">{formatCurrency(order.total)}</span>
@@ -271,10 +328,7 @@ const AdminOrderDetails = () => {
                                                 : 'bg-blue-500 text-white hover:bg-blue-600'
                                         }`}
                                     >
-                                        {status === 'completed' ? 'En Curso' :
-                                         status === 'pending' ? 'Pendiente' :
-                                         status === 'finalized' ? 'Finalizado' :
-                                         'Cancelado'}
+                                        {getStatusLabel(status)}
                                     </button>
                                 ))}
                             </div>

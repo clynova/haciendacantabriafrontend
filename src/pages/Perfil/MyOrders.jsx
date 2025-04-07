@@ -2,10 +2,11 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { getOrders } from "../../services/userService";
 import { useAuth } from "../../context/AuthContext";
 import { Pagination } from "../../components/Pagination";
-import { OrderItem } from "../../components/Orders/OrderItem";
-import { enviarEmailConfirmacionOrden } from "../../services/utilService";
-import { HiMail } from "react-icons/hi";
+import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { formatCurrencyBoletas } from "../../utils/funcionesReutilizables";
+import { HiMail } from "react-icons/hi";
+import { enviarEmailConfirmacionOrden } from "../../services/utilService";
 
 const MyOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -57,12 +58,22 @@ const MyOrders = () => {
 
     const getStatusBadgeColor = useCallback((status) => {
         const statusColors = {
-            pending: 'bg-yellow-100 text-yellow-800',
-            completed: 'bg-green-100 text-green-800',
-            finalized: 'bg-blue-100 text-blue-800',
-            canceled: 'bg-red-100 text-red-800'
+            pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+            completed: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+            finalized: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+            canceled: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
         };
-        return statusColors[status] || 'bg-gray-100 text-gray-800';
+        return statusColors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    }, []);
+
+    const getStatusLabel = useCallback((status) => {
+        const statusLabels = {
+            pending: 'Pendiente',
+            completed: 'En Curso',
+            finalized: 'Finalizado',
+            canceled: 'Cancelado'
+        };
+        return statusLabels[status] || status;
     }, []);
 
     const filteredAndSortedOrders = useMemo(() => {
@@ -87,22 +98,6 @@ const MyOrders = () => {
 
     const totalPages = Math.ceil(filteredAndSortedOrders.length / ordersPerPage);
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[200px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <p className="text-red-600 dark:text-red-400">{error}</p>
-            </div>
-        );
-    }
-
     const handleSendEmail = async (orderId) => {
         if (!window.confirm('¿Deseas recibir los detalles de esta orden por correo electrónico?')) {
             return;
@@ -119,6 +114,22 @@ const MyOrders = () => {
             setSendingEmail(false);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[200px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <p className="text-red-600 dark:text-red-400">{error}</p>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -159,31 +170,87 @@ const MyOrders = () => {
             ) : (
                 <div className="space-y-4">
                     {currentOrders.map((order) => (
-                        <div key={order._id} className="relative">
-                            <OrderItem
-                                order={order}
-                                formatDate={formatDate}
-                                getStatusBadgeColor={getStatusBadgeColor}
-                            />
-                            <button
-                                onClick={() => handleSendEmail(order._id)}
-                                disabled={sendingEmail}
-                                className="absolute bottom-4 right-4 p-2 text-gray-600 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 transition-colors duration-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                                title="Enviar detalles por correo"
-                            >
-                                <HiMail className="h-5 w-5" />
-                            </button>
+                        <div key={order._id} className="relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-4 bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                                <div className="mb-3 md:mb-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="font-medium text-gray-800 dark:text-white">
+                                            Pedido #{order._id.slice(-6)}
+                                        </h3>
+                                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeColor(order.status)}`}>
+                                            {getStatusLabel(order.status)}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                                        {formatDate(order.orderDate)}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-medium text-gray-800 dark:text-white">
+                                        {formatCurrencyBoletas(order.total)}
+                                    </p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        {order.details?.length} {order.details?.length === 1 ? 'producto' : 'productos'}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-4">
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                    {order.details?.slice(0, 3).map((detail, index) => (
+                                        <span key={detail._id} className="inline-block mr-2">
+                                            {detail.productSnapshot.nombre}
+                                            {index < Math.min(order.details.length, 3) - 1 ? ', ' : ''}
+                                        </span>
+                                    ))}
+                                    {order.details?.length > 3 && (
+                                        <span className="text-gray-500 dark:text-gray-400">
+                                            y {order.details.length - 3} más
+                                        </span>
+                                    )}
+                                </div>
+                                
+                                <div className="flex justify-between items-center mt-4">
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                        <p>Envío: {order.shipping.method}</p>
+                                        <p>Pago: {order.paymentMethod.name}</p>
+                                        <p>Comprobante: {order.comprobanteTipo || 'No especificado'}
+                                        {order.comprobanteTipo === 'factura' ? 
+                                            ` - RUT: ${order.rut || 'No especificado'}` : 
+                                            order.comprobanteTipo === 'boleta' ? ' - RUT: No Aplica' : ''}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => handleSendEmail(order._id)}
+                                            disabled={sendingEmail}
+                                            className="flex items-center justify-center p-2 text-gray-600 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                                            title="Enviar detalles por correo"
+                                        >
+                                            <HiMail className="h-5 w-5" />
+                                        </button>
+                                        <Link 
+                                            to={`/profile/orders/${order._id}`} 
+                                            className="text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                        >
+                                            Ver detalles
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ))}
                 </div>
             )}
             
             {filteredAndSortedOrders.length > ordersPerPage && (
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                />
+                <div className="mt-6">
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                    />
+                </div>
             )}
         </div>
     );

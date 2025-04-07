@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { getAddresses, addAddress, deleteAddress, updateAddress } from '../../services/userService';
@@ -85,8 +85,8 @@ const AddressCard = ({ address, selected, onSelect, onEdit, onDelete }) => {
     );
 };
 
-// Componente para los métodos de envío
-const ShippingMethodSelect = ({ shippingMethods, selectedCarrier, selectedMethod, onCarrierChange, onMethodChange }) => {
+// Modificando la función de selección de método para recalcular el costo de envío
+const ShippingMethodSelect = ({ shippingMethods, selectedCarrier, selectedMethod, onCarrierChange, onMethodChange, subtotal }) => {
     return (
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
             <h2 className="text-xl font-bold mb-4">Método de Envío</h2>
@@ -131,10 +131,16 @@ const ShippingMethodSelect = ({ shippingMethods, selectedCarrier, selectedMethod
                                                 <div className="text-blue-600 font-medium mt-1">
                                                     {method.free_shipping_threshold && (
                                                         <div className="text-sm text-green-600">
-                                                            Envío gratis en compras mayores a {formatCurrency(method.free_shipping_threshold)}
+                                                            {subtotal >= method.free_shipping_threshold 
+                                                                ? '¡Envío gratis! Has superado el monto mínimo' 
+                                                                : `Envío gratis en compras mayores a ${formatCurrency(method.free_shipping_threshold)}`}
                                                         </div>
                                                     )}
-                                                    {formatCurrency(method.base_cost)}
+                                                    {subtotal >= (method.free_shipping_threshold || Infinity)
+                                                        ? <span className="line-through text-gray-400 mr-2">{formatCurrency(method.base_cost)}</span>
+                                                        : formatCurrency(method.base_cost)}
+                                                    {subtotal >= (method.free_shipping_threshold || Infinity) && 
+                                                        <span className="text-green-600">¡GRATIS!</span>}
                                                 </div>
                                             </label>
                                         </div>
@@ -304,6 +310,7 @@ const FormaEnvio = () => {
     const { token } = useAuth();
     const { cartItems, saveShippingInfo } = useCart();
     const [isValparaisoRegion, setIsValparaisoRegion] = useState(true);
+    const navigate = useNavigate();
 
     const fetchAddresses = async () => {
         try {
@@ -422,11 +429,11 @@ const FormaEnvio = () => {
 
         saveShippingInfo(shippingData);
 
-        // Redirigir según la validación actual de la región
+        // Usar navigate en lugar de window.location.href para preservar el estado
         if (isValparaisoRegion) {
-            window.location.href = '/checkout/pago';
+            navigate('/checkout/pago');
         } else {
-            window.location.href = '/checkout/cotizacion';
+            navigate('/checkout/cotizacion');
         }
     };
 
@@ -595,6 +602,63 @@ const FormaEnvio = () => {
         .find(c => c._id === selectedCarrier)
         ?.methods.find(m => m._id === selectedMethod) : null;
 
+    // Calcular el subtotal del carrito usando la nueva estructura de datos
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => {
+            const product = item.productId;
+            const variant = item.variant;
+            
+            // Buscar la información de precio para esta variante
+            const variantInfo = product.precioVariantesPorPeso?.find(v => v.pesoId === variant.pesoId);
+            
+            // Usar el precio final si está disponible, de lo contrario usar el precio normal
+            const price = variantInfo?.precioFinal || variant.precio;
+            
+            return total + (price * item.quantity);
+        }, 0);
+    };
+
+    // Calcular el peso total del carrito (necesario para calcular costos de envío)
+    const calculateTotalWeight = () => {
+        return cartItems.reduce((total, item) => {
+            const variant = item.variant;
+            let weight = variant.peso || 0;
+            
+            // Convertir a kg si es necesario para uniformidad
+            if (variant.unidad === 'g') {
+                weight = weight / 1000;
+            }
+            
+            return total + (weight * item.quantity);
+        }, 0);
+    };
+
+    // Determinar el costo de envío basado en el método seleccionado
+    const getShippingCost = () => {
+        if (selectedShippingMethod) {
+            const subtotal = calculateSubtotal();
+            
+            // Verificar si aplica envío gratis por monto mínimo
+            if (selectedShippingMethod.free_shipping_threshold && 
+                subtotal >= selectedShippingMethod.free_shipping_threshold) {
+                return 0;
+            }
+            
+            // Cálculo de envío basado en peso
+            const totalWeight = calculateTotalWeight();
+            const baseCost = selectedShippingMethod.base_cost || 0;
+            
+            // Si hay costo extra por kg adicional
+            if (selectedShippingMethod.extra_cost_per_kg && totalWeight > 1) {
+                const extraWeight = Math.max(0, totalWeight - 1); // Peso adicional después del primer kg
+                return baseCost + (extraWeight * selectedShippingMethod.extra_cost_per_kg);
+            }
+            
+            return baseCost;
+        }
+        return 0;
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-2 text-white">Información de Envío</h1>
@@ -689,6 +753,7 @@ const FormaEnvio = () => {
                                 selectedMethod={selectedMethod}
                                 onCarrierChange={setSelectedCarrier}
                                 onMethodChange={setSelectedMethod}
+                                subtotal={calculateSubtotal()}
                             />
 
                             {/* Información del destinatario */}
@@ -723,7 +788,9 @@ const FormaEnvio = () => {
                     <div className="lg:col-span-1">
                         <CartSummary
                             cartItems={cartItems}
-                            shippingMethod={selectedShippingMethod}
+                            calculateSubtotal={calculateSubtotal}
+                            calculateTotalWeight={calculateTotalWeight}
+                            shippingCost={getShippingCost()}
                             showButton={false}
                         />
                     </div>

@@ -1,13 +1,17 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
-import { FaSnowflake, FaTemperatureLow, FaLeaf } from 'react-icons/fa'; // Add these imports
+import { FaSnowflake, FaTemperatureLow, FaLeaf } from 'react-icons/fa';
+import { MdOutlineLocalOffer } from 'react-icons/md';
+import { BsBoxSeam } from 'react-icons/bs';
+import { FiShoppingCart } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { addProductToWishlist } from '../../services/userService';
 import toast from 'react-hot-toast';
-import { getImageUrl, formatCurrency } from '../../utils/funcionesReutilizables';
+import { formatCurrency } from '../../utils/funcionesReutilizables';
+import { motion } from 'framer-motion';
 
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
@@ -17,6 +21,12 @@ const ProductCard = ({ product }) => {
     const { token } = useAuth();
     const { addToCart } = useCart();
     const fallbackImage = '/images/placeholder.png';
+
+    // Usar siempre la variante predeterminada para todos los datos
+    const variant = product.variantePredeterminada || {};
+    
+    // Comprobamos el stock disponible
+    const hasAvailableStock = variant.stockDisponible > 0;
 
     const handleImageError = () => {
         setImageError(true);
@@ -37,8 +47,13 @@ const ProductCard = ({ product }) => {
     };
 
     const handleAddToCart = () => {
-        // Ya no mostramos el toast aquí, la función addToCart se encarga de mostrarlo
-        addToCart(product);
+        // Pasar el producto completo con su variante predeterminada
+        addToCart({
+            ...product,
+            selectedVariant: variant
+        });
+        
+        toast.success(`${product.nombre} (${variant.peso}${variant.unidad}) agregado al carrito`);
     };
 
     const navigateToProduct = (e) => {
@@ -49,136 +64,248 @@ const ProductCard = ({ product }) => {
         navigate(`/product/${product.slug || product._id}`);
     };
 
+    // Verificamos si es carne argentina basado en el tipo de producto y origen
     const isArgentinianMeat = product.tipoProducto === 'ProductoCarne' && 
                              product.origen?.pais?.toLowerCase() === 'argentina';
 
     const getConservationInfo = () => {
         if (product.conservacion?.requiereCongelacion) {
             return {
-                icon: <FaSnowflake className="w-5 h-5 text-blue-500" />,
+                icon: <FaSnowflake className="w-full h-full text-blue-500" />,
                 text: 'Congelado',
-                bgColor: 'bg-blue-100 dark:bg-blue-900/30'
+                bgColor: 'bg-blue-100',
+                textColor: 'text-blue-700'
             };
         } else if (product.conservacion?.requiereRefrigeracion) {
             return {
-                icon: <FaTemperatureLow className="w-5 h-5 text-cyan-500" />,
+                icon: <FaTemperatureLow className="w-full h-full text-cyan-500" />,
                 text: 'Refrigerado',
-                bgColor: 'bg-cyan-100 dark:bg-cyan-900/30'
+                bgColor: 'bg-cyan-100',
+                textColor: 'text-cyan-700'
             };
         }
         return {
-            icon: <FaLeaf className="w-5 h-5 text-green-500" />,
+            icon: <FaLeaf className="w-full h-full text-green-500" />,
             text: 'Fresco',
-            bgColor: 'bg-green-100 dark:bg-green-900/30'
+            bgColor: 'bg-green-100',
+            textColor: 'text-green-700'
         };
     };
 
     const conservationInfo = getConservationInfo();
-
+    
     return (
-        <div className="px-2">
-            <div 
-                className="group relative bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl 
-                          transition-all duration-300 overflow-hidden hover:cursor-pointer"
+        <div className="w-full p-2">
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                whileHover={{ 
+                    scale: 1.03,
+                    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                }}
+                className="group relative rounded-2xl bg-white dark:bg-gray-800 h-full flex flex-col overflow-hidden
+                          transition-all duration-300 cursor-pointer
+                          shadow-md hover:shadow-2xl border border-gray-100 dark:border-gray-700"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 onClick={navigateToProduct}
             >
-                {/* Product Image with enhanced zoom */}
-                <div className="relative aspect-square overflow-hidden">
+                {/* Image Container */}
+                <div className="relative overflow-hidden rounded-t-2xl aspect-square">
                     <img
                         src={imageError ? fallbackImage : 
                             (product.multimedia?.imagenes?.[0]?.url || fallbackImage)}
                         alt={product.nombre}
-                        className="w-full h-full object-cover transition-transform duration-500
-                                 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-700
+                                 group-hover:scale-110 z-0"
                         loading="lazy"
                         onError={handleImageError}
                     />
                     
-                    {/* Argentina Flag Badge */}
-                    {isArgentinianMeat && (
-                        <div className="absolute top-3 left-3 z-30">
-                            <img
-                                src="/images/flags/argentina-flag.png"
-                                alt="Origen Argentina"
-                                className="w-8 h-8 rounded-full shadow-md"
-                                title="Producto de origen argentino"
-                            />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 
+                                  group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+                    
+                    {/* Top badges container */}
+                    <div className="absolute top-3 left-3 right-3 flex justify-between items-start z-20">
+                        {/* Left badges */}
+                        <div className="flex flex-col gap-2">
+                            {/* Argentina Flag Badge */}
+                            {isArgentinianMeat && (
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="flex items-center gap-1.5 bg-white/90 dark:bg-gray-800/90 rounded-full p-1 shadow-md"
+                                >
+                                    <img
+                                        src="/images/flags/argentina-flag.png"
+                                        alt="Origen Argentina"
+                                        className="w-6 h-6 rounded-full border border-gray-200"
+                                        title="Producto de origen argentino"
+                                    />
+                                </motion.div>
+                            )}
                         </div>
-                    )}
 
-                    {/* Conservation Badge */}
-                    <div className={`absolute bottom-3 left-3 z-30 flex items-center gap-1.5 px-2.5 py-1 
-                                   rounded-full ${conservationInfo.bgColor} shadow-md`}>
-                        {conservationInfo.icon}
-                        <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
-                            {conservationInfo.text}
-                        </span>
+                        {/* Right badges */}
+                        <div className="flex flex-col gap-2 items-end">
+                            {/* Discount Badge */}
+                            {variant.descuento > 0 && (
+                                <motion.div 
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="flex items-center gap-1.5 bg-red-500 rounded-full px-3 py-1 shadow-lg"
+                                >
+                                    <MdOutlineLocalOffer className="w-4 h-4 text-white" />
+                                    <span className="text-sm font-bold text-white">
+                                        {variant.descuento}% OFF
+                                    </span>
+                                </motion.div>
+                            )}
+                            
+                            
+                            {/* Multiple Variants Badge */}
+                            { /* product.precioVariantesPorPeso && product.precioVariantesPorPeso.length > 1 && (
+                              <motion.div 
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="flex items-center gap-1.5 bg-purple-500 rounded-full px-3 py-1 shadow-lg mt-2"
+                                >
+                                    <span className="text-xs font-bold text-white">
+                                        Varios formatos
+                                    </span>
+                                </motion.div>
+                               
+                            )}
+
+                            {/* Favorite Button */}
+                            <motion.button
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleLikeClick();
+                                }}
+                                className={`p-2 rounded-full transition-colors duration-300 shadow-md
+                                          ${isLiked 
+                                            ? 'bg-red-50 dark:bg-red-900/30' 
+                                            : 'bg-white/90 dark:bg-gray-800/90'}`}
+                                aria-label={isLiked ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
+                            >
+                                {isLiked ? (
+                                    <HiHeart className="w-5 h-5 text-red-500" />
+                                ) : (
+                                    <HiOutlineHeart className="w-5 h-5 text-gray-600 dark:text-gray-300 
+                                                            group-hover:text-red-500 transition-colors" />
+                                )}
+                            </motion.button>
+                        </div>
                     </div>
+                    
+                    {/* Bottom badges container */}
+                    <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end z-20">
+                        {/* Conservation Badge */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`flex items-center gap-1.5 rounded-full shadow-md
+                                      px-2.5 py-1.5 ${conservationInfo.bgColor}`}
+                        >
+                            <div className="w-4 h-4">
+                                {conservationInfo.icon}
+                            </div>
+                            <span className={`text-xs font-medium ${conservationInfo.textColor}`}>
+                                {conservationInfo.text}
+                            </span>
+                        </motion.div>
 
-                    {/* Favorite Button - Always visible and above zoom */}
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleLikeClick();
-                        }}
-                        className="absolute top-3 right-3 p-2 rounded-full bg-white/90 shadow-md
-                                 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 
-                                 transition-colors duration-200 z-30"
-                        aria-label={isLiked ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
-                    >
-                        {isLiked ? (
-                            <HiHeart className="w-5 h-5 text-red-500" />
-                        ) : (
-                            <HiOutlineHeart className="w-5 h-5 text-gray-600 dark:text-gray-300 
-                                                     hover:text-red-500" />
-                        )}
-                    </button>
-
-                    {/* Hover Overlay */}
-                    <div className={`absolute inset-0 bg-black/40 flex items-center 
-                                   justify-center transition-opacity duration-300 z-20
-                                   ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-                        <span className="bg-white text-gray-900 px-6 py-2 rounded-full font-medium
-                                     hover:bg-gray-100 transition-colors duration-200">
-                            Ver detalles
-                        </span>
+                        {/* Weight Badge */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-1.5 bg-white/90 dark:bg-gray-800/90 
+                                      text-gray-800 dark:text-white rounded-full px-2.5 py-1.5 shadow-md"
+                        >
+                            <BsBoxSeam className="w-4 h-4 text-blue-500" />
+                            <span className="text-xs font-semibold">
+                                {variant.peso}{variant.unidad}
+                            </span>
+                        </motion.div>
                     </div>
                 </div>
 
-                {/* Product Info - Static section */}
-                <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white 
-                                 mb-2 transition-colors duration-200 line-clamp-2
-                                 hover:text-blue-500">
+                {/* Content Container */}
+                <div className="flex flex-col flex-grow p-4">
+                    {/* Title */}
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white 
+                                 mb-2 line-clamp-2 group-hover:text-blue-500 transition-colors">
                         {product.nombre}
                     </h3>
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-xl font-bold text-gray-900 dark:text-white">
-                            {formatCurrency(product.precioFinal)}
-                        </span>
-                        {product.precios?.base && product.precioFinal < product.precios.base && (
-                            <span className="text-sm text-gray-500 line-through">
-                                {formatCurrency(product.precios.base)}
+                    
+                    {/* Description (if available) */}
+                    {product.descripcion?.corta && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
+                            {product.descripcion.corta}
+                        </p>
+                    )}
+                    
+                    {/* Spacer */}
+                    <div className="flex-grow min-h-2"></div>
+
+                    {/* Price and CTA */}
+                    <div className="mt-auto">
+                        {/* Price */}
+                        <div className="flex items-end justify-between mb-3">
+                            <div className="flex flex-col">
+                                <span className="text-2xl font-bold text-gray-800 dark:text-white">
+                                    {formatCurrency(variant.precioFinal || 0)}
+                                </span>
+                                {variant.descuento > 0 && (
+                                    <span className="text-sm text-gray-500 line-through">
+                                        {formatCurrency(variant.precio || 0)}
+                                    </span>
+                                )}
+                            </div>
+                            
+                            {/* Stock indicator */}
+                            {hasAvailableStock ? (
+                                <span className="text-xs px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 
+                                               dark:text-green-400 rounded-full font-medium">
+                                    En stock
+                                </span>
+                            ) : (
+                                <span className="text-xs px-2 py-1 bg-red-100 text-red-800 dark:bg-red-900/30 
+                                               dark:text-red-400 rounded-full font-medium">
+                                    Agotado
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Add to cart button */}
+                        <motion.button
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddToCart();
+                            }}
+                            disabled={!hasAvailableStock}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium
+                                     transition-all duration-300 
+                                     bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800
+                                     text-white shadow-md hover:shadow-lg
+                                     disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed"
+                        >
+                            <FiShoppingCart className="w-5 h-5" />
+                            <span>
+                                {hasAvailableStock ? 'Agregar al carrito' : 'Agotado'}
                             </span>
-                        )}
+                        </motion.button>
                     </div>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCart();
-                        }}
-                        disabled={!product.inventario.stockUnidades}
-                        className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium
-                                 hover:bg-blue-700 transition-colors duration-200 
-                                 disabled:bg-gray-400 disabled:cursor-not-allowed
-                                 hover:shadow-lg z-10"
-                    >
-                        {product.inventario.stockUnidades ? 'Agregar al carrito' : 'Agotado'}
-                    </button>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };
@@ -187,25 +314,49 @@ ProductCard.propTypes = {
     product: PropTypes.shape({
         _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
         nombre: PropTypes.string.isRequired,
-        precioFinal: PropTypes.number.isRequired,
-        precios: PropTypes.shape({
-            base: PropTypes.number,
+        slug: PropTypes.string,
+        tipoProducto: PropTypes.string,
+        descripcion: PropTypes.shape({
+            corta: PropTypes.string,
+            completa: PropTypes.string
         }),
-        inventario: PropTypes.shape({
-            stockUnidades: PropTypes.number.isRequired,
-        }).isRequired,
         multimedia: PropTypes.shape({
             imagenes: PropTypes.arrayOf(PropTypes.shape({
                 url: PropTypes.string,
                 textoAlternativo: PropTypes.string,
                 esPrincipal: PropTypes.bool,
                 _id: PropTypes.string,
-            })).isRequired,
-        }).isRequired,
+            })),
+        }),
         conservacion: PropTypes.shape({
             requiereRefrigeracion: PropTypes.bool,
             requiereCongelacion: PropTypes.bool,
         }),
+        origen: PropTypes.shape({
+            pais: PropTypes.string,
+        }),
+        variantePredeterminada: PropTypes.shape({
+            pesoId: PropTypes.string,
+            peso: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            unidad: PropTypes.string,
+            precio: PropTypes.number,
+            descuento: PropTypes.number,
+            precioFinal: PropTypes.number,
+            stockDisponible: PropTypes.number,
+            esPredeterminado: PropTypes.bool,
+            sku: PropTypes.string,
+        }),
+        precioVariantesPorPeso: PropTypes.arrayOf(PropTypes.shape({
+            pesoId: PropTypes.string,
+            peso: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            unidad: PropTypes.string,
+            precio: PropTypes.number,
+            descuento: PropTypes.number,
+            precioFinal: PropTypes.number,
+            stockDisponible: PropTypes.number,
+            esPredeterminado: PropTypes.bool,
+            sku: PropTypes.string,
+        })),
     }).isRequired,
 };
 

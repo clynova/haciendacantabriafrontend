@@ -4,173 +4,238 @@ import { toast } from 'react-hot-toast';
 
 const mockData = {
     aceite: {
-        codigo: `ACE-${Date.now()}`,
-        sku: `SKU-ACE-${Date.now()}`,
-        nombre: 'Aceite de Oliva Extra Virgen Premium',
+        sku: `TEST-ACC-${Date.now()}`,
+        nombre: 'Aceite de Oliva 2L',
+        tipoProducto: 'ProductoAceite',
+        categoria: 'ACEITE',
+        estado: true,
+        destacado: false,
         descripcion: {
-            corta: 'Aceite de oliva premium de primera prensada en frío',
-            completa: 'Aceite de oliva extra virgen elaborado con aceitunas seleccionadas...'
+            corta: 'Aceite premium de oliva extra virgen',
+            completa: 'Aceite de oliva extra virgen premium elaborado con aceitunas seleccionadas'
         },
-        precios: {
-            base: '15990',
-            descuentos: {
-                regular: '5',
-                transferencia: '10'
-            }
+        multimedia: {
+            imagenes: [],
+            video: 'https://www.youtube.com/watch?v=ANDVYKTZMGs'
+        },
+        seo: {
+            metaTitulo: 'Aceite de Oliva Extra Virgen Premium | Hacienda Cantabria',
+            metaDescripcion: 'Aceite de oliva extra virgen premium, prensado en frío, ideal para ensaladas y cocina gourmet. Producido en Argentina.',
+            palabrasClave: [
+                'aceite de oliva',
+                'extra virgen',
+                'premium',
+                'gourmet',
+                'prensado en frío',
+                'Argentina',
+                'Hacienda Cantabria'
+            ]
+        },
+        infoAdicional: {
+            origen: 'Valle de Uco, Mendoza, Argentina',
+            marca: 'Hacienda Cantabria',
+            certificaciones: [
+                'HACCP',
+                'FSSC_22000',
+                'ISO_22000',
+                'KOSHER',
+                'ORGANICO'
+            ]
+        },
+        conservacion: {
+            requiereRefrigeracion: false,
+            requiereCongelacion: false,
+            vidaUtil: '24 meses desde la fecha de envasado',
+            instrucciones: 'Conservar en lugar fresco y seco, protegido de la luz directa. Una vez abierto, consumir dentro de 6 meses.'
+        },
+        tags: [
+            'PREMIUM',
+            'ORGANICO',
+            'GOURMET',
+            'ACEITE',
+            'OLIVA',
+            'IMPORTADO',
+            'ARGENTINA'
+        ],
+        opcionesPeso: {
+            esPesoVariable: false,
+            pesoPromedio: null,
+            pesoMinimo: null,
+            pesoMaximo: null,
+            pesosEstandar: [
+                {
+                    peso: 250,
+                    unidad: 'ml',
+                    esPredeterminado: false,
+                    precio: 8990,
+                    sku: 'TEST-ACC-001-250ML',
+                    stockDisponible: 100,
+                    umbralStockBajo: 10,
+                    descuentos: {
+                        regular: 0
+                    }
+                },
+                {
+                    peso: 500,
+                    unidad: 'ml',
+                    esPredeterminado: true,
+                    precio: 15990,
+                    sku: 'TEST-ACC-001-500ML',
+                    stockDisponible: 75,
+                    umbralStockBajo: 8,
+                    descuentos: {
+                        regular: 10
+                    }
+                },
+                {
+                    peso: 1000,
+                    unidad: 'ml',
+                    esPredeterminado: false,
+                    precio: 29990,
+                    sku: 'TEST-ACC-001-1L',
+                    stockDisponible: 50,
+                    umbralStockBajo: 5,
+                    descuentos: {
+                        regular: 15
+                    }
+                },
+                {
+                    peso: 2000,
+                    unidad: 'ml',
+                    esPredeterminado: true,
+                    precio: 25000,
+                    sku: 'TEST-ACC-001-2L',
+                    stockDisponible: 50,
+                    umbralStockBajo: 5,
+                    descuentos: {
+                        regular: 0
+                    }
+                },
+                {
+                    peso: 5000,
+                    unidad: 'ml',
+                    esPredeterminado: false,
+                    precio: 50000,
+                    sku: 'TEST-ACC-001-5L',
+                    stockDisponible: 30,
+                    umbralStockBajo: 3,
+                    descuentos: {
+                        regular: 0
+                    }
+                }
+            ],
+            rangosPreferidos: [
+                {
+                    nombre: 'Uso Personal',
+                    pesoMinimo: 250,
+                    pesoMaximo: 500,
+                    descripcion: 'Ideal para consumo individual o familiar pequeño',
+                    esPredeterminado: true
+                },
+                {
+                    nombre: 'Uso Familiar',
+                    pesoMinimo: 750,
+                    pesoMaximo: 1000,
+                    descripcion: 'Perfecto para familias grandes o uso frecuente',
+                    esPredeterminado: false
+                }
+            ]
+        },
+        infoNutricional: {
+            porcion: '15 ml (1 cucharada)',
+            calorias: 120,
+            proteinas: 0,
+            grasaTotal: 14,
+            grasaSaturada: 2,
+            grasaTrans: 0,
+            grasaPoliinsaturada: 1.5,
+            grasaMonoinsaturada: 10,
+            colesterol: 0,
+            sodio: 0,
+            carbohidratos: 0
         },
         infoAceite: {
             tipo: 'OLIVA',
-            volumen: '500',
             envase: 'BOTELLA'
         },
         caracteristicas: {
-            aditivos: ['ANTIOXIDANTES', 'VITAMINA_E'],
-            filtracion: 'FILTRADO',
-            acidez: '0.2',
-            extraccion: 'PRENSADO_FRIO'
+            aditivos: ['ANTIOXIDANTES', 'VITAMINA_E'],  // Asegurar que sean valores del enum
+            filtracion: 'FILTRADO',  // Asegurar que sea un valor válido
+            acidez: 0.2,  // Debe ser número, no string
+            extraccion: 'PRENSADO_FRIO'  // Asegurar que sea un valor válido
         },
+        usosRecomendados: [
+            'ENSALADAS',
+            'COCINA',
+            'MARINADOS',
+            'ADEREZOS'
+        ],
         produccion: {
             metodo: 'PRENSADO_MECANICO',
-            temperatura: '25',
-            fechaEnvasado: '2024-03-24',
-            fechaVencimiento: '2025-03-24'
-        },
-        estado: true,
-        destacado: false,
+            temperatura: 'Ambiente (18-22°C)',
+            fechaEnvasado: new Date().toISOString(),
+            fechaVencimiento: new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString() // 2 años
+        }
     },
     carne: {
-        codigo: `CAR-${Date.now()}`,
-        sku: `SKU-CAR-${Date.now()}`,
+        sku: `TEST-CAR-${Date.now()}`,
         nombre: 'Lomo Vetado Premium',
-        descripcion: {
-            corta: 'Lomo vetado de primera calidad',
-            completa: 'Corte premium de vacuno con excelente marmoleo...'
-        },
-        precios: {
-            base: '25990',
-            descuentos: {
-                regular: '5',
-                transferencia: '10'
-            }
-        },
-        infoCarne: {
-            tipoCarne: 'VACUNO',
-            corte: 'LOMO_VETADO',
-            nombreArgentino: 'Bife Ancho',
-            nombreChileno: 'Lomo Vetado',
-            precioPorKg: '29990'
-        },
-        caracteristicasCarne: {
-            color: 'ROJO_CEREZA',
-            textura: ['TIERNA', 'JUGOSA'],
-            porcentajeGrasa: '15',
-            marmoleo: 4
-        },
-        peso: {
-            esPesoVariable: true,
-            pesoPromedio: '1.2',
-            pesoMinimo: '1.0',
-            pesoMaximo: '1.4'
-        },
-        empaque: {
-            tipo: 'VACIO',
-            unidadesPorCaja: '10',
-            pesoCaja: '12'
-        },
-        origen: {
-            pais: 'CHILE',
-            region: 'Región Metropolitana',
-            productor: 'Hacienda Cantabria',
-            raza: 'ANGUS',
-            maduracion: '21'
-        },
-        procesamiento: {
-            fechaFaenado: '2024-03-20',
-            fechaEnvasado: '2024-03-22',
-            fechaVencimiento: '2024-04-22',
-            numeroLote: 'LOT-2024-001'
-        },
+        tipoProducto: 'ProductoCarne',
+        categoria: 'CARNE',
         estado: true,
         destacado: false,
-    },
-    common: {
+        descripcion: {
+            corta: 'Lomo vetado premium de primera calidad',
+            completa: 'Corte premium de vacuno con excelente marmoleo y textura'
+        },
+        multimedia: {
+            imagenes: [],
+            video: ''
+        },
         seo: {
-            metaTitulo: 'Producto Premium - Hacienda Cantabria',
-            metaDescripcion: 'Descubre nuestro producto premium de alta calidad...',
-            palabrasClave: ['premium', 'calidad', 'gourmet']
+            metaTitulo: 'LOMO VETADO PREMIUM | HACIENDA CANTABRIA',
+            metaDescripcion: 'Corte premium de vacuno con excelente marmoleo',
+            palabrasClave: ['premium', 'carne', 'vacuno', 'lomo']
         },
         infoAdicional: {
+            origen: 'Argentina',
             marca: 'Hacienda Cantabria',
-            certificaciones: ['HACCP', 'ISO_22000']
+            certificaciones: ['HACCP', 'FSSC_22000']
         },
         conservacion: {
             requiereRefrigeracion: true,
             requiereCongelacion: false,
-            vidaUtil: '30',
+            vidaUtil: '7 días',
             instrucciones: 'Mantener refrigerado entre 0°C y 4°C'
         },
-        infoNutricional: {
-            porcion: '100',
-            calorias: '200',
-            proteinas: '20',
-            grasaTotal: '15',
-            grasaSaturada: '5',
-            colesterol: '50',
-            sodio: '400',
-            carbohidratos: '0'
-        }
-    }
-};
-
-export const TestingTools = ({ 
-    onTestDataFill, 
-    selectedType = 'ProductoAceite',
-    selectedCategoria = 'ACEITE'
-}) => {
-    const [expanded, setExpanded] = useState(false);
-
-    // Datos de prueba para un producto de aceite
-    const aceiteTestData = {
-        sku: 'TEST-AC-001',
-        nombre: 'Aceite de Oliva Extra Virgen Test',
-        categoria: 'ACEITE',
-        descripcion: {
-            corta: 'Aceite de oliva de prueba para desarrollo',
-            completa: 'Este es un producto de prueba para desarrollo y testing.'
-        },
-        precios: {
-            base: '12500',
-            descuentos: {
-                regular: 10
-            }
-        },
-        infoAceite: {
-            tipo: 'OLIVA',
-            volumen: '500',
-            envase: 'BOTELLA'
-        },
-        caracteristicasAceite: {
-            aditivos: [],
-            filtracion: 'FILTRADO',
-            acidez: '0.3',
-            extraccion: 'PRENSADO_FRIO'
-        }
-    };
-
-    // Datos de prueba para un producto de carne
-    const carneTestData = {
-        sku: 'TEST-CA-001',
-        nombre: 'Lomo Vetado Premium Test',
-        categoria: 'CARNE',
-        descripcion: {
-            corta: 'Corte de carne de prueba',
-            completa: 'Este es un producto de prueba para desarrollo y testing de carnes.'
-        },
-        precios: {
-            base: '18500',
-            descuentos: {
-                regular: 5
-            }
+        opcionesPeso: {
+            esPesoVariable: true,
+            pesoPromedio: 1000,
+            pesoMinimo: 800,
+            pesoMaximo: 1200,
+            pesosEstandar: [
+                {
+                    peso: 1000,
+                    unidad: 'g',
+                    esPredeterminado: true,
+                    precio: 25000,
+                    sku: 'TEST-CAR-001-1K',
+                    stockDisponible: 20,
+                    umbralStockBajo: 5,
+                    descuentos: {
+                        regular: 0
+                    }
+                }
+            ],
+            rangosPreferidos: [
+                {
+                    nombre: 'Porción Individual',
+                    pesoMinimo: 200,
+                    pesoMaximo: 300,
+                    descripcion: 'Ideal para una persona',
+                    esPredeterminado: true
+                }
+            ]
         },
         infoCarne: {
             tipoCarne: 'VACUNO',
@@ -178,55 +243,66 @@ export const TestingTools = ({
             nombreArgentino: 'Bife Ancho',
             nombreChileno: 'Lomo Vetado'
         },
-        caracteristicasCarne: {
-            porcentajeGrasa: '15',
-            marmoleo: 3,
+        caracteristicas: {
+            porcentajeGrasa: 15,
+            marmoleo: 4,
             color: 'ROJO_CEREZA',
             textura: ['TIERNA', 'JUGOSA']
         },
-        opcionesPeso: {
-            esPesoVariable: true,
-            pesoPromedio: '0.8',
-            pesoMinimo: '0.7',
-            pesoMaximo: '0.9'
+        infoNutricional: {
+            porcion: '100g',
+            calorias: 250,
+            proteinas: 26,
+            grasaTotal: 17,
+            grasaSaturada: 7,
+            colesterol: 80,
+            sodio: 60,
+            carbohidratos: 0
+        },
+        coccion: {
+            metodos: ['PARRILLA', 'HORNO'],
+            temperaturaIdeal: '75°C',
+            tiempoEstimado: '20-25 minutos',
+            consejos: ['Dejar reposar 5 minutos antes de cortar'],
+            recetas: [
+                {
+                    nombre: 'Lomo a la parrilla',
+                    url: 'https://ejemplo.com/receta',
+                    descripcion: 'Receta tradicional argentina'
+                }
+            ]
+        },
+        empaque: {
+            tipo: 'VACIO',
+            unidadesPorCaja: 10,
+            pesoCaja: 10.5
+        },
+        origen: {
+            pais: 'ARGENTINA',
+            region: 'Pampa Húmeda',
+            productor: 'Hacienda Los Pampas',
+            raza: 'ANGUS',
+            maduracion: '21'  // días de maduración
+        },
+        procesamiento: {
+            fechaFaenado: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 días atrás
+            fechaEnvasado: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 días atrás
+            fechaVencimiento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 días adelante
+            numeroLote: `LOT-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`
         }
-    };
+    }
+};
 
-    // Añadir datos de prueba para condimentos
-    const condimentoTestData = {
-        sku: 'TEST-COND-001',
-        nombre: 'Mix de Especias Premium Test',
-        codigo: `CODE-COND-${Date.now()}`, // Solución temporal
-        categoria: 'CONDIMENTO',
-        tipoProducto: 'ProductoBase',
-        tipoCondimento: 'Mezcla de Especias',
-        contenidoNeto: 250,
-        // Resto de datos de prueba para condimentos...
-    };
+export const TestingTools = ({ onTestDataFill }) => {
+    const [expanded, setExpanded] = useState(false);
 
-    // Añadir datos de prueba para accesorios
-    const accesorioTestData = {
-        sku: 'TEST-ACC-001',
-        nombre: 'Cuchillo para Carne Premium Test',
-        codigo: `CODE-ACC-${Date.now()}`, // Solución temporal
-        categoria: 'ACCESORIO',
-        tipoProducto: 'ProductoBase',
-        tipoAccesorio: 'Cuchillo',
-        material: 'Acero Inoxidable',
-        dimensiones: '30cm x 5cm',
-        // Resto de datos de prueba para accesorios...
-    };
-
-    const handleFillAceite = () => {
-        console.log('Cargando datos de prueba para aceite:', aceiteTestData);
-        onTestDataFill(aceiteTestData);
-        toast.success('Datos de prueba para aceite cargados');
-    };
-
-    const handleFillCarne = () => {
-        console.log('Cargando datos de prueba para carne:', carneTestData);
-        onTestDataFill(carneTestData);
-        toast.success('Datos de prueba para carne cargados');
+    const handleFillTestData = (type) => {
+        const testData = mockData[type];
+        if (testData) {
+            console.log(`Cargando datos de prueba para ${type}:`, testData);
+            onTestDataFill(testData);
+            toast.success(`Datos de prueba para ${type} cargados`);
+        }
     };
 
     if (!expanded) {
@@ -235,7 +311,6 @@ export const TestingTools = ({
                 className="fixed bottom-4 right-4 bg-gray-800 text-white p-2 rounded-full shadow-lg z-50"
                 onClick={() => setExpanded(true)}
                 title="Herramientas de prueba"
-                aria-label="Herramientas de prueba"
             >
                 🧪
             </button>
@@ -245,11 +320,10 @@ export const TestingTools = ({
     return (
         <div className="fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg z-50 w-64">
             <div className="flex justify-between items-center mb-3">
-                <h3 className="font-medium">Herramientas de Prueba</h3>
+                <h3 className="font-medium">Datos de Prueba</h3>
                 <button 
                     onClick={() => setExpanded(false)}
                     className="text-gray-400 hover:text-white"
-                    aria-label="Cerrar"
                 >
                     ✕
                 </button>
@@ -258,42 +332,26 @@ export const TestingTools = ({
             <div className="space-y-2">
                 <button
                     className="w-full bg-indigo-700 hover:bg-indigo-600 text-white py-2 px-3 rounded text-sm"
-                    onClick={handleFillAceite}
+                    onClick={() => handleFillTestData('aceite')}
                 >
                     Cargar Aceite de Prueba
                 </button>
                 
                 <button
                     className="w-full bg-indigo-700 hover:bg-indigo-600 text-white py-2 px-3 rounded text-sm"
-                    onClick={handleFillCarne}
+                    onClick={() => handleFillTestData('carne')}
                 >
                     Cargar Carne de Prueba
-                </button>
-
-                <button
-                    className="w-full bg-indigo-700 hover:bg-indigo-600 text-white py-2 px-3 rounded text-sm"
-                    onClick={() => onTestDataFill(condimentoTestData)}
-                >
-                    Cargar Condimento de Prueba
-                </button>
-
-                <button
-                    className="w-full bg-indigo-700 hover:bg-indigo-600 text-white py-2 px-3 rounded text-sm"
-                    onClick={() => onTestDataFill(accesorioTestData)}
-                >
-                    Cargar Accesorio de Prueba
                 </button>
             </div>
             
             <p className="text-xs text-gray-400 mt-3">
-                Estas opciones rellenan el formulario con datos de prueba para desarrollo y testing.
+                Datos de prueba actualizados según el esquema actual
             </p>
         </div>
     );
 };
 
 TestingTools.propTypes = {
-    onTestDataFill: PropTypes.func.isRequired,
-    selectedType: PropTypes.string,
-    selectedCategoria: PropTypes.string
+    onTestDataFill: PropTypes.func.isRequired
 };

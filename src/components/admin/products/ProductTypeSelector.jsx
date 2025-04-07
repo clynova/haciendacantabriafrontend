@@ -12,8 +12,8 @@ const PRODUCT_TYPES = [
 
 export const ProductTypeSelector = ({ selectedType, selectedCategoria, onChange }) => {
     return (
-        <div className="bg-slate-700 rounded-lg p-4">
-            <h2 className="text-lg font-semibold text-white mb-3">Tipo de Producto</h2>
+        <div className=" rounded-lg p-4">
+            <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">Tipo de Producto</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                 {PRODUCT_TYPES.map((type) => (
                     <button

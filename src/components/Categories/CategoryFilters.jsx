@@ -357,21 +357,21 @@ export const CategoryFilters = ({
                         value={filters.marca}
                         onChange={handleFilterChange}
                     />
-                     {/* Example: Refrigeration/Freezing flags if applicable widely */}
-                     {/* 
-                     <CheckboxFilter 
-                        name="requiereRefrigeracion"
-                        label="Requiere Refrigeración"
-                        checked={filters.requiereRefrigeracion}
-                        onChange={handleFilterChange}
-                     />
-                     <CheckboxFilter
-                        name="requiereCongelacion"
-                        label="Requiere Congelación"
-                        checked={filters.requiereCongelacion}
-                        onChange={handleFilterChange}
-                    /> 
-                    */}
+                    <div className="space-y-2 mt-2">
+                        <label className={`${baseLabelStyles} block`}>Conservación</label>
+                        <CheckboxFilter 
+                            name="requiereRefrigeracion"
+                            label="Requiere Refrigeración"
+                            checked={filters.requiereRefrigeracion}
+                            onChange={handleFilterChange}
+                        />
+                        <CheckboxFilter
+                            name="requiereCongelacion"
+                            label="Requiere Congelación"
+                            checked={filters.requiereCongelacion}
+                            onChange={handleFilterChange}
+                        />
+                    </div>
                 </FilterSection>
 
                 {/* Sorting */}
@@ -385,6 +385,7 @@ export const CategoryFilters = ({
                             { value: 'precio-desc', label: 'Precio: Mayor a Menor' },
                             { value: 'nombre-asc', label: 'Nombre: A-Z' },
                             { value: 'nombre-desc', label: 'Nombre: Z-A' },
+                            { value: 'fecha-nuevo', label: 'Más recientes primero' },
                             // Conditionally add sorting options if relevant
                             ...(normalizedCategory?.includes('CARNE') ? [{ value: 'marmoleo-desc', label: 'Mayor Marmoleo' }] : [])
                         ]}

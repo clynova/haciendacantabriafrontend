@@ -53,7 +53,7 @@ const Home = () => {
   return (
     <div className="flex flex-col">
       {/* Hero Section con Slider */}
-      <section 
+      <section
         className="w-full h-[65vh]  opacity-0 animate-fadeIn sticky top-0 z-10"
         style={{
           transform: `scale(${scale}) translateY(-${translateY}px)`,
@@ -66,8 +66,8 @@ const Home = () => {
       {/* Rest of your sections with adjusted z-index */}
       <div className="relative z-20 bg-white dark:bg-gray-900">
         {/* Categories Section */}
-        <section className="max-w-7xl mx-auto px-4 pt-16 w-full opacity-0 animate-fadeIn" 
-                 style={{animationDelay: '0.2s'}}>
+        <section className="max-w-7xl mx-auto px-4 pt-16 w-full opacity-0 animate-fadeIn"
+          style={{ animationDelay: '0.2s' }}>
           <div className="mb-12">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-8">
               <div>
@@ -88,32 +88,31 @@ const Home = () => {
 
         {/* Companies Section */}
         <section className="w-full bg-gray-900  py-16 opacity-0 animate-fadeIn"
-                 style={{animationDelay: '0.3s'}}>
+          style={{ animationDelay: '0.3s' }}>
           <div className="max-w-7xl mx-auto px-4">
             <CompaniesCarousel />
           </div>
         </section>
 
         {/* Best Sellers Section */}
-        <section className="w-full bg-gray-50 dark:bg-gray-800/50 py-16 opacity-0 animate-fadeIn"
-                 style={{animationDelay: '0.4s'}}>
+        <section className="w-full bg-gray-50 dark:bg-gray-800/50 py-12 md:py-16 opacity-0 animate-fadeIn"
+          style={{ animationDelay: '0.4s' }}>
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-8">
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                  Los Más Vendidos
+                  Productos Destacados
+
                 </h2>
                 <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
-                  Los cortes preferidos por nuestros clientes, seleccionados por su calidad y sabor excepcional
+                  Explora nuestra selección premium de cortes argentinos, pollo fresco y aceite de la mejor calidad
                 </p>
               </div>
-              <a href="/mas-vendidos" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-                Ver más vendidos →
+              <a href="/productos" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+                Ver todo el catálogo →
               </a>
             </div>
-            <div className="max-w-7xl mx-auto">
-              <BestSellersCarousel />
-            </div>
+            <BestSellersCarousel />
           </div>
         </section>
 
@@ -122,18 +121,19 @@ const Home = () => {
 
         {/* Featured Products Section */}
         <section className="max-w-7xl mx-auto px-4 py-16 w-full opacity-0 animate-fadeIn"
-                 style={{animationDelay: '0.6s'}}>
+          style={{ animationDelay: '0.6s' }}>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
             <div>
               <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Productos Destacados
+                Los Más Vendidos
+
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
-                Explora nuestra selección premium de cortes argentinos, pollo fresco y aceite de la mejor calidad
+                Los cortes preferidos por nuestros clientes, seleccionados por su calidad y sabor excepcional
               </p>
             </div>
-            <Link to="/productos" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-              Ver todo el catálogo →
+            <Link to="/mas-vendidos" className="mt-4 md:mt-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+              Ver más vendidos →
             </Link>
           </div>
           <ProductGrid />

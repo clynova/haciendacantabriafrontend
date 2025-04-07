@@ -47,31 +47,6 @@ export const PricingAndInventorySection = ({ formData, handleInputChange }) => {
                     </div>
                 </div>
             </div>
-
-            {/* Inventario */}
-            <div>
-                <h2 className="text-lg font-semibold text-slate-200 mb-4">Inventario</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormInput
-                        label="Stock (unidades)"
-                        type="number"
-                        name="stockUnidades"
-                        value={inventario.stockUnidades || ''}
-                        onChange={(e) => handleInputChange(e, 'inventario')}
-                        min="0"
-                        
-                    />
-                    <FormInput
-                        label="Umbral Stock Bajo"
-                        type="number"
-                        name="umbralStockBajo"
-                        value={inventario.umbralStockBajo || ''}
-                        onChange={(e) => handleInputChange(e, 'inventario')}
-                        min="0"
-                        
-                    />
-                </div>
-            </div>
         </div>
     );
 };

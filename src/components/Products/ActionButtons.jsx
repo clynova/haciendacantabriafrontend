@@ -6,7 +6,7 @@ import { addProductToWishlist } from '../../services/userService';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
-const ActionButtons = ({ product, addToCart }) => {
+const ActionButtons = ({ product, addToCart, selectedWeightOption }) => {
     const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
     const [isLoading, setIsLoading] = useState({
         cart: false,
@@ -17,13 +17,41 @@ const ActionButtons = ({ product, addToCart }) => {
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
     const shareTitle = product.nombre;
 
+    const hasAvailableStock = selectedWeightOption && selectedWeightOption.stockDisponible > 0;
+
     const handleAddToCart = () => {
+        // Evitar operaciones si ya está cargando o no hay stock
+        if (isLoading.cart || !hasAvailableStock) {
+            if (!hasAvailableStock) {
+                toast.error('Este producto está agotado en el peso seleccionado');
+            }
+            return;
+        }
+
+        // Activar el estado de carga inmediatamente para evitar clics múltiples
         setIsLoading(prev => ({ ...prev, cart: true }));
+        
         try {
-            addToCart(product);
+            // Convertir selectedWeightOption al formato de variant que espera el nuevo CartContext
+            const variant = {
+                pesoId: selectedWeightOption._id || selectedWeightOption.pesoId,
+                peso: selectedWeightOption.peso,
+                unidad: selectedWeightOption.unidad,
+                precio: selectedWeightOption.precio || selectedWeightOption.precioFinal,
+                stockDisponible: selectedWeightOption.stockDisponible,
+                sku: selectedWeightOption.sku || ''
+            };
+            
+            // Pasar producto y variante como parámetros separados
+            addToCart(product, variant, 1, true);
+            
+            // Mantener el botón deshabilitado por un breve momento después de completar
+            // para evitar doble clic accidental
+            setTimeout(() => {
+                setIsLoading(prev => ({ ...prev, cart: false }));
+            }, 500);
         } catch (error) {
             toast.error('Error al agregar al carrito');
-        } finally {
             setIsLoading(prev => ({ ...prev, cart: false }));
         }
     };
@@ -49,7 +77,7 @@ const ActionButtons = ({ product, addToCart }) => {
         <div className="mt-10 flex flex-col space-y-4">
             <button
                 onClick={handleAddToCart}
-                disabled={product.inventario.stockUnidades === 0}
+                disabled={isLoading.cart || !hasAvailableStock}
                 className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white 
                          font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 
                          disabled:cursor-not-allowed disabled:bg-gray-400"
@@ -59,7 +87,7 @@ const ActionButtons = ({ product, addToCart }) => {
                 ) : (
                     <FaShoppingCart className="w-5 h-5" />
                 )}
-                <span>{product.inventario.stockUnidades === 0 ? 'Agotado' : 'Agregar al carrito'}</span>
+                <span>{!hasAvailableStock ? 'Agotado' : isLoading.cart ? 'Agregando...' : 'Agregar al carrito'}</span>
             </button>
 
             <div className="grid grid-cols-2 gap-4">
@@ -112,7 +140,12 @@ const ActionButtons = ({ product, addToCart }) => {
 
 ActionButtons.propTypes = {
     product: PropTypes.object.isRequired,
-    addToCart: PropTypes.func.isRequired
+    addToCart: PropTypes.func.isRequired,
+    selectedWeightOption: PropTypes.shape({
+        peso: PropTypes.number.isRequired,
+        unidad: PropTypes.string.isRequired,
+        stockDisponible: PropTypes.number.isRequired
+    })
 };
 
 export { ActionButtons };

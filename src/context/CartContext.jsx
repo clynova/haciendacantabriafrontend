@@ -2,8 +2,13 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
-import { addToCart as addToCartAPI, removeFromCart as removeFromCartAPI, 
-         getCart, syncCart, clearCart as clearCartAPI } from '../services/paymentService';
+import { 
+  addToCart as addToCartAPI, 
+  removeFromCart as removeFromCartAPI, 
+  getCart as getCartAPI, 
+  clearCart as clearCartAPI, 
+  updateProductQuantity 
+} from '../services/paymentService';
 import { getProductById } from '../services/productService';
 
 // Crear el contexto
@@ -15,586 +20,527 @@ export const useCart = () => useContext(CartContext);
 // Componente provider
 function CartProvider({ children }) {
   const { token, isAuthenticated } = useAuth();
-  const [cartItems, setCartItems] = useState(() => {
-    try {
-      const savedCart = localStorage.getItem('cart');
-      return savedCart ? JSON.parse(savedCart) : [];
-    } catch (error) {
-      console.error('Error parsing cart data:', error);
-      return [];
-    }
-  });
-
+  const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // Mapa para rastrear operaciones en curso por ID de producto
   const pendingOperations = useRef(new Map());
+  const [shippingInfo, setShippingInfo] = useState(null);
+  const [paymentInfo, setPaymentInfo] = useState(null);
 
-  const [shippingInfo, setShippingInfo] = useState(() => {
-    try {
-      const savedInfo = localStorage.getItem('shippingInfo');
-      return savedInfo ? JSON.parse(savedInfo) : null;
-    } catch (error) {
-      console.error('Error parsing shipping info:', error);
-      return null;
-    }
-  });
-
-  const [paymentInfo, setPaymentInfo] = useState(() => {
-    try {
-      const savedInfo = localStorage.getItem('paymentInfo');
-      return savedInfo ? JSON.parse(savedInfo) : null;
-    } catch (error) {
-      console.error('Error parsing payment info:', error);
-      return null;
-    }
-  });
-
-  // Listener para eventos de storage (cuando el AuthContext actualiza el carrito)
-  useEffect(() => {
-    const handleStorageChange = (event) => {
-      if (event.key === 'cart' || event.type === 'storage') {
-        try {
-          const savedCart = localStorage.getItem('cart');
-          if (savedCart) {
-            const newCart = JSON.parse(savedCart);
-            setCartItems(newCart);
-          }
-        } catch (error) {
-          console.error('Error handling storage change:', error);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  // Effect to load cart from API when user is authenticated
+  // Effect para cargar el carrito desde la API cuando el usuario está autenticado
   useEffect(() => {
     const fetchCartFromAPI = async () => {
       if (isAuthenticated && token) {
         setIsLoading(true);
         try {
-          // Primero obtenemos el carrito del servidor para verificar el estado actual
-          let serverCartResponse;
-          try {
-            serverCartResponse = await getCart(token);
-          } catch (error) {
-            console.log('No se pudo obtener el carrito del servidor:', error);
-            serverCartResponse = { cart: { products: [] } };
-          }
-
-          // Obtenemos el carrito local
-          const storedCart = localStorage.getItem('cart');
-          const localCart = storedCart ? JSON.parse(storedCart) : [];
-          
-          // Verificamos si ya hay una sincronización en progreso (para evitar múltiples en recargas)
-          const lastSyncTime = localStorage.getItem('lastCartSync');
-          const now = Date.now();
-          
-          // Si se ha sincronizado en los últimos 2 segundos, no volvemos a sincronizar
-          // Esto evita sincronizaciones múltiples en recargas rápidas (F5)
-          if (lastSyncTime && (now - parseInt(lastSyncTime)) < 2000) {
-            console.log('Sincronización reciente detectada, usando carrito del servidor');
-            
-            // Si hay un carrito en el servidor, lo cargamos
-            if (serverCartResponse?.cart?.products && serverCartResponse.cart.products.length > 0) {
-              await loadServerCart(serverCartResponse);
-            }
-            
-            setIsLoading(false);
-            return;
-          }
-          
-          // Marcamos el tiempo de sincronización
-          localStorage.setItem('lastCartSync', now.toString());
-          
-          // Continuamos con la lógica existente
-          if (localCart.length > 0) {
-            // Si hay un carrito local, lo sincronizamos con el servidor
-            const syncResponse = await syncCart(localCart, token);
-            
-            // Después de sincronizar, actualizamos el carrito local con lo que devolvió el servidor
-            if (syncResponse?.success && syncResponse?.cart?.products) {
-              await loadServerCart({ cart: { products: syncResponse.cart.products } });
-            }
+          const response = await getCartAPI(token);
+          if (response.success && response.cart) {
+            await processServerCart(response);
           } else {
-            try {
-              // Si el carrito local está vacío pero hay productos en el servidor, los cargamos
-              if (serverCartResponse?.cart?.products && serverCartResponse.cart.products.length > 0) {
-                await loadServerCart(serverCartResponse);
-              }
-            } catch (getCartError) {
-              console.log('No se pudo cargar el carrito, posiblemente sea un usuario nuevo:', getCartError);
-            }
+            setCartItems([]);
+            localStorage.removeItem('cart');
           }
         } catch (error) {
-          console.error('Error fetchCartFromAPI:', error);
-          if (error?.response?.status !== 400) {
-            toast.error('Error al cargar tu carrito');
-          }
+          console.error('Error al cargar el carrito:', error);
+          setCartItems([]);
+          localStorage.removeItem('cart');
+          toast.error('Error al cargar el carrito. Intenta recargar la página.');
         } finally {
           setIsLoading(false);
         }
-      } else if (!isAuthenticated) {
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart && cartItems.length === 0) {
-          try {
-            setCartItems(savedCart ? JSON.parse(savedCart) : []);
-          } catch (error) {
-            console.error('Error parsing cart after authentication change:', error);
-            setCartItems([]);
-          }
-        }
-      }
-    };
-
-    // Función auxiliar para cargar el carrito del servidor
-    const loadServerCart = async (serverCartResponse) => {
-      const serverCartItems = [];
-      
-      for (const item of serverCartResponse.cart.products) {
-        try {
-          // Verificar el formato del productId (puede ser un objeto o un string)
-          const productId = typeof item.productId === 'object' ? 
-            item.productId._id : item.productId;
-          
-          if (!productId) {
-            console.warn('Item sin productId encontrado en el carrito');
-            continue;
-          }
-          
-          // Si productId es un objeto completo, ya tenemos toda la información
-          if (typeof item.productId === 'object' && item.productId.nombre) {
-            const product = item.productId;
-            
-            // Asegurarnos de obtener el stock actualizado
-            try {
-              const freshProductData = await getProductById(product._id);
-              if (freshProductData.success && freshProductData.product) {
-                // Usar el stock más actualizado del producto
-                const stockUnidades = freshProductData.product.inventario?.stockUnidades;
-                
-                serverCartItems.push({
-                  _id: product._id,
-                  nombre: product.nombre,
-                  precioFinal: product.precioFinal || 0,
-                  precioTransferencia: product.precioTransferencia || 0,
-                  multimedia: product.multimedia || { imagenes: [] },
-                  quantity: Math.min(item.quantity || 1, stockUnidades || 250),
-                  inventario: {
-                    ...freshProductData.product.inventario,
-                    stockUnidades: stockUnidades || freshProductData.product.stock || 250
-                  },
-                  ...product
-                });
-              }
-            } catch (error) {
-              console.error(`Error al obtener stock actualizado para ${product._id}:`, error);
-              // Si falla la obtención del stock actualizado, usar los datos que ya teníamos
-              serverCartItems.push({
-                _id: product._id,
-                nombre: product.nombre,
-                precioFinal: product.precioFinal || 0,
-                precioTransferencia: product.precioTransferencia || 0,
-                multimedia: product.multimedia || { imagenes: [] },
-                quantity: item.quantity || 1,
-                inventario: product.inventario || { stockUnidades: product.stock || 250 },
-                ...product
-              });
-            }
-          } else {
-            // Si solo tenemos el ID, necesitamos obtener los detalles del producto
-            try {
-              const productResponse = await getProductById(productId);
-              
-              if (productResponse && productResponse.success && productResponse.product) {
-                const product = productResponse.product;
-                
-                // Verificar que todos los datos requeridos están presentes
-                if (!product.nombre || !product.precioFinal) {
-                  console.warn(`Producto ${productId} con datos incompletos:`, product);
-                  continue;
-                }
-                
-                // Usar el stock más actualizado
-                const stockUnidades = product.inventario?.stockUnidades;
-                
-                serverCartItems.push({
-                  _id: productId,
-                  nombre: product.nombre,
-                  precioFinal: product.precioFinal || 0,
-                  precioTransferencia: product.precioTransferencia || 0,
-                  quantity: Math.min(item.quantity || 1, stockUnidades || 250),
-                  multimedia: product.multimedia || { imagenes: [] },
-                  inventario: {
-                    ...product.inventario,
-                    stockUnidades: stockUnidades || product.stock || 250
-                  },
-                  ...product
-                });
-              }
-            } catch (error) {
-              console.error(`Error al obtener detalles del producto ${productId}:`, error);
-            }
-          }
-        } catch (error) {
-          console.error(`Error al procesar el producto ${item.productId}:`, error);
-          try {
-            if (typeof item.productId === 'object' && item.productId._id) {
-              await removeFromCartAPI(item.productId._id, token);
-              console.log(`Producto problemático ${item.productId._id} eliminado del carrito`);
-            } else if (typeof item.productId === 'string') {
-              await removeFromCartAPI(item.productId, token);
-              console.log(`Producto problemático ${item.productId} eliminado del carrito`);
-            }
-          } catch (removeError) {
-            console.error(`Error al eliminar producto problemático:`, removeError);
-          }
-        }
-      }
-      
-      if (serverCartItems.length > 0) {
-        setCartItems(serverCartItems);
-        localStorage.setItem('cart', JSON.stringify(serverCartItems));
-        toast.success('Se ha cargado tu carrito guardado');
-      } else if (serverCartResponse.cart.products.length > 0) {
-        await clearCartAPI(token);
-        toast.error('Hubo un problema con los productos en tu carrito y ha sido limpiado');
+      } else {
+        // Usuario no autenticado: limpiar carrito
+        setCartItems([]);
+        localStorage.removeItem('cart');
       }
     };
 
     fetchCartFromAPI();
   }, [isAuthenticated, token]);
 
-  // Efecto para limpiar el estado del carrito cuando el usuario cierra sesión
-  useEffect(() => {
-    if (!isAuthenticated) {
-      // Si el usuario no está autenticado, nos aseguramos que el estado del carrito
-      // refleja solo lo que hay en localStorage (que se limpia en el logout del AuthContext)
-      const savedCart = localStorage.getItem('cart');
-      setCartItems(savedCart ? JSON.parse(savedCart) : []);
-    }
-  }, [isAuthenticated]);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
-
-  useEffect(() => {
-    if (shippingInfo) {
-      localStorage.setItem('shippingInfo', JSON.stringify(shippingInfo));
-    }
-  }, [shippingInfo]);
-
-  useEffect(() => {
-    if (paymentInfo) {
-      localStorage.setItem('paymentInfo', JSON.stringify(paymentInfo));
-    }
-  }, [paymentInfo]);
-
-  const validateStock = (product, requestedQuantity) => {
-    if (!product.inventario) {
-      product.inventario = { stockUnidades: product.stock || 250 }; // Valor más realista por defecto
-    } else if (product.inventario.stockUnidades === undefined) {
-      product.inventario.stockUnidades = product.inventario.stock || 250; // Usar stock o valor alto por defecto
-    }
-    
-    if (requestedQuantity > product.inventario.stockUnidades) {
-      toast.error(`Solo hay ${product.inventario.stockUnidades} unidades disponibles de ${product.nombre}`);
+  // Procesar y formatear el carrito recibido del servidor
+  const processServerCart = async (serverResponse) => {
+    if (!serverResponse?.cart?.products || !Array.isArray(serverResponse.cart.products)) {
+      setCartItems([]);
       return false;
     }
+
+    try {
+      const processedItems = [];
+      const productsToFetch = [];
+
+      // Primera pasada: procesar productos que ya vienen poblados
+      for (const item of serverResponse.cart.products) {
+        if (typeof item.productId === 'object' && item.productId._id) {
+          // El producto viene poblado del backend
+          const processedItem = {
+            productId: item.productId,
+            variant: item.variant,
+            quantity: item.quantity || 1
+          };
+          processedItems.push(processedItem);
+        } else if (typeof item.productId === 'string') {
+          // Necesitamos obtener los detalles del producto
+          productsToFetch.push({
+            id: item.productId,
+            variant: item.variant,
+            quantity: item.quantity || 1
+          });
+        }
+      }
+
+      // Segunda pasada: obtener detalles de productos no poblados
+      if (productsToFetch.length > 0) {
+        const fetchPromises = productsToFetch.map(item => 
+          getProductById(item.id)
+            .then(res => {
+              if (res?.success && res?.product) {
+                return {
+                  productId: res.product,
+                  variant: item.variant,
+                  quantity: item.quantity
+                };
+              }
+              return null;
+            })
+            .catch(err => {
+              console.error(`Error al obtener producto ${item.id}:`, err);
+              return null;
+            })
+        );
+
+        const fetchedItems = await Promise.all(fetchPromises);
+        // Filtrar items nulos (fetches fallidos) y añadir al array de items procesados
+        fetchedItems.filter(Boolean).forEach(item => processedItems.push(item));
+      }
+
+      setCartItems(processedItems);
+      localStorage.setItem('cart', JSON.stringify(processedItems));
+      return true;
+    } catch (error) {
+      console.error('Error al procesar el carrito:', error);
+      setCartItems([]);
+      localStorage.removeItem('cart');
+      return false;
+    }
+  };
+
+  // Guardar carrito en localStorage cuando cambia
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && cartItems.length >= 0) {
+      try {
+        if (cartItems.length > 0) {
+          localStorage.setItem('cart', JSON.stringify(cartItems));
+        } else {
+          localStorage.removeItem('cart');
+        }
+      } catch (error) {
+        console.error('Error al guardar carrito en localStorage:', error);
+      }
+    }
+  }, [cartItems, isLoading, isAuthenticated]);
+
+  // Validar el stock disponible antes de agregar/actualizar
+  const validateStock = (product, variant, requestedQuantity) => {
+    if (!product || !variant) return true;
+
+    // Buscar la variante en el producto
+    const variantDetails = product.opcionesPeso?.pesosEstandar?.find(
+      opt => opt._id === variant.pesoId || opt.pesoId === variant.pesoId
+    );
+
+    if (variantDetails && variantDetails.stockDisponible !== undefined) {
+      if (requestedQuantity > variantDetails.stockDisponible) {
+        toast.error(
+          `Solo hay ${variantDetails.stockDisponible} unidades disponibles de ${product.nombre} (${variant.peso}${variant.unidad})`
+        );
+        return false;
+      }
+    }
+    
     return true;
   };
 
-  const addToCart = async (product, showNotification = true) => {
-    // Verificar si ya existe una operación pendiente para este producto
-    const productId = product._id;
-    if (pendingOperations.current.has(productId)) {
-      // Si ya hay una operación en curso, no hacemos nada
-      console.log(`Operación en curso para el producto ${productId}, ignorando clic adicional`);
+  // Agregar producto al carrito
+  const addToCart = async (product, variant, quantity = 1, showNotification = true) => {
+    if (!product) {
+      toast.error('Error: Producto inválido');
       return;
     }
 
-    // Marcar que hay una operación en curso para este producto
-    pendingOperations.current.set(productId, true);
+    // Manejar el caso donde la variante viene en selectedVariant (nuevo modelo)
+    if (product.selectedVariant && !variant) {
+      variant = product.selectedVariant;
+    }
+
+    const productId = typeof product === 'string' ? product : product._id;
+    const variantId = variant?.pesoId || variant?._id;
+
+    if (!productId) {
+      toast.error('Error: ID de producto inválido');
+      return;
+    }
+
+    // Clave única para esta operación
+    const operationKey = variantId ? `${productId}-${variantId}` : productId;
+    
+    // Verificar si ya hay una operación pendiente
+    if (pendingOperations.current.has(operationKey)) {
+      return;
+    }
+
+    // Marcar operación como pendiente
+    pendingOperations.current.set(operationKey, true);
     
     try {
-      const existingItem = cartItems.find(item => item._id === product._id);
-      const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
-
-      if (!validateStock(product, newQuantity)) {
-        pendingOperations.current.delete(productId); // Liberar el bloqueo
-        return;
-      }
+      // Siempre agregamos exactamente la cantidad especificada (generalmente 1)
+      const addedQuantity = quantity;
       
-      // Update local state immediately for better UX
-      setCartItems(curr => {
-        if (existingItem) {
-          return curr.map(item =>
-            item._id === product._id
-              ? { ...item, quantity: newQuantity }
-              : item
-          );
-        }
-        
-        // Asegurar que el producto tiene todas las propiedades necesarias
-        const safeProduct = {
-          ...product,
-          multimedia: product.multimedia || { imagenes: [] },
-          inventario: product.inventario || { stockUnidades: product.stock || 250 },
-          quantity: 1
-        };
-        
-        return [...curr, safeProduct];
+      // Verificar si el producto ya existe en el carrito
+      const existingItemIndex = cartItems.findIndex(item => {
+        const itemProductId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+        const itemVariantId = item.variant?.pesoId;
+        return itemProductId === productId && itemVariantId === variantId;
       });
-      
-      // If authenticated, sync with server
-      if (isAuthenticated && token) {
-        try {
-          // Verificar si el producto ya existe en el carrito del servidor
-          let serverCart;
-          try {
-            serverCart = await getCart(token);
-          } catch (error) {
-            console.log("No se pudo obtener el carrito del servidor:", error);
-            serverCart = { cart: { products: [] } };
-          }
-          
-          // Buscar si el producto ya existe en el carrito del servidor
-          const existingServerItem = serverCart?.cart?.products?.find(item => {
-            const itemProductId = typeof item.productId === 'object' ? 
-              item.productId._id : item.productId;
-            return itemProductId === product._id;
-          });
-          
-          // Si el producto ya existe en el servidor, primero lo eliminamos para evitar duplicados
-          if (existingServerItem) {
-            try {
-              await removeFromCartAPI(product._id, token);
-            } catch (error) {
-              console.error("Error al eliminar producto existente:", error);
-            }
-          }
-          
-          // Agregar el producto con la nueva cantidad
-          const response = await addToCartAPI({
-            productId: product._id,
-            quantity: newQuantity
-          }, token);
 
-          if (!response.success) {
-            throw new Error(response.msg || 'Error al agregar al carrito');
-          }
-          
-        } catch (error) {
-          // Revert local state if API call fails
-          setCartItems(curr => curr.filter(item => item._id !== product._id));
-          console.error("Error al sincronizar con el servidor:", error);
-          toast.error(error.msg || 'Error al sincronizar con el servidor');
-          pendingOperations.current.delete(productId); // Liberar el bloqueo
+      // Validar stock si tenemos toda la información
+      if (typeof product === 'object' && variant) {
+        // Si el producto ya existe, validamos con la nueva cantidad total
+        const currentQuantity = existingItemIndex >= 0 ? cartItems[existingItemIndex].quantity : 0;
+        if (!validateStock(product, variant, currentQuantity + addedQuantity)) {
+          pendingOperations.current.delete(operationKey);
           return;
         }
       }
-      
+
+      // Si está autenticado, sincronizar con el servidor directamente
+      if (isAuthenticated && token) {
+        const apiData = {
+          productId: productId,
+          variantId: variantId,
+          quantity: addedQuantity // Solo enviamos la cantidad a agregar (1), no la cantidad total
+        };
+
+        const response = await addToCartAPI(apiData, token);
+        
+        if (!response.success) {
+          throw new Error(response.msg || 'Error al agregar al carrito');
+        }
+        
+        // Recargar el carrito desde el servidor para asegurar consistencia
+        const updatedCart = await getCartAPI(token);
+        await processServerCart(updatedCart);
+      } else {
+        // Actualización local para usuarios no autenticados
+        setCartItems(current => {
+          const updatedCart = [...current];
+          
+          if (existingItemIndex >= 0) {
+            // Actualizar item existente
+            updatedCart[existingItemIndex] = {
+              ...updatedCart[existingItemIndex],
+              quantity: updatedCart[existingItemIndex].quantity + addedQuantity
+            };
+          } else {
+            // Agregar nuevo item
+            const newItem = {
+              productId: typeof product === 'object' ? product : productId,
+              variant,
+              quantity: addedQuantity
+            };
+            updatedCart.push(newItem);
+          }
+          
+          return updatedCart;
+        });
+      }
+
+      // Mostrar notificación ya no es necesario aquí porque lo hace ProductCard
+      if (showNotification && !product.selectedVariant) {
+        const productName = typeof product === 'object' ? product.nombre : 'Producto';
+        const variantInfo = variant ? ` (${variant.peso}${variant.unidad})` : '';
+        toast.success(`${productName}${variantInfo} agregado al carrito`);
+      }
+
+      // Abrir el carrito si se agregó correctamente
       setIsCartOpen(true);
-      // Solo mostrar el toast si showNotification es true (comportamiento predeterminado)
-      if (showNotification) {
-        toast.success('Producto agregado al carrito');
-      }
-      
     } catch (error) {
-      toast.error('Error al agregar al carrito');
-      console.error('Error in addToCart:', error);
+      console.error('Error al agregar al carrito:', error);
+      toast.error(error.msg || 'Error al agregar al carrito');
+      
+      // Recargar el carrito desde el servidor en caso de error para mantener consistencia
+      if (isAuthenticated && token) {
+        try {
+          const serverCart = await getCartAPI(token);
+          await processServerCart(serverCart);
+        } catch (reloadError) {
+          console.error('Error al recargar el carrito después de error:', reloadError);
+        }
+      }
     } finally {
-      // Siempre liberar el bloqueo al finalizar
-      pendingOperations.current.delete(productId);
+      pendingOperations.current.delete(operationKey);
     }
   };
 
-  const removeFromCart = async (productId) => {
+  // Remover producto del carrito
+  const removeFromCart = async (productId, variantId = null) => {
+    if (!productId) return;
+
+    const operationKey = variantId ? `${productId}-${variantId}` : productId;
+    
+    if (pendingOperations.current.has(operationKey)) {
+      return;
+    }
+    
+    pendingOperations.current.set(operationKey, true);
+    
     try {
-      // Store the item before removing it (for potential rollback)
-      const itemToRemove = cartItems.find(item => item._id === productId);
+      // Actualizar estado local inmediatamente para mejor UX
+      setCartItems(current => 
+        current.filter(item => {
+          const itemProductId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+          const itemVariantId = item.variant?.pesoId;
+          
+          return !(itemProductId === productId && itemVariantId === variantId);
+        })
+      );
       
-      // Update local state immediately
-      setCartItems(curr => curr.filter(item => item._id !== productId));
-      
-      // If authenticated, sync with server
-      if (isAuthenticated && token && itemToRemove) {
-        try {
-          await removeFromCartAPI(productId, token);
-        } catch (error) {
-          // Si el error es 400, puede ser un problema con el carrito, pero ya eliminamos el item localmente
-          // así que no revertimos el estado local a menos que sea un error diferente
-          if (error?.response?.status !== 400) {
-            // Revert local state if API call fails
-            setCartItems(curr => [...curr, itemToRemove]);
-            toast.error('Error al eliminar del carrito');
-          }
-          console.error('Error removing from cart:', error);
-        }
+      // Si está autenticado, sincronizar con el servidor
+      if (isAuthenticated && token) {
+        await removeFromCartAPI(productId, variantId, token);
+        
+        // Recargar el carrito desde el servidor para asegurar consistencia
+        const updatedCart = await getCartAPI(token);
+        await processServerCart(updatedCart);
       }
+      
+      toast.success('Producto eliminado del carrito');
     } catch (error) {
-      toast.error('Error al eliminar del carrito');
-      console.error('Error in removeFromCart:', error);
-    }
-  };
-
-  const updateQuantity = async (productId, quantity) => {
-    try {
-      if (quantity < 1) {
-        removeFromCart(productId);
-        return;
-      }
+      console.error('Error al eliminar producto del carrito:', error);
+      toast.error('Error al eliminar producto del carrito');
       
-      // Store current item state for potential rollback
-      const currentItem = cartItems.find(item => item._id === productId);
-      if (!currentItem) return;
-      
-      if (!validateStock(currentItem, quantity)) {
-        return;
-      }
-      
-      // Update local state immediately
-      setCartItems(curr => curr.map(item =>
-        item._id === productId ? { ...item, quantity } : item
-      ));
-      
-      // If authenticated, sync with server
+      // Recargar el carrito desde el servidor en caso de error
       if (isAuthenticated && token) {
         try {
-          // Verificar si el producto ya existe en el carrito del servidor
-          let serverCart;
-          try {
-            serverCart = await getCart(token);
-          } catch (error) {
-            console.log("No se pudo obtener el carrito del servidor:", error);
-            serverCart = { cart: { products: [] } };
-          }
-          
-          // Buscar si el producto ya existe en el carrito del servidor
-          const existingServerItem = serverCart?.cart?.products?.find(item => {
-            const itemProductId = typeof item.productId === 'object' ? 
-              item.productId._id : item.productId;
-            return itemProductId === productId;
-          });
-          
-          // Si el producto ya existe en el servidor, primero lo eliminamos para evitar duplicados
-          if (existingServerItem) {
-            try {
-              await removeFromCartAPI(productId, token);
-            } catch (removeError) {
-              console.error("Error al eliminar producto existente durante actualización:", removeError);
+          const serverCart = await getCartAPI(token);
+          await processServerCart(serverCart);
+        } catch (reloadError) {
+          console.error('Error al recargar el carrito después de error:', reloadError);
+        }
+      }
+    } finally {
+      pendingOperations.current.delete(operationKey);
+    }
+  };
+
+  // Actualizar cantidad de un producto en el carrito
+  const updateItemQuantity = async (productId, variantId, quantity, action = 'increment') => {
+    if (!productId || quantity < 1) return;
+    
+    // Si la acción es decrementar y la cantidad resultaría en 0, eliminar el producto
+    if (action === 'decrement') {
+      const item = cartItems.find(item => {
+        const itemProductId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+        const itemVariantId = item.variant?.pesoId;
+        return itemProductId === productId && itemVariantId === variantId;
+      });
+      
+      if (item && item.quantity <= quantity) {
+        return removeFromCart(productId, variantId);
+      }
+    }
+    
+    const operationKey = variantId ? `${productId}-${variantId}` : productId;
+    
+    if (pendingOperations.current.has(operationKey)) {
+      return;
+    }
+    
+    pendingOperations.current.set(operationKey, true);
+    
+    try {
+      // Si está autenticado, usar la API
+      if (isAuthenticated && token) {
+        const response = await updateProductQuantity(productId, variantId, quantity, action, token);
+        
+        if (!response.success) {
+          throw new Error(response.msg || 'Error al actualizar cantidad');
+        }
+        
+        // Recargar el carrito desde el servidor
+        const updatedCart = await getCartAPI(token);
+        await processServerCart(updatedCart);
+        
+        toast.success('Cantidad actualizada');
+      } else {
+        // Actualización local para usuarios no autenticados
+        setCartItems(current => {
+          return current.map(item => {
+            const itemProductId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+            const itemVariantId = item.variant?.pesoId;
+            
+            if (itemProductId === productId && itemVariantId === variantId) {
+              const newQuantity = action === 'increment' 
+                ? item.quantity + quantity 
+                : Math.max(1, item.quantity - quantity);
+              
+              return { ...item, quantity: newQuantity };
             }
-          }
-          
-          // Ahora agregamos el producto con la cantidad actualizada
-          await addToCartAPI({ 
-            productId: productId,
-            quantity: quantity 
-          }, token);
-        } catch (error) {
-          // Revert local state if API call fails
-          setCartItems(curr => curr.map(item =>
-            item._id === productId ? { ...currentItem } : item
-          ));
-          toast.error('Error al actualizar cantidad');
-          console.error('Error updating quantity:', error);
-        }
+            
+            return item;
+          });
+        });
+        
+        toast.success('Cantidad actualizada');
       }
     } catch (error) {
+      console.error('Error al actualizar cantidad:', error);
       toast.error('Error al actualizar cantidad');
-      console.error('Error in updateQuantity:', error);
-    }
-  };
-
-  const clearCart = async () => {
-    try {
-      // Store current cart for potential rollback
-      const currentCart = [...cartItems];
       
-      // Clear local state immediately
-      setCartItems([]);
-      
-      // Clear localStorage
-      localStorage.removeItem('cart');
-      localStorage.removeItem('shippingInfo');
-      localStorage.removeItem('paymentInfo');
-      
-      // If authenticated, sync with server
+      // Recargar el carrito desde el servidor en caso de error
       if (isAuthenticated && token) {
         try {
-          await clearCartAPI(token);
-        } catch (error) {
-          // Revert local state if API call fails
-          setCartItems(currentCart);
-          toast.error('Error al vaciar el carrito');
-          console.error('Error clearing cart:', error);
+          const serverCart = await getCartAPI(token);
+          await processServerCart(serverCart);
+        } catch (reloadError) {
+          console.error('Error al recargar el carrito después de error:', reloadError);
         }
       }
-    } catch (error) {
-      toast.error('Error al vaciar el carrito');
-      console.error('Error in clearCart:', error);
+    } finally {
+      pendingOperations.current.delete(operationKey);
     }
   };
 
+  // Limpiar el carrito
+  const clearCart = async () => {
+    setCartItems([]);
+    localStorage.removeItem('cart');
+    
+    if (isAuthenticated && token) {
+      setIsLoading(true);
+      try {
+        await clearCartAPI(token);
+        toast.success('Carrito vaciado con éxito');
+      } catch (error) {
+        console.error('Error al vaciar el carrito:', error);
+        toast.error('Error al vaciar el carrito');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      toast.success('Carrito vaciado');
+    }
+  };
+
+  // Guardar información de envío
   const saveShippingInfo = (info) => {
     setShippingInfo(info);
   };
 
+  // Guardar información de pago
   const savePaymentInfo = (info) => {
     setPaymentInfo(info);
   };
 
-  const cartTotal = cartItems.reduce(
-    (total, item) => total + ((item.precioFinal || 0) * (item.quantity || 0)),
-    0
-  );
-
-  const cartCount = cartItems.reduce(
-    (count, item) => count + (item.quantity || 0),
-    0
-  );
-
-  const getCartTotal = () => {
-    const subtotal = cartItems.reduce((total, item) => total + ((item.price || item.precioFinal || 0) * (item.quantity || 0)), 0);
-    const shipping = shippingInfo?.method === 'express' ? 99 : 0;
-    return subtotal + shipping;
+  // Calcular total del carrito
+  const calculateCartTotal = () => {
+    return cartItems.reduce((total, item) => {
+      // Determinar el precio correcto con descuento si existe
+      let price = 0;
+      
+      if (item.variant) {
+        // Buscamos si existe información de precio con descuento en las variantes
+        if (typeof item.productId === 'object' && item.productId.precioVariantesPorPeso) {
+          const variantInfo = item.productId.precioVariantesPorPeso.find(
+            v => v.pesoId === item.variant.pesoId
+          );
+          
+          if (variantInfo && variantInfo.precioFinal !== undefined) {
+            price = variantInfo.precioFinal; // Usamos el precio con descuento
+          } else {
+            price = item.variant.precio; // Usamos el precio regular si no hay información de descuento
+          }
+        } else {
+          price = item.variant.precio; // Si no hay información de variantes con precios, usamos el precio base
+        }
+      } else if (typeof item.productId === 'object') {
+        // Fallback a la variante predeterminada si no hay variante específica
+        price = item.productId.variantePredeterminada?.precioFinal || 
+                item.productId.variantePredeterminada?.precio || 0;
+      }
+      
+      return total + (price * (item.quantity || 1));
+    }, 0);
   };
 
+  // Contar items en el carrito
+  const calculateCartCount = () => {
+    return cartItems.reduce((count, item) => count + (item.quantity || 1), 0);
+  };
+
+  // Validar stock de todo el carrito
   const validateCartStock = () => {
     let isValid = true;
-    cartItems.forEach(item => {
-      const stockUnidades = item.inventario?.stockUnidades || 0;
-      if ((item.quantity || 0) > stockUnidades) {
-        toast.error(`No hay suficiente stock de ${item.nombre}. Stock disponible: ${stockUnidades}`);
-        isValid = false;
+    
+    for (const item of cartItems) {
+      const product = typeof item.productId === 'object' ? item.productId : null;
+      const variant = item.variant;
+      
+      if (product && variant) {
+        if (!validateStock(product, variant, item.quantity)) {
+          isValid = false;
+        }
       }
-    });
+    }
+    
     return isValid;
   };
 
-  // Funciones de cálculo compartidas para el resumen de orden
+  // Calcular subtotal
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + ((item.precioFinal || 0) * (item.quantity || 0)), 0);
+    return cartItems.reduce((total, item) => {
+      // Determinar el precio correcto con descuento si existe
+      let price = 0;
+      
+      if (item.variant) {
+        // Buscamos si existe información de precio con descuento en las variantes
+        if (typeof item.productId === 'object' && item.productId.precioVariantesPorPeso) {
+          const variantInfo = item.productId.precioVariantesPorPeso.find(
+            v => v.pesoId === item.variant.pesoId
+          );
+          
+          if (variantInfo && variantInfo.precioFinal !== undefined) {
+            price = variantInfo.precioFinal; // Usamos el precio con descuento
+          } else {
+            price = item.variant.precio; // Usamos el precio regular si no hay información de descuento
+          }
+        } else {
+          price = item.variant.precio; // Si no hay información de variantes con precios, usamos el precio base
+        }
+      } else if (typeof item.productId === 'object') {
+        // Fallback a la variante predeterminada si no hay variante específica
+        price = item.productId.variantePredeterminada?.precioFinal || 
+                item.productId.variantePredeterminada?.precio || 0;
+      }
+      
+      return total + (price * (item.quantity || 1));
+    }, 0);
   };
   
+  // Calcular impuestos
   const calculateTax = (subtotal) => {
     return subtotal * 0.16; // 16% de impuesto
   };
   
+  // Calcular peso total
   const calculateTotalWeight = () => {
     return cartItems.reduce((total, item) => {
-      const peso = item.opcionesPeso?.pesoPromedio || 0;
-      return total + (peso * (item.quantity || 0));
+      const peso = item.variant?.peso || 0;
+      return total + (peso * (item.quantity || 1));
     }, 0);
   };
   
+  // Calcular costo de envío
   const calculateShippingCost = () => {
     if (shippingInfo?.baseCost && shippingInfo?.extraCostPerKg !== undefined) {
       const totalWeight = calculateTotalWeight();
@@ -607,31 +553,27 @@ function CartProvider({ children }) {
     return 0;
   };
   
+  // Obtener resumen de la orden
   const getOrderSummary = (selectedPaymentMethod, includeVAT = false) => {
     const subtotal = calculateSubtotal();
-    const tax = includeVAT ? calculateTax(subtotal) : 0; // Solo aplicar impuestos si se solicita explícitamente
-    
-    // Asegurarse de que el costo de envío sea un número
-    let shipping = 0;
-    if (shippingInfo?.baseCost) {
-        shipping = parseFloat(shippingInfo.baseCost);
-    }
+    const tax = includeVAT ? calculateTax(subtotal) : 0;
+    const shipping = shippingInfo?.baseCost ? parseFloat(shippingInfo.baseCost) : 0;
     
     let paymentCommission = 0;
     if (selectedPaymentMethod?.commission_percentage) {
-        paymentCommission = ((subtotal + shipping) * selectedPaymentMethod.commission_percentage) / 100;
+      paymentCommission = ((subtotal + shipping) * selectedPaymentMethod.commission_percentage) / 100;
     }
     
     const total = subtotal + tax + shipping + paymentCommission;
     
     return {
-        subtotal,
-        tax,
-        shipping,
-        paymentCommission,
-        total,
-        items: cartItems,
-        shippingInfo
+      subtotal,
+      tax,
+      shipping,
+      paymentCommission,
+      total,
+      items: cartItems,
+      shippingInfo
     };
   };
 
@@ -640,17 +582,18 @@ function CartProvider({ children }) {
       cartItems,
       addToCart,
       removeFromCart,
-      updateQuantity,
+      updateQuantity: updateItemQuantity, // Renamed for backward compatibility
+      updateItemQuantityAction: updateItemQuantity, // For backward compatibility
       clearCart,
-      cartTotal,
-      cartCount,
+      cartTotal: calculateCartTotal(),
+      cartCount: calculateCartCount(),
       isCartOpen,
       setIsCartOpen,
       shippingInfo,
       saveShippingInfo,
       paymentInfo,
       savePaymentInfo,
-      getCartTotal,
+      getCartTotal: calculateCartTotal, // For backward compatibility
       validateCartStock,
       isLoading,
       calculateSubtotal,
@@ -668,5 +611,4 @@ CartProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-// Exportar context y provider
 export { CartContext, CartProvider };
