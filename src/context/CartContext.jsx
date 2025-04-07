@@ -288,30 +288,58 @@ function CartProvider({ children }) {
 
   // Remover producto del carrito
   const removeFromCart = async (productId, variantId = null) => {
-    if (!productId) return;
+    if (!productId) {
+      console.warn('Intento de eliminar producto sin ID');
+      return;
+    }
 
-    const operationKey = variantId ? `${productId}-${variantId}` : productId;
+    // Normalizar el productId (podría ser un objeto o un string)
+    const normalizedProductId = typeof productId === 'object' ? productId._id : productId;
     
+    // Clave única para identificar la operación
+    const operationKey = variantId ? `${normalizedProductId}-${variantId}` : normalizedProductId;
+    
+    // Verificar si ya hay una operación pendiente para este producto
     if (pendingOperations.current.has(operationKey)) {
+      console.log('Operación de eliminación ya en curso para este producto');
       return;
     }
     
+    // Marcar la operación como pendiente
     pendingOperations.current.set(operationKey, true);
     
     try {
-      // Actualizar estado local inmediatamente para mejor UX
+      // Encontrar el item en el carrito antes de eliminarlo (para verificación)
+      const itemToRemove = cartItems.find(item => {
+        const itemProductId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+        const itemVariantId = item.variant?.pesoId;
+        
+        return (itemProductId === normalizedProductId && itemVariantId === variantId);
+      });
+      
+      if (!itemToRemove) {
+        console.warn(`Producto/variante no encontrado en el carrito local: ${normalizedProductId}/${variantId}`);
+      }
+      
+      // Actualizar estado local inmediatamente para mejor UX (actualización optimista)
       setCartItems(current => 
         current.filter(item => {
           const itemProductId = typeof item.productId === 'object' ? item.productId._id : item.productId;
           const itemVariantId = item.variant?.pesoId;
           
-          return !(itemProductId === productId && itemVariantId === variantId);
+          // Devolver true si NO coincide con el item a eliminar
+          return !(itemProductId === normalizedProductId && itemVariantId === variantId);
         })
       );
       
       // Si está autenticado, sincronizar con el servidor
       if (isAuthenticated && token) {
-        await removeFromCartAPI(productId, variantId, token);
+        const serverResponse = await removeFromCartAPI(normalizedProductId, variantId, token);
+        
+        if (!serverResponse.success) {
+          console.error('Error del servidor al eliminar producto:', serverResponse.msg);
+          throw new Error(serverResponse.msg || 'Error al eliminar producto del carrito');
+        }
         
         // Recargar el carrito desde el servidor para asegurar consistencia
         const updatedCart = await getCartAPI(token);
@@ -323,7 +351,7 @@ function CartProvider({ children }) {
       console.error('Error al eliminar producto del carrito:', error);
       toast.error('Error al eliminar producto del carrito');
       
-      // Recargar el carrito desde el servidor en caso de error
+      // Recargar el carrito desde el servidor en caso de error para restaurar el estado correcto
       if (isAuthenticated && token) {
         try {
           const serverCart = await getCartAPI(token);
@@ -333,7 +361,10 @@ function CartProvider({ children }) {
         }
       }
     } finally {
-      pendingOperations.current.delete(operationKey);
+      // Liberamos la operación pendiente con un pequeño retraso para prevenir múltiples clics
+      setTimeout(() => {
+        pendingOperations.current.delete(operationKey);
+      }, 300);
     }
   };
 
