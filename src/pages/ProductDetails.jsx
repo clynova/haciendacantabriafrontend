@@ -21,6 +21,7 @@ const ProductDetails = () => {
   const [selectedWeightOption, setSelectedWeightOption] = useState(null);
   // Estado para almacenar la información de precio y descuento de la opción seleccionada
   const [selectedVariantInfo, setSelectedVariantInfo] = useState(null);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -137,7 +138,7 @@ const ProductDetails = () => {
                     <span className="font-medium">Tipo de Carne:</span> {product.infoCarne.tipoCarne}
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Corte:</span> {product.infoCarne.corte}
+                    <span className="font-medium">Corte:</span> {product.infoCarne.corte.replaceAll('_', ' ')}
                   </p>
                   {product.infoCarne.nombreArgentino && (
                     <p className="text-gray-600 dark:text-gray-400">
@@ -164,7 +165,7 @@ const ProductDetails = () => {
                     )}
                     {product.caracteristicas.color && (
                       <p className="text-gray-600 dark:text-gray-400">
-                        <span className="font-medium">Color:</span> {product.caracteristicas.color}
+                        <span className="font-medium">Color:</span> {product.caracteristicas.color.replaceAll('_', ' ')}
                       </p>
                     )}
                   </div>
@@ -258,9 +259,6 @@ const ProductDetails = () => {
                     <span className="font-medium">Tipo:</span> {product.infoAceite.tipo}
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Volumen:</span> {product.infoAceite.volumen}ml
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
                     <span className="font-medium">Envase:</span> {product.infoAceite.envase}
                   </p>
                 </div>
@@ -273,7 +271,7 @@ const ProductDetails = () => {
                     )}
                     {product.caracteristicas.extraccion && (
                       <p className="text-gray-600 dark:text-gray-400">
-                        <span className="font-medium">Método de extracción:</span> {product.caracteristicas.extraccion}
+                        <span className="font-medium">Método de extracción:</span> {product.caracteristicas.extraccion.replaceAll('_', ' ')}
                       </p>
                     )}
                     {product.caracteristicas.filtracion && (
@@ -356,13 +354,19 @@ const ProductDetails = () => {
   // New function to render weight options
   const renderWeightOptions = () => {
     if (!product.opcionesPeso?.pesosEstandar || product.opcionesPeso.pesosEstandar.length === 0) {
-      return <p className="text-red-600 dark:text-red-400">No hay opciones de peso disponibles</p>;
+      return <p className="text-red-600 dark:text-red-400">
+        {product.tipoProducto === 'ProductoAceite' ? 
+          'No hay opciones de volumen disponibles' : 
+          'No hay opciones de peso disponibles'}
+      </p>;
     }
 
     return (
       <div className="mt-6">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
-          Selecciona el peso
+          {product.tipoProducto === 'ProductoAceite' ? 
+            'Selecciona el volumen' : 
+            'Selecciona el peso'}
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {product.opcionesPeso.pesosEstandar.map((option, index) => {
@@ -386,7 +390,7 @@ const ProductDetails = () => {
                 `}
               >
                 <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {option.peso} {option.unidad}
+                  {option.peso} {product.tipoProducto === 'ProductoAceite' ? 'ml' : 'g'}
                 </span>
                 
                 {isOutOfStock ? (
@@ -528,8 +532,57 @@ const ProductDetails = () => {
 
           <div className="mt-6">
             <h3 className="sr-only">Descripción</h3>
-            <div className="text-base text-gray-700 dark:text-gray-300 space-y-6">
-              <p>{product.descripcion.completa}</p>
+            <div className="space-y-4">
+              {/* Descripción Corta */}
+              <div className="text-base text-gray-700 dark:text-gray-300">
+                <p>{product.descripcion.corta}</p>
+              </div>
+
+              {/* Descripción Completa */}
+              <div className="space-y-4">
+                {showFullDescription && (
+                  <div className="text-base text-gray-700 dark:text-gray-300 space-y-4">
+                    {product.descripcion.completa.split('\n\n').map((paragraph, index) => {
+                      // Si el párrafo comienza con un título en mayúsculas seguido de ':'
+                      if (paragraph.match(/^[A-Z\s]+:/)) {
+                        const [title, ...content] = paragraph.split(':');
+                        return (
+                          <div key={index} className="mb-4">
+                            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                              {title.trim()}:
+                            </h4>
+                            <p>{content.join(':').trim()}</p>
+                          </div>
+                        );
+                      }
+                      // Para listas que comienzan con guiones
+                      else if (paragraph.includes('\n- ')) {
+                        const [title, ...items] = paragraph.split('\n');
+                        return (
+                          <div key={index} className="mb-4">
+                            {title && <h4 className="font-semibold text-gray-900 dark:text-white mb-2">{title}</h4>}
+                            <ul className="list-disc pl-5 space-y-1">
+                              {items.map((item, itemIndex) => (
+                                <li key={itemIndex}>{item.replace('- ', '')}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      }
+                      // Para párrafos normales
+                      return <p key={index}>{paragraph}</p>;
+                    })}
+                  </div>
+                )}
+
+                {/* Botón Ver más/Ver menos */}
+                <button
+                  onClick={() => setShowFullDescription(!showFullDescription)}
+                  className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                >
+                  {showFullDescription ? 'Ver menos' : 'Ver más detalles'}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -544,18 +597,25 @@ const ProductDetails = () => {
           />
 
           {/* Peso y opciones específicas según tipo de producto */}
-          {product.opcionesPeso && (
+          {product.opcionesPeso && product.opcionesPeso.pesoPromedio && (
             <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 Información de peso
               </h3>
               <div className="space-y-2">
                 <p className="text-gray-600 dark:text-gray-400">
-                  Peso promedio: {product.opcionesPeso.pesoPromedio}g
+                  {product.tipoProducto === 'ProductoAceite' ? (
+                    <>Volumen promedio: {product.opcionesPeso.pesoPromedio} ml</>
+                  ) : (
+                    <>Peso promedio: {product.opcionesPeso.pesoPromedio} g</>
+                  )}
                 </p>
                 {product.opcionesPeso.esPesoVariable && (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    El peso final puede variar ligeramente
+                    {product.tipoProducto === 'ProductoAceite' ? 
+                      'El volumen final puede variar ligeramente' : 
+                      'El peso final puede variar ligeramente'
+                    }
                   </p>
                 )}
               </div>

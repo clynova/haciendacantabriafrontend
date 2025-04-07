@@ -10,7 +10,7 @@ import { uploadImageToCloudinary } from '../../services/utilService';
 import { SubmitButton } from '../../components/common/SubmitButton';
 import { ProductTypeSelector } from '../../components/admin/products/ProductTypeSelector';
 import BaseProductForm from '../../components/admin/products/create/BaseProductForm';
-// import { TestingTools } from '../../components/admin/products/TestingTools';
+import { TestingTools } from '../../components/admin/products/TestingTools';
 // Cortes de carne según el modelo del backend
 const CORTES_CARNE = [
     'LOMO_VETADO', 'LOMO_LISO', 'ASADO_DEL_CARNICERO', 'PALANCA',
@@ -125,16 +125,16 @@ const AdminProductCreate = () => {
         // Información nutricional común
         infoNutricional: {
             porcion: '',
-            calorias: 0,         // Cambiar de '' a 0
-            proteinas: 0,        // Cambiar de '' a 0
-            grasaTotal: 0,       // Cambiar de '' a 0
-            grasaSaturada: 0,    // Cambiar de '' a 0
-            grasaTrans: 0,       // Cambiar de '' a 0
-            grasaPoliinsaturada: 0, // Cambiar de '' a 0
-            grasaMonoinsaturada: 0, // Cambiar de '' a 0
-            colesterol: 0,       // Cambiar de '' a 0
-            sodio: 0,            // Cambiar de '' a 0
-            carbohidratos: 0     // Cambiar de '' a 0
+            calorias: '',         // Cambiar de 0 a ''
+            proteinas: '',        // Cambiar de 0 a ''
+            grasaTotal: '',       // Cambiar de 0 a ''
+            grasaSaturada: '',    // Cambiar de 0 a ''
+            grasaTrans: '',       // Cambiar de 0 a ''
+            grasaPoliinsaturada: '', // Cambiar de 0 a ''
+            grasaMonoinsaturada: '', // Cambiar de 0 a ''
+            colesterol: '',       // Cambiar de 0 a ''
+            sodio: '',            // Cambiar de 0 a ''
+            carbohidratos: ''     // Cambiar de 0 a ''
         },
         produccion: {
             metodo: '',
@@ -300,13 +300,16 @@ const AdminProductCreate = () => {
                 categoria: newCategoria,
                 infoNutricional: {
                     porcion: '',
-                    calorias: 0,
-                    proteinas: 0,
-                    grasaTotal: 0,
-                    grasaSaturada: 0,
-                    colesterol: 0,
-                    sodio: 0,
-                    carbohidratos: 0
+                    calorias: '',
+                    proteinas: '',
+                    grasaTotal: '',
+                    grasaSaturada: '',
+                    colesterol: '',
+                    sodio: '',
+                    carbohidratos: '',
+                    grasaTrans: '',
+                    grasaPoliinsaturada: '',
+                    grasaMonoinsaturada: ''
                 },
                 usosRecomendados: []
             };
@@ -590,7 +593,7 @@ const AdminProductCreate = () => {
                         precio: Number(peso.precio),
                         sku: peso.sku,
                         stockDisponible: Number(peso.stockDisponible),
-                        umbralStockBajo: Number(peso.umbralStockBajo),
+                        umbralStockBajo: peso.umbralStockBajo ? Number(peso.umbralStockBajo) : null, // Permitir valor vacío
                         descuentos: {
                             regular: Number(peso.descuentos?.regular || 0)
                         },
@@ -606,13 +609,13 @@ const AdminProductCreate = () => {
                 },
                 infoNutricional: {
                     porcion: formData.infoNutricional.porcion?.trim() || '',
-                    calorias: Number(formData.infoNutricional.calorias) || 0,
-                    proteinas: Number(formData.infoNutricional.proteinas) || 0,
-                    grasaTotal: Number(formData.infoNutricional.grasaTotal) || 0,
-                    grasaSaturada: Number(formData.infoNutricional.grasaSaturada) || 0,
-                    colesterol: Number(formData.infoNutricional.colesterol) || 0,
-                    sodio: Number(formData.infoNutricional.sodio) || 0,
-                    carbohidratos: Number(formData.infoNutricional.carbohidratos) || 0
+                    calorias: formData.infoNutricional.calorias ? Number(formData.infoNutricional.calorias) : 0,
+                    proteinas: formData.infoNutricional.proteinas ? Number(formData.infoNutricional.proteinas) : 0,
+                    grasaTotal: formData.infoNutricional.grasaTotal ? Number(formData.infoNutricional.grasaTotal) : 0,
+                    grasaSaturada: formData.infoNutricional.grasaSaturada ? Number(formData.infoNutricional.grasaSaturada) : 0,
+                    colesterol: formData.infoNutricional.colesterol ? Number(formData.infoNutricional.colesterol) : 0,
+                    sodio: formData.infoNutricional.sodio ? Number(formData.infoNutricional.sodio) : 0,
+                    carbohidratos: formData.infoNutricional.carbohidratos ? Number(formData.infoNutricional.carbohidratos) : 0
                 }
             };
 
@@ -757,10 +760,10 @@ const AdminProductCreate = () => {
                     </div>
                 </form>
             </div>
-            {/* <TestingTools onTestDataFill={(testData) => setFormData(prev => ({
+            <TestingTools onTestDataFill={(testData) => setFormData(prev => ({
             ...prev,
             ...testData
-        }))} /> */}
+        }))} /> 
         </div>
     );
 };
