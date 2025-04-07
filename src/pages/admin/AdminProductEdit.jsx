@@ -31,7 +31,6 @@ const getInitialState = (categoria = 'ACEITE') => ({
     slug: '',
     categoria: categoria,
     estado: true,
-    destacado: false,
     descripcion: {
         corta: '',
         completa: ''
@@ -332,10 +331,6 @@ export const AdminProductEdit = () => {
         if (typeof data.estado !== 'boolean') {
             errors.push('El estado debe ser un valor booleano');
         }
-        if (typeof data.destacado !== 'boolean') {
-            errors.push('El destacado debe ser un valor booleano');
-        }
-
         // SEO validation
         if (!data.seo?.metaTitulo?.trim()) {
             errors.push('El meta título es requerido');

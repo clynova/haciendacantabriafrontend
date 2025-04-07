@@ -72,39 +72,26 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
     // Determinar qué objeto de características usar
     const caracteristicasData = mode === 'edit' ? formData.caracteristicas : formData.caracteristicasAceite;
 
-    // Update the handleChange function
+    // Modificar el handleChange
     const handleChange = (e, section) => {
         const { name, value, type } = e.target;
         
-        // Si estamos editando características específicas del aceite
-        if (section === 'caracteristicasAceite' || section === 'caracteristicas') {
-            const targetSection = mode === 'edit' ? 'caracteristicas' : 'caracteristicasAceite';
+        if (name === 'acidez') {
             handleInputChange({
                 target: {
                     name,
-                    value: type === 'number' ? (value === '' ? '' : Number(value)) : value
+                    value: value === '' ? '' : Number(value)
                 }
-            }, targetSection);
+            }, section);
             return;
         }
 
-        // Special handling for infoNutricional
-        if (section === 'infoNutricional') {
-            const numberValue = type === 'number' ? parseFloat(value) : value;
-            handleInputChange({
-                target: {
-                    name,
-                    value: numberValue === 0 ? 0 : (numberValue || '')
-                }
-            }, 'infoNutricional');
-            return;
-        }
-
-        // Handle other sections
         handleInputChange({
             target: {
                 name,
-                value: type === 'number' ? (value === '' ? '' : Number(value)) : value
+                value: value === '' ? '' : 
+                    section === 'infoNutricional' ? value : 
+                    parseFloat(value)
             }
         }, section);
     };
@@ -188,9 +175,9 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                         <input
                             type="number"
                             name="acidez"
-                            value={caracteristicasData?.acidez || ''}
+                            value={caracteristicasData?.acidez ?? ''} // Usar operador nullish
                             onChange={(e) => handleChange(e, mode === 'edit' ? 'caracteristicas' : 'caracteristicasAceite')}
-                            step="0.01"
+                            step="any"
                             min="0"
                             max="100"
                             className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white pr-12"
@@ -274,126 +261,77 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                 </div>
             </div>
 
-            {/* Información Nutricional */}
-            <h2 className="text-lg font-semibold text-slate-200 mt-6">Información Nutricional</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                        Porción
-                    </label>
-                    <div className="relative">
-                        <input
-                            type="number"
-                            name="porcion"
-                            value={infoNutricional.porcion?.split(' ')[0] || ''}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                handleChange({
-                                    target: {
-                                        name: 'porcion',
-                                        value: `${value} ml`
-                                    }
-                                }, 'infoNutricional');
-                            }}
-                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white pr-12"
-                            min="0"
-                            step="1"
-                            placeholder="15"
-                        />
-                        <span className="absolute right-3 top-2 text-gray-400">ml</span>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1">
-                        Ingrese la porción en mililitros (ml)
-                    </p>
-                </div>
-                
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                        Calorías (kcal)
-                    </label>
-                    <input
+            {/* Información Nutricional Section */}
+            <div className="border-t border-slate-700 pt-6">
+                <h3 className="text-md font-medium text-slate-300 mb-4">Información Nutricional</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormInput
+                        label="Porción"
+                        name="porcion"
+                        value={formData.infoNutricional?.porcion || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
+                        placeholder="Ej: 15ml"
+                    />
+                    
+                    <FormInput
+                        label="Calorías"
                         type="number"
                         name="calorias"
-                        value={infoNutricional.calorias === 0 ? '0' : (infoNutricional.calorias || '')}
-                        onChange={(e) => handleChange(e, 'infoNutricional')}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        value={formData.infoNutricional?.calorias || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
+                        placeholder="kcal"
                     />
-                </div>
-                
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                        Grasa Total (g)
-                    </label>
-                    <input
+
+                    <FormInput
+                        label="Grasa Total (g)"
                         type="number"
                         name="grasaTotal"
-                        value={infoNutricional.grasaTotal === 0 ? '0' : (infoNutricional.grasaTotal || '')}
-                        onChange={(e) => handleChange(e, 'infoNutricional')}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        value={formData.infoNutricional?.grasaTotal || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
-                </div>
-                
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                        Grasa Saturada (g)
-                    </label>
-                    <input
+
+                    <FormInput
+                        label="Grasa Saturada (g)"
                         type="number"
                         name="grasaSaturada"
-                        value={infoNutricional.grasaSaturada === 0 ? '0' : (infoNutricional.grasaSaturada || '')}
-                        onChange={(e) => handleChange(e, 'infoNutricional')}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        value={formData.infoNutricional?.grasaSaturada || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
-                </div>
-                
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                        Grasa Trans (g)
-                    </label>
-                    <input
+
+                    <FormInput
+                        label="Grasa Trans (g)"
                         type="number"
                         name="grasaTrans"
-                        value={infoNutricional.grasaTrans === 0 ? '0' : (infoNutricional.grasaTrans || '')}
-                        onChange={(e) => handleChange(e, 'infoNutricional')}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        value={formData.infoNutricional?.grasaTrans || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
-                </div>
-                
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                        Grasa Poliinsaturada (g)
-                    </label>
-                    <input
+
+                    <FormInput
+                        label="Grasa Poliinsaturada (g)"
                         type="number"
                         name="grasaPoliinsaturada"
-                        value={infoNutricional.grasaPoliinsaturada === 0 ? '0' : (infoNutricional.grasaPoliinsaturada || '')}
-                        onChange={(e) => handleChange(e, 'infoNutricional')}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        value={formData.infoNutricional?.grasaPoliinsaturada || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
-                </div>
-                
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                        Grasa Monoinsaturada (g)
-                    </label>
-                    <input
+
+                    <FormInput
+                        label="Grasa Monoinsaturada (g)"
                         type="number"
                         name="grasaMonoinsaturada"
-                        value={infoNutricional.grasaMonoinsaturada === 0 ? '0' : (infoNutricional.grasaMonoinsaturada || '')}
-                        onChange={(e) => handleChange(e, 'infoNutricional')}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+                        value={formData.infoNutricional?.grasaMonoinsaturada || ''}
+                        onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
                 </div>
             </div>

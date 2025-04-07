@@ -66,18 +66,34 @@ const ProductGrid = ({ tags = "MasVendidos", limit = 6 }) => {
     }
   };
 
-  const handleAddToCart = (product) => {
-    if (!product.variantePredeterminada) {
-      toast.error('Producto sin variante disponible');
-      return;
-    }
+  const checkProductAvailability = (product) => {
+    // Verificar si hay al menos un peso estándar activo
+    const hasActiveWeight = product.opcionesPeso?.pesosEstandar?.some(
+        peso => peso.estado !== false && peso.stockDisponible > 0
+    );
 
-    if (product.variantePredeterminada.stockDisponible === 0) {
-      toast.error('Producto sin stock disponible');
-      return;
+    // Verificar variante predeterminada
+    const defaultVariant = product.variantePredeterminada;
+    const firstVariant = product.precioVariantesPorPeso?.[0];
+
+    return {
+        isAvailable: hasActiveWeight,
+        defaultVariant,
+        firstVariant,
+        finalPrice: hasActiveWeight ? 
+            (defaultVariant?.precioFinal || firstVariant?.precioFinal || 0) : 
+            null
+    };
+};
+
+  const handleAddToCart = (product) => {
+    const availability = checkProductAvailability(product);
+    if (!availability.isAvailable) {
+        toast.error('Producto no disponible');
+        return;
     }
     
-    addToCart(product, product.variantePredeterminada, 1, true);
+    addToCart(product, availability.defaultVariant, 1, true);
   };
 
   const getDiscountBadgeColor = (discountPercentage) => {
@@ -194,7 +210,7 @@ const ProductGrid = ({ tags = "MasVendidos", limit = 6 }) => {
                 </div>
               )}
               
-              {product.variantePredeterminada?.stockDisponible === 0 && (
+              {!checkProductAvailability(product).isAvailable && (
                 <div className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md mt-2">
                   Agotado
                 </div>
@@ -287,42 +303,59 @@ const ProductGrid = ({ tags = "MasVendidos", limit = 6 }) => {
             </p>
             
             <div className="flex justify-between items-center mt-3">
-              <div>
-                {product.variantePredeterminada?.descuento > 0 && (
-                  <span className="block text-sm text-gray-300 line-through drop-shadow-md">
-                    {formatCurrency(product.variantePredeterminada.precio)}
-                  </span>
-                )}
-                <span className="text-2xl font-bold text-white drop-shadow-md">
-                  {formatCurrency(product.variantePredeterminada?.precioFinal || product.variantePredeterminada?.precio || 0)}
-                </span>
-                {product.variantePredeterminada?.stockDisponible > 0 && (
-                  <div className="text-xs text-gray-300 mt-1 drop-shadow-md">
-                    Stock: {product.variantePredeterminada.stockDisponible} unidades
-                  </div>
-                )}
-              </div>
-              
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddToCart(product);
-                }}
-                disabled={!product.variantePredeterminada || product.variantePredeterminada.stockDisponible === 0}
-                aria-label={`Agregar ${product.nombre} al carrito`}
-                className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-200
-                          flex items-center gap-2 ${!product.variantePredeterminada || product.variantePredeterminada.stockDisponible === 0 
-                          ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed' 
-                          : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'}`}
-              >
-                <HiShoppingCart className="w-5 h-5" />
-                <span className="hidden sm:inline-block">
-                  {!product.variantePredeterminada || product.variantePredeterminada.stockDisponible === 0 
-                    ? 'Agotado' 
-                    : 'Agregar'}
-                </span>
-              </button>
-            </div>
+    <div>
+        {(() => {
+            const availability = checkProductAvailability(product);
+            
+            if (!availability.isAvailable) {
+                return (
+                    <span className="text-lg font-medium text-red-400 drop-shadow-md">
+                        Producto no disponible
+                    </span>
+                );
+            }
+
+            return (
+                <>
+                    {product.variantePredeterminada?.descuento > 0 && (
+                        <span className="block text-sm text-gray-300 line-through drop-shadow-md">
+                            {formatCurrency(product.variantePredeterminada.precio)}
+                        </span>
+                    )}
+                    <span className="text-2xl font-bold text-white drop-shadow-md">
+                        {formatCurrency(availability.finalPrice)}
+                    </span>
+                    {availability.defaultVariant?.stockDisponible > 0 && (
+                        <div className="text-xs text-gray-300 mt-1 drop-shadow-md">
+                            Stock: {availability.defaultVariant.stockDisponible} unidades
+                        </div>
+                    )}
+                </>
+            );
+        })()}
+    </div>
+    
+    <button
+        onClick={(e) => {
+            e.stopPropagation();
+            handleAddToCart(product);
+        }}
+        disabled={!checkProductAvailability(product).isAvailable}
+        aria-label={`Agregar ${product.nombre} al carrito`}
+        className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-200
+                  flex items-center gap-2 ${!checkProductAvailability(product).isAvailable
+                  ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed' 
+                  : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'}`}
+    >
+        <HiShoppingCart className="w-5 h-5" />
+        <span className="hidden sm:inline-block">
+            {!checkProductAvailability(product).isAvailable 
+                ? 'Agotado' 
+                : 'Agregar'}
+        </span>
+    </button>
+</div>
+
           </div>
         </div>
       ))}

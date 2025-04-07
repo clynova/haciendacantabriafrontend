@@ -524,9 +524,6 @@ const AdminProductDetails = () => {
                     <p className={baseStyles.text.secondary}>
                         <span className={baseStyles.text.muted}>Estado:</span> {product.estado ? 'Activo' : 'Inactivo'}
                     </p>
-                    <p className={baseStyles.text.secondary}>
-                        <span className={baseStyles.text.muted}>Destacado:</span> {product.destacado ? 'Sí' : 'No'}
-                    </p>
                 </div>
             </InfoSection>
 

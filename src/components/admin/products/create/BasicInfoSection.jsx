@@ -8,7 +8,7 @@ export const BasicInfoSection = ({
     data, 
     onChange, 
     mode = 'create',
-    displayFields = ['sku', 'nombre', 'estado', 'destacado', 'descripcion']
+    displayFields = ['sku', 'nombre', 'estado', 'descripcion']
 }) => {
     const { token } = useAuth();
     const [verifyingSku, setVerifyingSku] = useState(false);
@@ -34,7 +34,7 @@ export const BasicInfoSection = ({
             onChange({
                 target: {
                     name: field,
-                    value: field === 'estado' || field === 'destacado' 
+                    value: field === 'estado'
                         ? value === 'true' || value === true
                         : value
                 }
@@ -143,22 +143,6 @@ export const BasicInfoSection = ({
                             options={[
                                 { value: true, label: 'Activo' },
                                 { value: false, label: 'Inactivo' }
-                            ]}
-                        />
-                    </div>
-                )}
-
-                {/* Destacado */}
-                {displayFields.includes('destacado') && (
-                    <div className="col-span-1">
-                        <FormSelect
-                            label="Destacado"
-                            name="destacado"
-                            value={data.destacado}
-                            onChange={(e) => handleChange('destacado', e.target.value)}
-                            options={[
-                                { value: false, label: 'No' },
-                                { value: true, label: 'Sí' }
                             ]}
                         />
                     </div>

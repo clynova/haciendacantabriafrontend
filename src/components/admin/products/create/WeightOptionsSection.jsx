@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { FormInput, FormSelect } from '../../../common/FormInputs';
+import { toast } from 'react-hot-toast';
 
 export const WeightOptionsSection = ({ formData, handleInputChange }) => {
     // Obtener las unidades de peso según la categoría
@@ -28,32 +29,60 @@ export const WeightOptionsSection = ({ formData, handleInputChange }) => {
     };
 
     const handleStandardWeightChange = (index, field, value) => {
-        const updatedPesosEstandar = [...formData.opcionesPeso.pesosEstandar];
-        if (field === 'unidad') {
-            value = validateUnidad(value, getUnidadesPeso());
+        // Si estamos cambiando el estado a inactivo
+        if (field === 'estado' && !value) {
+            const otrosActivos = formData.opcionesPeso.pesosEstandar.some(
+                (peso, i) => i !== index && peso.estado !== false
+            );
+
+            // Si no hay otros pesos activos, mostrar advertencia
+            if (!otrosActivos) {
+                const confirmar = window.confirm(
+                    'Este es el último peso activo. Si lo desactiva, el producto quedará inactivo. ¿Desea continuar?'
+                );
+                
+                if (!confirmar) {
+                    return; // No hacer nada si el usuario cancela
+                }
+
+                // Si confirma, desactivar el peso y el producto
+                const updatedPesos = [...formData.opcionesPeso.pesosEstandar];
+                updatedPesos[index] = {
+                    ...updatedPesos[index],
+                    estado: false
+                };
+
+                handleInputChange({
+                    target: {
+                        name: 'pesosEstandar',
+                        value: updatedPesos
+                    }
+                }, 'opcionesPeso');
+
+                // Desactivar el producto
+                handleInputChange({
+                    target: {
+                        name: 'estado',
+                        value: false
+                    }
+                });
+                
+                toast.warning('El producto ha sido desactivado ya que no tiene pesos activos');
+                return;
+            }
         }
 
-        // Special handling for esPredeterminado
-        if (field === 'esPredeterminado') {
-            // Remove predeterminado from all other items
-            updatedPesosEstandar.forEach((item, i) => {
-                if (i !== index) {
-                    item.esPredeterminado = false;
-                }
-            });
-            // Set the new predeterminado
-            updatedPesosEstandar[index].esPredeterminado = true;
-        } else {
-            updatedPesosEstandar[index] = {
-                ...updatedPesosEstandar[index],
-                [field]: value
-            };
-        }
+        // Para otros cambios o si hay más pesos activos
+        const updatedPesos = [...formData.opcionesPeso.pesosEstandar];
+        updatedPesos[index] = {
+            ...updatedPesos[index],
+            [field]: value
+        };
 
         handleInputChange({
             target: {
                 name: 'pesosEstandar',
-                value: updatedPesosEstandar
+                value: updatedPesos
             }
         }, 'opcionesPeso');
     };
@@ -69,7 +98,7 @@ export const WeightOptionsSection = ({ formData, handleInputChange }) => {
             precio: '',
             sku: '',
             stockDisponible: 0,
-            umbralStockBajo: 5,
+            umbralStockBajo: 0,
             descuentos: {
                 regular: 0
             },
@@ -312,6 +341,19 @@ export const WeightOptionsSection = ({ formData, handleInputChange }) => {
                                     Eliminar
                                 </button>
                             </div>
+
+                            <div className="flex items-center space-x-2 mt-4">
+                                <input
+                                    type="checkbox"
+                                    id={`peso-estado-${index}`}
+                                    checked={peso.estado !== false}
+                                    onChange={(e) => handleStandardWeightChange(index, 'estado', e.target.checked)}
+                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor={`peso-estado-${index}`} className="text-sm text-gray-700 dark:text-gray-200">
+                                    Activo
+                                </label>
+                            </div>
                         </div>
                     ))}
                     <button
@@ -424,7 +466,8 @@ WeightOptionsSection.propTypes = {
                 umbralStockBajo: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
                 descuentos: PropTypes.shape({
                     regular: PropTypes.number
-                })
+                }),
+                estado: PropTypes.bool
             })),
             rangosPreferidos: PropTypes.arrayOf(PropTypes.shape({
                 nombre: PropTypes.string,
