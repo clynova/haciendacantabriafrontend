@@ -422,23 +422,44 @@ const ProductDetails = () => {
   };
 
   // New function to show overall stock status
-  const getStockStatus = () => {
-    if (!product.opcionesPeso?.pesosEstandar || product.opcionesPeso.pesosEstandar.length === 0) {
-      return <span className="text-red-600 dark:text-red-400">Sin stock disponible</span>;
-    }
-
-    const totalStock = product.opcionesPeso.pesosEstandar.reduce(
-      (sum, option) => sum + option.stockDisponible, 0
+  const checkProductAvailability = (product) => {
+    // Verificar si hay al menos un peso estándar activo
+    const hasActiveWeight = product.opcionesPeso?.pesosEstandar?.some(
+        peso => peso.estado !== false && peso.stockDisponible > 0
     );
 
-    if (totalStock === 0) {
-      return <span className="text-red-600 dark:text-red-400">Agotado</span>;
-    } else if (totalStock <= 10) {
-      return <span className="text-yellow-600 dark:text-yellow-400">¡Últimas unidades disponibles!</span>;
+    // Verificar variante predeterminada
+    const defaultVariant = product.variantePredeterminada;
+    const firstVariant = product.precioVariantesPorPeso?.[0];
+
+    return {
+        isAvailable: hasActiveWeight,
+        defaultVariant,
+        firstVariant,
+        finalPrice: hasActiveWeight ? 
+            (defaultVariant?.precioFinal || firstVariant?.precioFinal || 0) : 
+            null
+    };
+};
+
+// Modificar la función getStockStatus
+const getStockStatus = () => {
+    const availability = checkProductAvailability(product);
+    
+    if (!availability.isAvailable) {
+        return <span className="text-red-600 dark:text-red-400">Producto no disponible</span>;
+    }
+
+    const totalStock = product.opcionesPeso?.pesosEstandar?.reduce(
+        (sum, option) => sum + (option.estado !== false ? option.stockDisponible : 0), 0
+    );
+
+    if (totalStock <= 10) {
+        return <span className="text-yellow-600 dark:text-yellow-400">¡Últimas unidades disponibles!</span>;
     }
     
     return <span className="text-green-600 dark:text-green-400">En stock</span>;
-  };
+};
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={{ marginTop: '4rem' }}>
@@ -483,40 +504,52 @@ const ProductDetails = () => {
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex justify-between items-center">
               <div className="flex flex-col">
-                {selectedVariantInfo && (
-                  <>
+                {(() => {
+            const availability = checkProductAvailability(product);
+            
+            if (!availability.isAvailable) {
+                return (
+                    <span className="text-lg font-medium text-red-600 dark:text-red-400">
+                        Producto no disponible
+                    </span>
+                );
+            }
+
+            // Mantener la lógica original de precios
+            return selectedVariantInfo ? (
+                <>
                     {selectedVariantInfo.descuento > 0 && (
-                      <div className="flex items-center gap-2">
-                        <p className="text-lg line-through text-gray-500 dark:text-gray-400">
-                          {formatCurrency(selectedVariantInfo.precio)}
-                        </p>
-                        <span className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 text-sm px-2 py-0.5 rounded-full">
-                          -{selectedVariantInfo.descuento}%
-                        </span>
-                      </div>
+                        <div className="flex items-center gap-2">
+                            <p className="text-lg line-through text-gray-500 dark:text-gray-400">
+                                {formatCurrency(selectedVariantInfo.precio)}
+                            </p>
+                            <span className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 text-sm px-2 py-0.5 rounded-full">
+                                -{selectedVariantInfo.descuento}%
+                            </span>
+                        </div>
                     )}
                     <p className="text-3xl tracking-tight text-gray-900 dark:text-white font-bold">
-                      {formatCurrency(selectedVariantInfo.precioFinal)}
+                        {formatCurrency(selectedVariantInfo.precioFinal)}
                     </p>
-                  </>
-                )}
-                {!selectedVariantInfo && product.variantePredeterminada && (
-                  <>
+                </>
+            ) : product.variantePredeterminada && (
+                <>
                     {product.variantePredeterminada.descuento > 0 && (
-                      <div className="flex items-center gap-2">
-                        <p className="text-lg line-through text-gray-500 dark:text-gray-400">
-                          {formatCurrency(product.variantePredeterminada.precio)}
-                        </p>
-                        <span className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 text-sm px-2 py-0.5 rounded-full">
-                          -{product.variantePredeterminada.descuento}%
-                        </span>
-                      </div>
+                        <div className="flex items-center gap-2">
+                            <p className="text-lg line-through text-gray-500 dark:text-gray-400">
+                                {formatCurrency(product.variantePredeterminada.precio)}
+                            </p>
+                            <span className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 text-sm px-2 py-0.5 rounded-full">
+                                -{product.variantePredeterminada.descuento}%
+                            </span>
+                        </div>
                     )}
                     <p className="text-3xl tracking-tight text-gray-900 dark:text-white font-bold">
-                      {formatCurrency(product.variantePredeterminada.precioFinal)}
+                        {formatCurrency(product.variantePredeterminada.precioFinal)}
                     </p>
-                  </>
-                )}
+                </>
+            );
+        })()}
               </div>
               {getStockStatus()}
             </div>
