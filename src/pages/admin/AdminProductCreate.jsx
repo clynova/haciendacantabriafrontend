@@ -209,7 +209,7 @@ const AdminProductCreate = () => {
 
     // Update the handleInputChange function to handle discounts correctly
     const handleInputChange = (e, section) => {
-        const { name, value, type, checked } = e.target;  // Add checked to destructuring
+        const { name, value, type, checked } = e.target;
         
         setFormData(prev => {
             // Manejo especial para información nutricional
@@ -224,9 +224,9 @@ const AdminProductCreate = () => {
                     ...prev,
                     infoNutricional: {
                         ...prev.infoNutricional,
-                        [name]: numericFields.includes(name) ? 
-                            Number(value) || 0 : 
-                            value
+                        [name]: numericFields.includes(name) 
+                            ? value === '' ? '' : parseFloat(value)
+                            : value
                     }
                 };
             }
@@ -237,7 +237,7 @@ const AdminProductCreate = () => {
                     ...prev,
                     caracteristicasAceite: {
                         ...prev.caracteristicasAceite,
-                        acidez: Number(value) || 0
+                        acidez: value === '' ? '' : parseFloat(value)
                     }
                 };
             }
