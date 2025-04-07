@@ -332,14 +332,6 @@ export const WeightOptionsSection = ({ formData, handleInputChange }) => {
                                         Predeterminado
                                     </span>
                                 </label>
-                                <button
-                                    type="button"
-                                    onClick={() => removeStandardWeight(index)}
-                                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                    disabled={peso.esPredeterminado}
-                                >
-                                    Eliminar
-                                </button>
                             </div>
 
                             <div className="flex items-center space-x-2 mt-4">

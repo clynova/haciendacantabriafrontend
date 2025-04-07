@@ -16,6 +16,9 @@ const ActionButtons = ({ product, addToCart, selectedWeightOption }) => {
 
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
     const shareTitle = product.nombre;
+    const hasActiveWeightOptions = product.opcionesPeso?.pesosEstandar?.some(
+        option => option.estado !== false
+    );
 
     const hasAvailableStock = selectedWeightOption && selectedWeightOption.stockDisponible > 0;
 
@@ -79,9 +82,9 @@ const ActionButtons = ({ product, addToCart, selectedWeightOption }) => {
 
     return (
         <div className="mt-10 flex flex-col space-y-4">
-            <button
+             <button
                 onClick={handleAddToCart}
-                disabled={isLoading.cart || !hasAvailableStock}
+                disabled={isLoading.cart || !hasAvailableStock || !hasActiveWeightOptions}
                 className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white 
                          font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 
                          disabled:cursor-not-allowed disabled:bg-gray-400"
@@ -91,7 +94,15 @@ const ActionButtons = ({ product, addToCart, selectedWeightOption }) => {
                 ) : (
                     <FaShoppingCart className="w-5 h-5" />
                 )}
-                <span>{!hasAvailableStock ? 'Agotado' : isLoading.cart ? 'Agregando...' : 'Agregar al carrito'}</span>
+                <span>
+                    {!hasActiveWeightOptions 
+                        ? 'Producto no disponible' 
+                        : !hasAvailableStock 
+                            ? 'Agotado' 
+                            : isLoading.cart 
+                                ? 'Agregando...' 
+                                : 'Agregar al carrito'}
+                </span>
             </button>
 
             <div className="grid grid-cols-2 gap-4">
