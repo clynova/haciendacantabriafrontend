@@ -1,7 +1,5 @@
 import { Link } from "react-router-dom";
 import PropTypes from 'prop-types';
-import { HiOutlineInformationCircle } from "react-icons/hi";
-import { getImageUrl } from '../../utils/funcionesReutilizables';
 import { memo } from 'react';
 
 // Memoizamos el componente para evitar re-renderizados innecesarios
@@ -47,17 +45,6 @@ const SearchResults = memo(({ results, isLoading = false, onClose }) => {
                         </div>
                         <div className="ml-4 flex-1 min-w-0">
                             <p className="text-white font-medium truncate">{product.nombre}</p>
-                            <p className="text-slate-400">${product.precioFinal.toLocaleString('es-AR')}</p>
-                            {product.precios?.base && product.precioFinal < product.precios.base && (
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-slate-500 text-xs line-through">
-                                        ${product.precios.base.toLocaleString('es-AR')}
-                                    </span>
-                                    <span className="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
-                                        {Math.round((1 - product.precioFinal / product.precios.base) * 100)}% OFF
-                                    </span>
-                                </div>
-                            )}
                         </div>
                     </Link>
                 ))}
@@ -93,17 +80,7 @@ SearchResults.propTypes = {
                     })
                 )
             }),
-            nombre: PropTypes.string.isRequired,
-            precioFinal: PropTypes.number.isRequired,
-            precios: PropTypes.shape({
-                base: PropTypes.number,
-                descuentos: PropTypes.shape({
-                    promocion: PropTypes.shape({
-                        porcentaje: PropTypes.number,
-                        activa: PropTypes.bool
-                    })
-                })
-            })
+            nombre: PropTypes.string.isRequired
         })
     ).isRequired,
     isLoading: PropTypes.bool,

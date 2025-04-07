@@ -6,13 +6,16 @@ import { enviarEmailPdf } from '../../services/utilService';
 const BillingDetails = ({ order, token }) => {
     const [loading, setLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [facturaStatus, setFacturaStatus] = useState(false);
 
     // Destructuramos los datos de facturación del pedido
     const facturacion = order.facturacion || {};
     const comprobanteTipo = facturacion.comprobanteTipo || order.comprobanteTipo || 'boleta';
     const { rut, razonSocial, giro, direccionFacturacion } = facturacion;
-    const status = facturacion.status || false; // Status como booleano (true=enviada, false=pendiente)
+    // Inicializamos el estado local con el valor del servidor
+    const status = facturaStatus || facturacion.status || false; // Status como booleano (true=enviada, false=pendiente)
     const email = order.userId?.email;
+    const orderId = order._id;
 
     const handleFileChange = (e) => {
         setSelectedFile(e.target.files[0]);
@@ -43,12 +46,15 @@ const BillingDetails = ({ order, token }) => {
                         reader.result, // Enviar el resultado completo
                         email, 
                         comprobanteTipo === 'factura' ? 'Factura' : 'Boleta',
-                        token
+                        token,
+                        orderId
                     );
                     
                     if (result && result.success) {
                         toast.success(`${comprobanteTipo === 'factura' ? 'Factura' : 'Boleta'} enviada correctamente al cliente`);
                         setSelectedFile(null);
+                        // Actualizamos el estado local para reflejar que la factura ha sido enviada
+                        setFacturaStatus(true);
                     } else {
                         throw new Error(result?.msg || 'Error al enviar el documento');
                     }
