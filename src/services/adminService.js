@@ -982,6 +982,15 @@ const getAllOrders = async (token, status = '') => {
             "commissionPercentage": 0,
             "commissionAmount": 0
         },
+            "facturacion": {
+                "status": false,
+                "comprobanteTipo": "factura",
+                "razonSocial": "Razon socialss",
+                "rut": "18597046-9",
+                "giro": "Girosss",
+                "direccionFacturacion": "DirreccionFacturacion",
+                "status": false
+            },
         "shipping": {
             "carrier": {
                 "_id": "67e22e9710b78bad52fdb7d0",
@@ -1128,6 +1137,7 @@ export const getOrderById = async (orderId, token) => {
 // Update order status
 const updateOrderStatus = async (orderId, status, token) => {
     try {
+        console.log(token)
         const response = await api.put(
             `/api/order/${orderId}/status`,
             { status: status.toLowerCase() }, // Ensure status is uppercase

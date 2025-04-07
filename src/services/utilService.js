@@ -55,5 +55,40 @@ const enviarEmailConfirmacionOrden = async (orderId, token) => {
   }
 }
 
+// pdfFile email documentType token
+// /api/util/send-pdf
 
-export { uploadImageToCloudinary, enviarEmailConfirmacionOrden, sendContactForm };
+const enviarEmailPdf = async (pdfFile, email, documentType, token) => {
+  try {
+    // Verificar que los datos necesarios estén presentes
+    if (!pdfFile || !email || !documentType || !token) {
+      throw new Error('Faltan datos requeridos para enviar el PDF');
+    }
+
+    // Asegurarse de que el pdfFile sea una cadena
+    if (typeof pdfFile !== 'string') {
+      throw new Error('El archivo PDF debe ser una cadena base64');
+    }
+
+    // Construir el objeto de datos para la solicitud
+    const data = { pdfFile, email, documentType };
+
+    // Realizar la solicitud POST con los headers correctos
+    const response = await api.post('/api/util/send-pdf', data, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error al enviar el PDF:', error);
+    if (error.response) {
+      console.error('Respuesta del servidor:', error.response.data);
+    }
+    throw error.response?.data || error;
+  }
+};
+
+export { uploadImageToCloudinary, enviarEmailConfirmacionOrden, sendContactForm, enviarEmailPdf };
