@@ -65,6 +65,9 @@ const ProductSlider = () => {
               alt={slide.title}
               className="w-full h-full object-cover"
               loading={index === 0 ? "eager" : "lazy"}
+              width="1600"
+              height="900"
+              style={{ aspectRatio: '16/9' }}
             />
             {/* Overlay con gradiente */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent flex items-center justify-center">

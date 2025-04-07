@@ -1,5 +1,22 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Crushed&family=Kaushan+Script&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Crushed&family=Kaushan+Script&display=swap&text=HaciendaCantabria');
+
+/* Font loading optimization */
+@font-face {
+  font-family: 'Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('System Sans'), local('Arial');
+}
+
+@font-face {
+  font-family: 'Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('System Sans Bold'), local('Arial Bold');
+}
 
 /* Smooth scroll styles */
 html.lenis {

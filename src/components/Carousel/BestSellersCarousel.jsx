@@ -170,7 +170,24 @@ const BestSellersCarousel = () => {
           <Slider {...settings}>
             {bestSellers.map(product => (
               <div key={product._id} className="px-1 py-1 md:px-2 md:py-2">
-                <ProductCard product={product} />
+                <ProductCard product={product}>
+                  <div className="relative overflow-hidden aspect-square rounded-xl">
+                    <div className="relative w-full h-full bg-gray-100 dark:bg-gray-800 rounded-xl">
+                      {/* Pre-reserve space for image with aspect-ratio */}
+                      <div style={{ position: "relative", width: "100%", height: "100%" }} className="rounded-xl overflow-hidden">
+                        <img
+                          src={product.multimedia?.imagenes?.[0]?.url || '/images/placeholder.png'}
+                          alt={product.nombre}
+                          className="w-full h-full object-cover rounded-xl"
+                          width="300"
+                          height="300"
+                          loading="lazy"
+                          onError={(e) => { e.target.src = '/images/placeholder.png'; }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </ProductCard>
               </div>
             ))}
           </Slider>

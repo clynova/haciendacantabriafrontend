@@ -79,6 +79,9 @@ const CompaniesCarousel = () => {
                          hover:brightness-100 hover:invert-0 
                          transition-all duration-300"
                 loading="lazy"
+                width="250"
+                height="100"
+                style={{ aspectRatio: '2.5/1' }}
               />
             </div>
           ))}
