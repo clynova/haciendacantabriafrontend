@@ -23,7 +23,7 @@ const CORTES_VACUNO = [
     'PUNTA_DE_GANSO', 'ABASTERO', 'TAPABARRIGA',
 
     // Adicionales
-    'MOLIDA_ESPECIAL', 'MOLIDA_CORRIENTE'
+    'MOLIDA_ESPECIAL', 'MOLIDA_CORRIENTE', 'HAMBURGUESA','BLEND'
 ];
 
 const COLORES_CARNE = [
@@ -423,7 +423,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                         value={formData.infoNutricional?.calorias || ''}
                         onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                         placeholder="kcal"
                     />
 
@@ -434,7 +434,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                         value={formData.infoNutricional?.proteinas || ''}
                         onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
 
                     <FormInput
@@ -444,7 +444,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                         value={formData.infoNutricional?.grasaTotal || ''}
                         onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
 
                     <FormInput
@@ -454,7 +454,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                         value={formData.infoNutricional?.grasaSaturada || ''}
                         onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
 
                     <FormInput
@@ -464,7 +464,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                         value={formData.infoNutricional?.colesterol || ''}
                         onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
 
                     <FormInput
@@ -474,7 +474,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                         value={formData.infoNutricional?.sodio || ''}
                         onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
 
                     <FormInput
@@ -484,7 +484,7 @@ export const CarneForm = ({ formData = {}, handleInputChange }) => {
                         value={formData.infoNutricional?.carbohidratos || ''}
                         onChange={(e) => handleInputChange(e, 'infoNutricional')}
                         min="0"
-                        step="0.1"
+                        step="any"
                     />
                 </div>
             </div>
@@ -863,13 +863,13 @@ CarneForm.propTypes = {
         }),
         infoNutricional: PropTypes.shape({
             porcion: PropTypes.string,
-            calorias: PropTypes.number,
-            proteinas: PropTypes.number,
-            grasaTotal: PropTypes.number,
-            grasaSaturada: PropTypes.number,
-            colesterol: PropTypes.number,
-            sodio: PropTypes.number,
-            carbohidratos: PropTypes.number
+            calorias: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            proteinas: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            grasaTotal: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            grasaSaturada: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            colesterol: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            sodio: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            carbohidratos: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
         })
     }).isRequired,
     handleInputChange: PropTypes.func.isRequired
