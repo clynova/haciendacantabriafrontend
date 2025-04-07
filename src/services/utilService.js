@@ -58,10 +58,10 @@ const enviarEmailConfirmacionOrden = async (orderId, token) => {
 // pdfFile email documentType token
 // /api/util/send-pdf
 
-const enviarEmailPdf = async (pdfFile, email, documentType, token) => {
+const enviarEmailPdf = async (pdfFile, email, documentType, token, orderId) => {
   try {
     // Verificar que los datos necesarios estén presentes
-    if (!pdfFile || !email || !documentType || !token) {
+    if (!pdfFile || !email || !documentType || !token || !orderId) {
       throw new Error('Faltan datos requeridos para enviar el PDF');
     }
 
@@ -71,7 +71,7 @@ const enviarEmailPdf = async (pdfFile, email, documentType, token) => {
     }
 
     // Construir el objeto de datos para la solicitud
-    const data = { pdfFile, email, documentType };
+    const data = { pdfFile, email, documentType, orderId };
 
     // Realizar la solicitud POST con los headers correctos
     const response = await api.post('/api/util/send-pdf', data, {
