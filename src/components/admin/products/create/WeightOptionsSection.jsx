@@ -149,107 +149,179 @@ export const WeightOptionsSection = ({ formData, handleInputChange }) => {
                 Opciones de Peso
             </h2>
 
-            <div className="space-y-4">
-                {formData.opcionesPeso.pesosEstandar.map((peso, index) => (
-                    <div key={index} className="p-4 border rounded-lg dark:border-gray-700 bg-gray-50 dark:bg-slate-700">
-                        {/* SKU Section */}
-                        <div className="mb-4">
-                            <FormInput
-                                label="SKU"
-                                name="sku"
-                                value={peso.sku}
-                                onChange={(e) => handleStandardWeightChange(index, 'sku', e.target.value)}
-                            />
-                        </div>
+            {/* Agregar campos generales de peso al inicio */}
+            <div className="mb-6 space-y-4">
+                <div className="flex items-center space-x-2 mb-4">
+                    <input
+                        type="checkbox"
+                        id="esPesoVariable"
+                        checked={formData.opcionesPeso.esPesoVariable}
+                        onChange={(e) => handleInputChange({
+                            target: {
+                                name: 'esPesoVariable',
+                                value: e.target.checked
+                            }
+                        }, 'opcionesPeso')}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="esPesoVariable" className="text-sm text-gray-700 dark:text-gray-200">
+                        Peso Variable
+                    </label>
+                </div>
 
-                        {/* Weight, Unit, Price, Discount Section */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                            <FormInput
-                                label="Peso"
-                                name="peso"
-                                type="number"
-                                value={peso.peso}
-                                onChange={(e) => handleStandardWeightChange(index, 'peso', e.target.value)}
-                                min="0"
-                                step="0.01"
-                            />
-                            <FormSelect
-                                label="Unidad"
-                                name={`unidad-${index}`}
-                                value={peso.unidad}
-                                onChange={(e) => handleStandardWeightChange(index, 'unidad', e.target.value)}
-                                options={getUnidadesPeso()}
-                            />
-                            <FormInput
-                                label="Precio"
-                                name="precio"
-                                type="number"
-                                value={peso.precio}
-                                onChange={(e) => handleStandardWeightChange(index, 'precio', e.target.value)}
-                                min="0"
-                            />
-                            <FormInput
-                                label="Descuento (%)"
-                                name="descuento"
-                                type="number"
-                                value={peso.descuentos?.regular || 0}
-                                onChange={(e) => handleStandardWeightChange(index, 'descuentos', 
-                                    { regular: Math.min(100, Math.max(0, Number(e.target.value))) })}
-                                min="0"
-                                max="100"
-                            />
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormInput
+                        label="Peso Promedio"
+                        name="pesoPromedio"
+                        type="number"
+                        value={formData.opcionesPeso.pesoPromedio || ''}
+                        onChange={(e) => handleInputChange({
+                            target: {
+                                name: 'pesoPromedio',
+                                value: e.target.value
+                            }
+                        }, 'opcionesPeso')}
+                        min="0"
+                        step="0.01"
+                    />
+                    <FormInput
+                        label="Peso Mínimo"
+                        name="pesoMinimo"
+                        type="number"
+                        value={formData.opcionesPeso.pesoMinimo || ''}
+                        onChange={(e) => handleInputChange({
+                            target: {
+                                name: 'pesoMinimo',
+                                value: e.target.value
+                            }
+                        }, 'opcionesPeso')}
+                        min="0"
+                        step="0.01"
+                    />
+                    <FormInput
+                        label="Peso Máximo"
+                        name="pesoMaximo"
+                        type="number"
+                        value={formData.opcionesPeso.pesoMaximo || ''}
+                        onChange={(e) => handleInputChange({
+                            target: {
+                                name: 'pesoMaximo',
+                                value: e.target.value
+                            }
+                        }, 'opcionesPeso')}
+                        min="0"
+                        step="0.01"
+                    />
+                </div>
+            </div>
 
-                        {/* Stock Section */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormInput
-                                label="Stock Disponible"
-                                name="stockDisponible"
-                                type="number"
-                                value={peso.stockDisponible}
-                                onChange={(e) => handleStandardWeightChange(index, 'stockDisponible', e.target.value)}
-                                min="0"
-                            />
-                            <FormInput
-                                label="Umbral Stock Bajo"
-                                name="umbralStockBajo"
-                                type="number"
-                                value={peso.umbralStockBajo}
-                                onChange={(e) => handleStandardWeightChange(index, 'umbralStockBajo', e.target.value)}
-                                min="0"
-                            />
-                        </div>
+            <div className="border-t dark:border-gray-700 pt-6 mt-6">
+                <h3 className="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                    Pesos Estándar
+                </h3>
 
-                        <div className="flex justify-between items-center mt-4 pt-3 border-t dark:border-gray-600">
-                            <label className="flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    checked={peso.esPredeterminado}
-                                    onChange={() => handleStandardWeightChange(index, 'esPredeterminado')}
-                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                <div className="space-y-4">
+                    {formData.opcionesPeso.pesosEstandar.map((peso, index) => (
+                        <div key={index} className="p-4 border rounded-lg dark:border-gray-700 bg-gray-50 dark:bg-slate-700">
+                            {/* SKU Section */}
+                            <div className="mb-4">
+                                <FormInput
+                                    label="SKU"
+                                    name="sku"
+                                    value={peso.sku}
+                                    onChange={(e) => handleStandardWeightChange(index, 'sku', e.target.value)}
                                 />
-                                <span className="text-sm text-gray-700 dark:text-gray-200">
-                                    Predeterminado
-                                </span>
-                            </label>
-                            <button
-                                type="button"
-                                onClick={() => removeStandardWeight(index)}
-                                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                disabled={peso.esPredeterminado}
-                            >
-                                Eliminar
-                            </button>
+                            </div>
+
+                            {/* Weight, Unit, Price, Discount Section */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                <FormInput
+                                    label="Peso"
+                                    name="peso"
+                                    type="number"
+                                    value={peso.peso}
+                                    onChange={(e) => handleStandardWeightChange(index, 'peso', e.target.value)}
+                                    min="0"
+                                    step="0.01"
+                                />
+                                <FormSelect
+                                    label="Unidad"
+                                    name={`unidad-${index}`}
+                                    value={peso.unidad}
+                                    onChange={(e) => handleStandardWeightChange(index, 'unidad', e.target.value)}
+                                    options={getUnidadesPeso()}
+                                />
+                                <FormInput
+                                    label="Precio"
+                                    name="precio"
+                                    type="number"
+                                    value={peso.precio}
+                                    onChange={(e) => handleStandardWeightChange(index, 'precio', e.target.value)}
+                                    min="0"
+                                />
+                                <FormInput
+                                    label="Descuento (%)"
+                                    name="descuento"
+                                    type="number"
+                                    value={peso.descuentos?.regular || 0}
+                                    onChange={(e) => handleStandardWeightChange(index, 'descuentos', 
+                                        { regular: Math.min(100, Math.max(0, Number(e.target.value))) })}
+                                    min="0"
+                                    max="100"
+                                />
+                            </div>
+
+                            {/* Stock Section */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormInput
+                                    label="Stock Disponible"
+                                    name="stockDisponible"
+                                    type="number"
+                                    value={peso.stockDisponible}
+                                    onChange={(e) => handleStandardWeightChange(index, 'stockDisponible', e.target.value)}
+                                    min="0"
+                                />
+                                <FormInput
+                                    label="Umbral Stock Bajo"
+                                    name="umbralStockBajo"
+                                    type="number"
+                                    value={peso.umbralStockBajo}
+                                    onChange={(e) => handleStandardWeightChange(index, 'umbralStockBajo', e.target.value)}
+                                    min="0"
+                                />
+                            </div>
+
+                            <div className="flex justify-between items-center mt-4 pt-3 border-t dark:border-gray-600">
+                                <label className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={peso.esPredeterminado}
+                                        onChange={() => handleStandardWeightChange(index, 'esPredeterminado')}
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-700 dark:text-gray-200">
+                                        Predeterminado
+                                    </span>
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => removeStandardWeight(index)}
+                                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                    disabled={peso.esPredeterminado}
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                ))}
-                <button
-                    type="button"
-                    onClick={addStandardWeight}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500"
-                >
-                    Agregar Opción de Peso
-                </button>
+                    ))}
+                    <button
+                        type="button"
+                        onClick={addStandardWeight}
+                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500"
+                    >
+                        Agregar Opción de Peso
+                    </button>
+                </div>
             </div>
 
             {/* Sección de Rangos Preferidos */}
@@ -338,6 +410,10 @@ WeightOptionsSection.propTypes = {
     formData: PropTypes.shape({
         categoria: PropTypes.string,
         opcionesPeso: PropTypes.shape({
+            esPesoVariable: PropTypes.bool,
+            pesoPromedio: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            pesoMinimo: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            pesoMaximo: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             pesosEstandar: PropTypes.arrayOf(PropTypes.shape({
                 peso: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
                 unidad: PropTypes.string,

@@ -69,10 +69,25 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
     const aditivosData = mode === 'edit' ? caracteristicas : caracteristicasAceite;
     const aditivos = aditivosData?.aditivos || [];
 
+    // Determinar qué objeto de características usar
+    const caracteristicasData = mode === 'edit' ? formData.caracteristicas : formData.caracteristicasAceite;
+
     // Update the handleChange function
     const handleChange = (e, section) => {
         const { name, value, type } = e.target;
         
+        // Si estamos editando características específicas del aceite
+        if (section === 'caracteristicasAceite' || section === 'caracteristicas') {
+            const targetSection = mode === 'edit' ? 'caracteristicas' : 'caracteristicasAceite';
+            handleInputChange({
+                target: {
+                    name,
+                    value: type === 'number' ? (value === '' ? '' : Number(value)) : value
+                }
+            }, targetSection);
+            return;
+        }
+
         // Special handling for infoNutricional
         if (section === 'infoNutricional') {
             const numberValue = type === 'number' ? parseFloat(value) : value;
@@ -173,8 +188,8 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                         <input
                             type="number"
                             name="acidez"
-                            value={caracteristicasAceite.acidez || ''}
-                            onChange={(e) => handleChange(e, 'caracteristicasAceite')}
+                            value={caracteristicasData?.acidez || ''}
+                            onChange={(e) => handleChange(e, mode === 'edit' ? 'caracteristicas' : 'caracteristicasAceite')}
                             step="0.01"
                             min="0"
                             max="100"
@@ -195,8 +210,8 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     </label>
                     <select
                         name="filtracion"
-                        value={caracteristicasAceite.filtracion || ''}
-                        onChange={(e) => handleChange(e, 'caracteristicasAceite')}
+                        value={caracteristicasData?.filtracion || ''}
+                        onChange={(e) => handleChange(e, mode === 'edit' ? 'caracteristicas' : 'caracteristicasAceite')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                     >
                         <option value="">Seleccione el tipo de filtración</option>
@@ -215,8 +230,8 @@ export const AceiteForm = ({ formData = {}, handleInputChange, mode = 'create' }
                     </label>
                     <select
                         name="extraccion"
-                        value={caracteristicasAceite.extraccion || ''}
-                        onChange={(e) => handleChange(e, 'caracteristicasAceite')}
+                        value={caracteristicasData?.extraccion || ''}
+                        onChange={(e) => handleChange(e, mode === 'edit' ? 'caracteristicas' : 'caracteristicasAceite')}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white"
                     >
                         <option value="">Seleccione el método de extracción</option>
