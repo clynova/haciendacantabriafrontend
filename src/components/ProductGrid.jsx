@@ -190,6 +190,9 @@ const ProductGrid = ({ tags = "MasVendidos", limit = 6 }) => {
                         ${hoveredProduct === product._id ? 'scale-110 brightness-[0.90]' : 'brightness-[0.95]'}`}
               onError={handleImageError}
               loading="lazy"
+              width="100%"
+              height="420"
+              style={{ aspectRatio: '1/1' }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-80"></div>
           </div>

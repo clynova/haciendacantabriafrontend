@@ -24,6 +24,9 @@ const CategoryCard = ({
           className="h-full w-full object-cover transition-transform duration-500
                  group-hover:scale-110"
           loading="lazy"
+          width="600"
+          height="400"
+          style={{ aspectRatio: '3/2' }}
         />
       </div>
 

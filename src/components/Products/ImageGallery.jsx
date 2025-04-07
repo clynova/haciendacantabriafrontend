@@ -5,11 +5,14 @@ const ImageGallery = ({ images, selectedImage, setSelectedImage }) => {
     return (
         <div className="flex flex-col">
             <div className="relative h-[480px] w-full border border-slate-200 dark:border-slate-700 rounded-lg">
-                <div className="absolute inset-0 flex items-center justify-center  bg-slate-100 dark:bg-slate-800">
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-100 dark:bg-slate-800">
                     <img
                         src={getImageUrl(images[selectedImage].url)}
                         alt={images[selectedImage].textoAlternativo}
                         className="max-h-full max-w-full object-contain"
+                        width="480"
+                        height="480"
+                        style={{ aspectRatio: "1/1" }}
                     />
                 </div>
             </div>
@@ -27,6 +30,8 @@ const ImageGallery = ({ images, selectedImage, setSelectedImage }) => {
                                 src={getImageUrl(img.url)}
                                 alt={img.textoAlternativo}
                                 className="max-h-full max-w-full object-contain p-1"
+                                width="96"
+                                height="96"
                             />
                         </div>
                     </button>
