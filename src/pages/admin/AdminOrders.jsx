@@ -6,6 +6,7 @@ import { HiSearch, HiDownload, HiRefresh, HiEye, HiCheckCircle, HiXCircle, HiMai
 import { formatCurrency } from '../../utils/funcionesReutilizables';
 import { toast } from 'react-hot-toast';
 import { enviarEmailConfirmacionOrden } from '../../services/utilService';
+import BillingDetails from '../../components/admin/BillingDetails';
 
 const AdminOrders = () => {
     const navigate = useNavigate();
@@ -268,7 +269,7 @@ const AdminOrders = () => {
                                     Estado de Pago
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                                    Comprobante
+                                    Facturación
                                 </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
                                     Acciones
@@ -319,10 +320,7 @@ const AdminOrders = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">
-                                            {order.comprobanteTipo || 'No especificado'} 
-                                            {order.comprobanteTipo === 'factura' ? 
-                                                ` - RUT: ${order.rut || 'No especificado'}` : 
-                                                order.comprobanteTipo === 'boleta' ? ' - RUT: No Aplica' : ''}
+                                            <BillingDetails order={order} token={token} />
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right">
                                             <div className="flex justify-end space-x-2">
