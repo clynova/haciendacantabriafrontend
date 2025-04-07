@@ -121,6 +121,9 @@ const CartItem = ({ item }) => {
             alt={productName}
             className="w-full h-full object-cover"
             onError={(e) => { e.target.src = '/images/placeholder.png'; }}
+            width="96"
+            height="96"
+            style={{ aspectRatio: '1/1' }}
           />
           {isLowStock && (
             <div className="absolute top-0 left-0 bg-amber-500 text-white text-xs px-1.5 py-0.5">
