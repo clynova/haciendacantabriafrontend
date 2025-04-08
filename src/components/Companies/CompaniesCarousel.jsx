@@ -1,16 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import company1 from '../../images//companies/Chiche-logo.png';
-import company2 from '../../images/companies/lacabrera-logo.png';
-import company3 from '../../images/companies/smashlogo.webp';
-import company4 from '../../images/companies/tdf-logo-white.svg';
-import company5 from '../../images/companies/SANTABRASA.png';
 
 const companies = [
-  { name: "Chiche cuadra", logo: company1 },
-  { name: "La Cabrera", logo: company2 },
-  { name: "Burger Smasher", logo: company3 },
-  { name: "Tierra del Fuego", logo: company4 },
-  { name: "Santabrasa", logo: company5 },
+  { name: "Chiche cuadra", logo: "/images/companies/Chiche-logo.webp" },
+  { name: "La Cabrera", logo: "/images/companies/lacabrera-logo.webp" },
+  { name: "Burger Smasher", logo: "/images/companies/smashlogo.webp" },
+  { name: "Tierra del Fuego", logo: "/images/companies/tdf-logo-white.webp" },
+  { name: "Santabrasa", logo: "/images/companies/SANTABRASA.webp" },
 ];
 
 const CompaniesCarousel = () => {

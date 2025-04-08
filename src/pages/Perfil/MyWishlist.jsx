@@ -144,7 +144,7 @@ const MyWishlist = () => {
                                             loading="lazy"
                                             onError={(e) => {
                                                 e.target.onerror = null;
-                                                e.target.src = '/images/placeholder.png';
+                                                e.target.src = '/images/optimized/placeholder-large.webp';
                                             }}
                                         />
                                         {defaultVariant?.descuento > 0 && (

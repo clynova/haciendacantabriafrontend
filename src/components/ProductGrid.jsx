@@ -45,7 +45,7 @@ const ProductGrid = ({ tags = "MasVendidos", limit = 6 }) => {
   }, [tags, limit]);
 
   const handleImageError = (e) => {
-    e.target.src = '/images/placeholder.png';
+    e.target.src = '/images/optimized/placeholder-large.webp';
   };
 
   const handleAddToWishlist = async (productId) => {
@@ -203,7 +203,7 @@ const ProductGrid = ({ tags = "MasVendidos", limit = 6 }) => {
               product.origen?.pais?.toLowerCase() === 'argentina' && (
                 <div className="relative group/tooltip">
                   <img
-                    src="/images/flags/argentina-flag.png"
+                    src="/images/optimized/flags/argentina-flag.webp" 
                     alt="Origen Argentina"
                     className="w-8 h-8 rounded-full shadow-md ring-2 ring-white"
                   />

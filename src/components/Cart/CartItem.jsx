@@ -9,7 +9,7 @@ import { toast } from 'react-hot-toast';
 
 // Función auxiliar para obtener la URL de la imagen de forma segura
 const getImageSrc = (multimedia) => {
-  if (!multimedia) return '/images/placeholder.png';
+  if (!multimedia) return '/images/optimized/placeholder-large.webp';
 
   try {
     // Caso 1: Array de imágenes
@@ -32,7 +32,7 @@ const getImageSrc = (multimedia) => {
     console.error('Error al obtener imagen:', error);
   }
 
-  return '/images/placeholder.png';
+  return '/images/optimized/placeholder-large.webp';
 };
 
 const CartItem = ({ item }) => {
@@ -52,7 +52,7 @@ const CartItem = ({ item }) => {
   
   // Obtener la imagen del producto
   const productImage = typeof item.productId === 'object' ? 
-    getImageSrc(item.productId.multimedia) : '/images/placeholder.png';
+    getImageSrc(item.productId.multimedia) : '/images/optimized/placeholder-large.webp';
   
   // Determinar si la variante tiene descuento
   let originalPrice = item.variant.precio || 0;
@@ -120,7 +120,7 @@ const CartItem = ({ item }) => {
             src={productImage}
             alt={productName}
             className="w-full h-full object-cover"
-            onError={(e) => { e.target.src = '/images/placeholder.png'; }}
+            onError={(e) => { e.target.src = '/images/optimized/placeholder-large.webp'; }}
             width="96"
             height="96"
             style={{ aspectRatio: '1/1' }}
