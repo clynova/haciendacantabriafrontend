@@ -213,6 +213,7 @@ const ProductCard = ({ product }) => {
                                     e.stopPropagation();
                                     handleLikeClick();
                                 }}
+                                disabled={!hasAvailableStock} // Removed undefined isHidden variable
                                 className={`p-2 rounded-full transition-colors duration-300 shadow-md
                                           ${isLiked 
                                             ? 'bg-red-50 dark:bg-red-900/30' 
@@ -221,7 +222,7 @@ const ProductCard = ({ product }) => {
                             >
                                 {isLiked ? (
                                     <HiHeart className="w-5 h-5 text-red-500" />
-                                ) : (
+                                ) : ( 
                                     <HiOutlineHeart className="w-5 h-5 text-gray-600 dark:text-gray-300 
                                                             group-hover:text-red-500 transition-colors" />
                                 )}
