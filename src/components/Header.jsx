@@ -19,9 +19,10 @@ const Navigation = ({ links, onMobileClick = null }) => {
           to={link.href}
           className="text-slate-300 hover:text-blue-400 px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
           onClick={onMobileClick}
+          aria-label={`Ir a la sección ${link.name}`}
         >
           {link.name}
-          <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+          <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200" aria-hidden="true"></span>
         </Link>
       ))}
     </>
@@ -35,6 +36,7 @@ const AuthButtons = ({ onMobileClick = null }) => (
       to="/auth"
       className="text-slate-300 hover:text-white px-4 py-2 text-sm font-medium transition-colors duration-200"
       onClick={onMobileClick}
+      aria-label="Iniciar sesión en la tienda"
     >
       Ingresar
     </Link>
@@ -44,6 +46,7 @@ const AuthButtons = ({ onMobileClick = null }) => (
       text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
       transform hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/25"
       onClick={onMobileClick}
+      aria-label="Crear una nueva cuenta"
     >
       Registrarse
     </Link>
@@ -85,6 +88,7 @@ const Header = () => {
                 to="/profile"
                 className="block w-full text-center text-slate-300 hover:text-white px-4 py-2 text-lg font-medium mb-3 transition-colors duration-200"
                 onClick={() => setIsMenuOpen(false)}
+                aria-label="Ver mi perfil de usuario"
               >
                 Mi Perfil
               </Link>
@@ -93,6 +97,7 @@ const Header = () => {
                   to="/admin"
                   className="block w-full text-center text-slate-300 hover:text-white px-4 py-2 text-lg font-medium mb-3 transition-colors duration-200"
                   onClick={() => setIsMenuOpen(false)}
+                  aria-label="Acceder al panel de administración"
                 >
                   Panel Admin
                 </Link>
@@ -104,6 +109,7 @@ const Header = () => {
                 }}
                 className="block w-full text-center bg-red-500 hover:bg-red-600
                 text-white px-4 py-2 rounded-lg text-lg font-medium transition-all duration-200"
+                aria-label="Cerrar sesión en la cuenta actual"
               >
                 Cerrar Sesión
               </button>
@@ -128,6 +134,7 @@ const Header = () => {
               <Link
                 to="/"
                 className="flex items-center"
+                aria-label="Ir a la página principal"
               >
                 <img 
                   src={logo}
