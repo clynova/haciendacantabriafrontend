@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Crushed&family=Kaushan+Script&family=Kings&display=swap');
+
 /* Font loading optimization */
 @font-face {
   font-family: 'Sans';
