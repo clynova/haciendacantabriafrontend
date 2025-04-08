@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { toasterConfig } from './config/toasterConfig';
 import { AppProviders } from './components/Providers/AppProviders';
 import { ScrollToTop } from './components/ScrollToTop';
+import { CookieConsentBanner } from './components/CookieConsent';
 import appRoutes from './routes/index.jsx';
 
 const App = () => {
@@ -35,6 +36,7 @@ const App = () => {
         </Routes>
       </BrowserRouter>
       <Toaster {...toasterConfig} />
+      <CookieConsentBanner />
     </AppProviders>
   );
 };
