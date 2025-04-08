@@ -72,28 +72,28 @@ export const Footer = () => {
           {/* Social and Payment Column */}
           <div className="space-y-8">
             {/* Redes Sociales */}
-            {/* <div>
+            <div>
               <h3 className="text-lg font-semibold text-white mb-4">Síguenos</h3>
               <div className="flex space-x-4">
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" 
+                {/* <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" 
                    className="text-2xl hover:text-white">
                   <FaFacebook />
                 </a>
                 <a href="https://twitter.com" target="_blank" rel="noopener noreferrer"
                    className="text-2xl hover:text-white">
                   <FaTwitter />
-                </a>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
+                </a> */}
+                <a href="https://www.instagram.com/hacienda.cantabria" target="_blank" rel="noopener noreferrer"
                    className="text-2xl hover:text-white">
                   <FaInstagram />
                 </a>
               </div>
-            </div> */}
+            </div>
 
             {/* Métodos de Pago */}
             <div>
               <h3 className="text-lg font-semibold text-white mb-4">Medios de Pago</h3>
-              <div className="flex justify-center">
+              <div className="flex ">
                 <img 
                   src={webpay}
                   alt="Webpay plus" 
