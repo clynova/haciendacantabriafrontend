@@ -176,13 +176,13 @@ const BestSellersCarousel = () => {
                       {/* Pre-reserve space for image with aspect-ratio */}
                       <div style={{ position: "relative", width: "100%", height: "100%" }} className="rounded-xl overflow-hidden">
                         <img
-                          src={product.multimedia?.imagenes?.[0]?.url || '/images/placeholder.png'}
+                          src={product.multimedia?.imagenes?.[0]?.url || '/images/optimized/placeholder-large.webp'}
                           alt={product.nombre}
                           className="w-full h-full object-cover rounded-xl"
                           width="300"
                           height="300"
                           loading="lazy"
-                          onError={(e) => { e.target.src = '/images/placeholder.png'; }}
+                          onError={(e) => { e.target.src = '/images/optimized/placeholder-large.webp'; }}
                         />
                       </div>
                     </div>

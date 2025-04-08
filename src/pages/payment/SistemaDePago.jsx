@@ -733,7 +733,7 @@ const SistemaDePago = () => {
                                                 if (product.multimedia?.imagenes && product.multimedia.imagenes.length > 0) {
                                                     return product.multimedia.imagenes[0].url;
                                                 }
-                                                return '/images/placeholder.png';
+                                                return '/images/optimized/placeholder-large.webp';
                                             };
 
                                             return (
@@ -744,7 +744,7 @@ const SistemaDePago = () => {
                                                             src={getImageUrl()}
                                                             alt={product.nombre}
                                                             className="w-full h-full object-cover"
-                                                            onError={(e) => { e.target.src = '/images/placeholder.png' }}
+                                                            onError={(e) => { e.target.src = '/images/optimized/placeholder-large.webp' }}
                                                         />
                                                     </div>
                                                     <div className="ml-3 flex-grow">

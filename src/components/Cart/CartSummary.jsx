@@ -152,7 +152,7 @@ const CartSummary = ({
                                 if (product && product.multimedia && product.multimedia.imagenes && product.multimedia.imagenes.length > 0) {
                                     return product.multimedia.imagenes[0].url;
                                 }
-                                return '/images/placeholder.png'; // Imagen por defecto
+                                return '/images/optimized/placeholder-large.webp'; // Imagen por defecto
                             };
                             
                             return (

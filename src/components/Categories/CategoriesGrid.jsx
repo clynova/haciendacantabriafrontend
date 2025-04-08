@@ -1,13 +1,10 @@
 import { CategoryCard } from './CategoryCard';
-import imgCarne from '../../images/categories/Carne.webp';
-import imgDestino from '../../images/categories/destino.webp';
-import imgAceite from '../../images/categories/Aceite.webp';
 
 const categories = [
   {
     title: "Carnes",
     description: "Las mejores carnes, con garantía de calidad y sabor excepcional",
-    image: imgCarne,
+    image: "/images/categories/Carne.webp",
     href: "/categoria/carne",
     color: "",
     featured: true // Add this to mark as featured
@@ -15,14 +12,14 @@ const categories = [
   {
     title: "Aceites",
     description: "Aceites de oliva y otros aceites premium para tus comidas",
-    image: imgAceite,
+    image: "/images/categories/Aceite.webp",
     href: "/categoria/aceite",
     color: "from-green-500/20 to-green-900/40"
   },
   {
     title: "Ofertas",
     description: "Encuentra los mejores ofertas para tu cocina y parrilla",
-    image: imgDestino,
+    image: "/images/categories/destino.webp",
     href: "/categoria/ofertas",
     color: "from-purple-500/20 to-purple-900/40"
   }
