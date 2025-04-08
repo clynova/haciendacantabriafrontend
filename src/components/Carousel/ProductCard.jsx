@@ -41,7 +41,7 @@ const ProductCard = ({ product }) => {
     const [isHovered, setIsHovered] = useState(false);
     const { token } = useAuth();
     const { addToCart } = useCart();
-    const fallbackImage = '/images/placeholder.png';
+    const fallbackImage = '/images/optimized/placeholder-large.webp';
 
     // Reemplazar la lógica de variant y hasAvailableStock
     const availability = checkProductAvailability(product);
@@ -164,7 +164,7 @@ const ProductCard = ({ product }) => {
                                     className="flex items-center gap-1.5 bg-white/90 dark:bg-gray-800/90 rounded-full p-1 shadow-md"
                                 >
                                     <img
-                                        src="/images/flags/argentina-flag.png"
+                                        src="/images/optimized/flags/argentina-flag.webp"
                                         alt="Origen Argentina"
                                         className="w-6 h-6 rounded-full border border-gray-200"
                                         title="Producto de origen argentino"

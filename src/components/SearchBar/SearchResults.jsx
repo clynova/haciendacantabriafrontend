@@ -34,12 +34,12 @@ const SearchResults = memo(({ results, isLoading = false, onClose }) => {
                     >
                         <div className="w-12 h-12 flex-shrink-0 bg-slate-700 rounded overflow-hidden">
                             <img                        
-                                src={product.multimedia?.imagenes?.[0]?.url || "/images/placeholder.png"}
+                                src={product.multimedia?.imagenes?.[0]?.url || "/images/optimized/placeholder-large.webp"}
                                 alt={product.nombre}
                                 className="w-full h-full object-cover"
                                 loading="lazy"
                                 onError={(e) => {
-                                    e.target.src = "/images/placeholder.png";
+                                    e.target.src = "/images/optimized/placeholder-large.webp";
                                 }}
                             />
                         </div>

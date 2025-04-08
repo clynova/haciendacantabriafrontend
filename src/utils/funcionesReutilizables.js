@@ -9,7 +9,7 @@ const formateoNombre = (firstName, lastName) => {
 }
 
 const getImageUrl = (imagePath) => {
-    if (!imagePath) return '/images/placeholder.png';
+    if (!imagePath) return '/images/optimized/placeholder-large.webp';
     
     // Si la ruta comienza con 'images/', es una imagen local
     if (imagePath.startsWith('images/')) {

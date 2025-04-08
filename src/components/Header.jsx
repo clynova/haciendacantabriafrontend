@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { CartDrawer } from "./Cart/CartDrawer";
 import UserDropdown from './Nav/UserDropdown';
 import { AboutDropdown } from "./Nav/AboutDropdown";
-import logo from '/images/logo.png'
+import logo from '/images/optimized/logo.webp'
 
 // Componente Navigation extraído para mejor organización
 const Navigation = ({ links, onMobileClick = null }) => {

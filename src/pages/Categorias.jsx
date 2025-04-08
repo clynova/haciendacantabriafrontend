@@ -390,7 +390,7 @@ const Categorias = () => {
                         >
                             <div className="aspect-square relative overflow-hidden rounded-t-xl">
                                 <img
-                                    src={product.multimedia?.imagenes?.[0]?.url || '/images/placeholder.png'}
+                                    src={product.multimedia?.imagenes?.[0]?.url || '/images/optimized/placeholder-large.webp'}
                                     alt={product.nombre}
                                     className="w-full h-full object-cover group-hover:scale-105 
                                              transition-transform duration-500"
@@ -401,7 +401,7 @@ const Categorias = () => {
                                     product.origen?.pais?.toLowerCase() === 'argentina' && (
                                         <div className="absolute top-2 left-2 z-20">
                                             <img
-                                                src="/images/flags/argentina-flag.png"
+                                                src="/images/optimized/flags/argentina-flag.webp"
                                                 alt="Origen Argentina"
                                                 className="w-8 h-8 rounded-full shadow-md"
                                                 title="Producto de origen argentino"
@@ -569,7 +569,7 @@ const Categorias = () => {
                         >
                             <div className="w-full sm:w-48 h-48 relative">
                                 <img
-                                    src={product.multimedia?.imagenes?.[0]?.url || '/images/placeholder.png'}
+                                    src={product.multimedia?.imagenes?.[0]?.url || '/images/optimized/placeholder-large.webp'}
                                     alt={product.nombre}
                                     className="w-full h-full object-cover rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none 
                                              group-hover:scale-105 transition-transform duration-500"
@@ -580,7 +580,7 @@ const Categorias = () => {
                                     product.origen?.pais?.toLowerCase() === 'argentina' && (
                                         <div className="absolute top-2 left-2 z-20">
                                             <img
-                                                src="/images/flags/argentina-flag.png"
+                                                src="/images/optimized/flags/argentina-flag.webp"
                                                 alt="Origen Argentina"
                                                 className="w-8 h-8 rounded-full shadow-md"
                                                 title="Producto de origen argentino"
