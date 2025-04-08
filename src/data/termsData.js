@@ -40,18 +40,6 @@ export const termsData = {
                     text: "El Sitio utiliza \"cookies\" para mejorar el conocimiento sobre el uso del Sitio y ofrecer información a los clientes respecto a sus preferencias y pautas de navegación. Una cookie recopila información anónima de hábitos de navegación, sin acceder a los datos personales de un usuario."
                 },
                 {
-                    subtitle: "Tipos de Cookies",
-                    text: "Utilizamos los siguientes tipos de cookies: 1) Cookies necesarias: Esenciales para el funcionamiento básico del sitio. 2) Cookies de preferencias: Recuerdan sus ajustes y preferencias. 3) Cookies analíticas: Nos permiten analizar y mejorar el rendimiento del sitio. 4) Cookies de marketing: Utilizadas para mostrarle publicidad relevante. 5) Cookies de terceros: Proporcionadas por servicios externos como análisis web, redes sociales y publicidad."
-                },
-                {
-                    subtitle: "Cookies de Terceros",
-                    text: "Nuestro sitio utiliza cookies de terceros que pueden rastrear su actividad en múltiples sitios para fines de marketing y análisis. Estas cookies son administradas por empresas externas como Google Analytics, Facebook, servicios de pago y otros. Puede gestionar sus preferencias de privacidad en cualquier momento a través de nuestro banner de consentimiento de cookies o configurando su navegador para rechazar cookies."
-                },
-                {
-                    subtitle: "Control de Cookies",
-                    text: "Usted puede configurar su navegador para rechazar todas las cookies o para que le avise cuando se envía una cookie. Sin embargo, si rechaza las cookies, es posible que algunas partes de nuestro sitio no funcionen correctamente. Al continuar utilizando nuestro sitio sin cambiar su configuración de cookies, acepta nuestro uso de cookies tal como se describe en esta política."
-                },
-                {
                     subtitle: "Protección de Datos Personales",
                     text: "La información entregada por el usuario será almacenada bajo altos estándares de seguridad, tratada en conformidad a la Ley N° 19.628 sobre Protección de la Vida Privada y con el exclusivo propósito de concretar las transacciones en el Sitio, mejorar la labor de información y comercialización de los productos ofrecidos, realizar estudios estadísticos de uso y preferencias, y enviar comunicaciones promocionales o publicitarias (si el usuario lo autoriza)."
                 }
