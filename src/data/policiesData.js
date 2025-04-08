@@ -19,7 +19,15 @@ export const policiesData = {
                 },
                 {
                     subtitle: "Cookies y Tecnologías",
-                    content: "Utilizamos cookies y tecnologías similares para:\n- Mejorar su experiencia de navegación\n- Recordar sus preferencias\n- Analizar cómo interactúa con nuestro sitio\n- Personalizar contenido relevante\n\nPuede configurar su navegador para rechazar cookies, aunque esto podría limitar algunas funcionalidades."
+                    content: "Utilizamos cookies y tecnologías similares para:\n- Mejorar su experiencia de navegación\n- Recordar sus preferencias\n- Analizar cómo interactúa con nuestro sitio\n- Personalizar contenido relevante\n\nClasificamos nuestras cookies en las siguientes categorías:\n\n1. Cookies necesarias: Esenciales para el funcionamiento básico del sitio\n2. Cookies de preferencias: Recuerdan sus ajustes y preferencias\n3. Cookies analíticas: Nos permiten entender cómo usa nuestro sitio\n4. Cookies de marketing: Utilizadas para publicidad personalizada\n5. Cookies de terceros: Proporcionadas por servicios externos"
+                },
+                {
+                    subtitle: "Cookies de Terceros",
+                    content: "Nuestro sitio utiliza cookies de terceros que pueden rastrear su actividad en múltiples sitios. Estas son proporcionadas por empresas como:\n\n- Google Analytics (análisis de tráfico)\n- Facebook/Meta (publicidad y seguimiento)\n- Servicios de procesamiento de pagos\n- Proveedores de contenido multimedia\n\nEstas cookies pueden recopilar información sobre sus hábitos de navegación para ofrecer publicidad dirigida y mejorar nuestros servicios. Puede gestionar sus preferencias a través de nuestro banner de cookies."
+                },
+                {
+                    subtitle: "Gestión de Cookies",
+                    content: "Usted puede:\n\n- Aceptar todas las cookies\n- Aceptar solo cookies necesarias\n- Configurar su navegador para bloquear cookies\n- Eliminar cookies existentes en su navegador\n\nNote que rechazar ciertas cookies puede afectar la funcionalidad del sitio. Las cookies necesarias permanecerán activas para garantizar la operatividad básica."
                 },
                 {
                     subtitle: "Retención de Información",
