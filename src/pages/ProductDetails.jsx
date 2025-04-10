@@ -492,6 +492,9 @@ const getStockStatus = () => {
             images={product.multimedia.imagenes}
             selectedImage={selectedImage}
             setSelectedImage={setSelectedImage}
+            conservacion={product.conservacion}
+            origen={product.origen}
+            tipoProducto={product.tipoProducto}
           />
         </div>
 
