@@ -1,65 +1,40 @@
 // En tu archivo de servicios (ej: src/services/api.js)
 
 import axios from 'axios';
-import Cookies from 'js-cookie'; // Aún lo usamos para comparar
+// Ya no necesitamos js-cookie para CSRF
+// import Cookies from 'js-cookie';
 
-// ... (tu configuración de 'api' con Axios create) ...
+// --- Variable para almacenar el token CSRF en memoria ---
+let csrfTokenInMemory = null;
+// ---
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
+  withCredentials: true, // Sigue siendo necesario para la cookie de SESIÓN
 });
 
-// --- NUEVO: Función para leer cookie manualmente ---
-function getCookieValue(name) {
-  const cookies = document.cookie.split(';');
-  for (let i = 0; i < cookies.length; i++) {
-    let [cookieName, ...cookieParts] = cookies[i].split('=');
-    cookieName = cookieName?.trim();
-    if (cookieName === name) {
-      return decodeURIComponent(cookieParts.join('=').trim());
-    }
-  }
-  return null; // O undefined, para ser consistente
-}
-// --- FIN NUEVO ---
-
-
-// Interceptor Modificado para Diagnóstico
+// Interceptor Modificado para usar el token en memoria
 api.interceptors.request.use(
   (config) => {
     const methodsRequiringCsrf = ['POST', 'PUT', 'DELETE', 'PATCH'];
     if (config.method && methodsRequiringCsrf.includes(config.method.toUpperCase())) {
 
-        console.log("--- Interceptor Debug ---");
-        // 1. Loguear document.cookie completo
-        console.log("Interceptor: document.cookie:", document.cookie || "(vacío)");
+        console.log("--- Interceptor CSRF Check ---");
+        console.log("Interceptor: Intentando usar token CSRF desde memoria:", csrfTokenInMemory);
 
-        // 2. Intentar leer con js-cookie (como antes)
-        const csrfTokenFromJsCookie = Cookies.get('XSRF-TOKEN');
-        console.log('Interceptor: Valor desde Cookies.get("XSRF-TOKEN"):', csrfTokenFromJsCookie);
-
-        // 3. Intentar leer manualmente
-        const csrfTokenManual = getCookieValue('XSRF-TOKEN');
-        console.log('Interceptor: Valor desde lectura manual de document.cookie:', csrfTokenManual);
-
-        // Usar el valor manual si existe y el de js-cookie no
-        const csrfTokenToUse = csrfTokenFromJsCookie || csrfTokenManual;
-        console.log('Interceptor: Token que se intentará usar:', csrfTokenToUse);
-        console.log("--- Fin Interceptor Debug ---");
-
-
-        if (csrfTokenToUse) {
+        if (csrfTokenInMemory) {
             if (!config.headers) { config.headers = {}; }
-            config.headers['X-CSRF-TOKEN'] = csrfTokenToUse;
-            console.log('Interceptor: Añadiendo X-CSRF-TOKEN header:', csrfTokenToUse);
+            config.headers['X-CSRF-TOKEN'] = csrfTokenInMemory; // Usa el token de la variable
+            console.log('Interceptor: Añadiendo X-CSRF-TOKEN header desde memoria:', csrfTokenInMemory);
         } else {
-            console.warn('Interceptor: No se pudo obtener la cookie XSRF-TOKEN ni con js-cookie ni manualmente.');
-            // ¡IMPORTANTE! Si el token no se encuentra, la solicitud irá sin él y fallará en el backend.
+            // Esto NO debería pasar si ensureCsrfCookie se llamó correctamente antes
+            console.error('Interceptor: ¡ERROR! Token CSRF en memoria es null. La solicitud probablemente fallará.');
         }
+        console.log("--- Fin Interceptor CSRF Check ---");
     }
 
     // Código del token de autenticación (sin cambios)
@@ -75,24 +50,35 @@ api.interceptors.request.use(
 );
 
 
-// --- ensureCsrfCookie (simplificada, como la dejamos antes) ---
+// --- ensureCsrfCookie MODIFICADA para obtener token de la respuesta ---
 export const ensureCsrfCookie = async () => {
-  if (Cookies.get('XSRF-TOKEN')) {
-    console.log('ensureCsrfCookie: La cookie XSRF-TOKEN ya existe (según js-cookie).');
+  // Si ya tenemos el token en memoria, no hacemos nada más
+  if (csrfTokenInMemory) {
+    console.log('ensureCsrfCookie: Token CSRF ya existe en memoria.');
     return true;
   }
-  console.log('ensureCsrfCookie: Cookie XSRF-TOKEN no encontrada por js-cookie. Solicitando al backend...');
+
+  console.log('ensureCsrfCookie: Token CSRF no en memoria. Solicitando al backend...');
   try {
+    // Hacemos la solicitud GET para obtener el token en la respuesta
     const response = await api.get('/api/csrf-token');
-    if (response.status >= 200 && response.status < 300 && response.data?.success) {
-      console.log('ensureCsrfCookie: Solicitud a /api/csrf-token exitosa. Asumiendo que el navegador almacenó la cookie.');
-      return true;
+
+    // Verificamos la respuesta y extraemos el token
+    if (response.status >= 200 && response.status < 300 && response.data?.success && response.data?.csrfToken) {
+      csrfTokenInMemory = response.data.csrfToken; // <-- ALMACENAMOS EL TOKEN EN LA VARIABLE
+      console.log('ensureCsrfCookie: Token CSRF recibido y almacenado en memoria:', csrfTokenInMemory);
+      return true; // Éxito
     } else {
-      console.error('ensureCsrfCookie: La solicitud a /api/csrf-token no fue exitosa.', response);
+      console.error('ensureCsrfCookie: La solicitud a /api/csrf-token no fue exitosa o no contenía el token CSRF.', response);
+      csrfTokenInMemory = null; // Asegurar que esté nulo si falla
       return false;
     }
   } catch (error) {
     console.error('ensureCsrfCookie: Error durante la solicitud a /api/csrf-token:', error.response || error.message || error);
+     if (error.response) {
+      console.error('Detalles del error:', { status: error.response.status, data: error.response.data });
+    }
+    csrfTokenInMemory = null; // Asegurar que esté nulo si falla
     return false;
   }
 };
