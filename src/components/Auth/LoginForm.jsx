@@ -48,7 +48,7 @@ const LoginForm = ({
                     </div>
                 )}
 
-                <form className="space-y-6" onSubmit={onSubmit}>
+                <form className="space-y-6" onSubmit={onSubmit} data-csrf-protected="true">
                     <div>
                         <InputField
                             id="email"

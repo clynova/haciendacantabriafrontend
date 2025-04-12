@@ -64,7 +64,7 @@ function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     try {
-      const response = await api.post(`${import.meta.env.VITE_API_URL}/api/user/autenticar`, credentials);
+      const response = await api.post(`/api/user/autenticar`, credentials);
       const { token, user } = response.data;
 
       localStorage.setItem('token', token);
