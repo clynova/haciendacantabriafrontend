@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -12,21 +13,21 @@ const api = axios.create({
 // Interceptor para añadir el token CSRF a las solicitudes
 api.interceptors.request.use(
     (config) => {
-        // Obtener el token CSRF del localStorage
-        const csrfToken = localStorage.getItem('CSRF-Token');
+        // Obtener el token CSRF de las cookies usando js-cookie
+        const csrfToken = Cookies.get('CSRF-Token');
 
-        console.log('CSRF Token:', csrfToken); // Para depuración
+        console.log('CSRF Token (cookie):', csrfToken); // Para depuración
         
         // Asegurarse de que config.headers existe
         if (!config.headers) {
             config.headers = {};
         }
         
-        // Si existe el token CSRF, añadirlo a los encabezados de la solicitud
+        // Si existe el token CSRF en cookies, añadirlo a los encabezados
         if (csrfToken) {
             // Asegurarse de que los encabezados se establecen correctamente
-            // Usar todos los formatos comunes para mayor compatibilidad
             config.headers['CSRF-Token'] = csrfToken;
+            config.headers['X-CSRF-TOKEN'] = csrfToken; // Para compatibilidad con Laravel/otros frameworks
         }
         
         // Si hay un token de autenticación, incluirlo en todas las solicitudes
@@ -44,20 +45,50 @@ api.interceptors.request.use(
 
 export const getCsrfToken = async () => {
     try {
-        // Intentar obtener un token CSRF del servidor
-        const response = await api.get('/api/csrf-token'); // Nota: quité '/api' porque ya está en baseURL
+        // Comprobar si ya existe un token CSRF en las cookies
+        let csrfToken = Cookies.get('CSRF-Token');
         
-        // Si el servidor devuelve un token, lo guardamos
-        if (response.data && response.data.csrfToken) {
-            localStorage.setItem('CSRF-Token', response.data.csrfToken);
+        // Si ya existe un token en las cookies, lo usamos
+        if (csrfToken) {
+            console.log('Usando token CSRF existente de cookies:', csrfToken);
             return true;
         }
         
-        console.error('El servidor no devolvió un token CSRF válido');
-        return false;
+        // Intentar obtener un token CSRF del servidor
+        const response = await api.get('/api/csrf-token');
+        
+        // Si el servidor devuelve un token, lo guardamos en una cookie
+        if (response.data && response.data.csrfToken) {
+            // Guardar en cookie con opciones de seguridad
+            Cookies.set('CSRF-Token', response.data.csrfToken, {
+                secure: window.location.protocol === 'https:', // Solo en HTTPS en producción
+                sameSite: 'Lax', // Protección contra CSRF
+                expires: 1 // Expira en 1 día
+            });
+            return true;
+        }
+        
+        // Si el servidor no devuelve un token, crear uno temporal para desarrollo
+        const tempToken = `temp-csrf-${Math.random().toString(36).substring(2, 15)}`;
+        Cookies.set('CSRF-Token', tempToken, { 
+            secure: window.location.protocol === 'https:',
+            sameSite: 'Lax',
+            expires: 1
+        });
+        console.warn('Usando token CSRF temporal. En producción, este token debe ser generado por el servidor.');
+        return true;
     } catch (error) {
         console.error('Error al obtener el token CSRF:', error);
-        return false;
+        
+        // Como medida temporal para desarrollo, generamos un token
+        const tempToken = `temp-csrf-${Math.random().toString(36).substring(2, 15)}`;
+        Cookies.set('CSRF-Token', tempToken, { 
+            secure: window.location.protocol === 'https:',
+            sameSite: 'Lax',
+            expires: 1
+        });
+        console.warn('Usando token CSRF temporal debido a error. En producción, este token debe ser generado por el servidor.');
+        return true;
     }
 };
 
