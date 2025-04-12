@@ -14,6 +14,13 @@ api.interceptors.request.use(
     (config) => {
         // Obtener el token CSRF del localStorage
         const csrfToken = localStorage.getItem('CSRF-TOKEN');
+
+        console.log('CSRF Token:', csrfToken); // Para depuración
+        console.log('Config Headers:', config.headers); // Para depuración  
+        // Si existe el token CSRF, añadirlo a los encabezados de la solicitud
+        // Usar el nombre de encabezado que espera tu backend
+        // Si el token CSRF no existe, intentar obtenerlo del servidor
+        // Si el token CSRF no existe, intentar obtenerlo del servidor
         
         if (csrfToken) {
             // Usar el nombre de encabezado que espera tu backend
