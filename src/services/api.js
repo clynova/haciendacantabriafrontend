@@ -13,7 +13,7 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         // Obtener el token CSRF del localStorage
-        const csrfToken = localStorage.getItem('CSRF-TOKEN');
+        const csrfToken = localStorage.getItem('CSRF-Token');
 
         console.log('CSRF Token:', csrfToken); // Para depuración
         
@@ -27,12 +27,6 @@ api.interceptors.request.use(
             // Asegurarse de que los encabezados se establecen correctamente
             // Usar todos los formatos comunes para mayor compatibilidad
             config.headers['CSRF-Token'] = csrfToken;
-            config.headers['X-CSRF-TOKEN'] = csrfToken;
-            config.headers['X-XSRF-TOKEN'] = csrfToken;
-            // Algunas APIs también esperan el token en un encabezado simplificado
-            config.headers['csrf-token'] = csrfToken;
-            // Para Express.js que a menudo usa este formato
-            config.headers['_csrf'] = csrfToken;
         }
         
         // Si hay un token de autenticación, incluirlo en todas las solicitudes
@@ -55,7 +49,7 @@ export const getCsrfToken = async () => {
         
         // Si el servidor devuelve un token, lo guardamos
         if (response.data && response.data.csrfToken) {
-            localStorage.setItem('CSRF-TOKEN', response.data.csrfToken);
+            localStorage.setItem('CSRF-Token', response.data.csrfToken);
             return true;
         }
         
