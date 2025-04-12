@@ -17,8 +17,9 @@ api.interceptors.request.use(
         
         if (csrfToken) {
             // Usar el nombre de encabezado que espera tu backend
+            config.headers['CSRF-Token'] = csrfToken; // Nombre principal usado en el backend
+            // También agregar como alternativas para compatibilidad
             config.headers['X-CSRF-TOKEN'] = csrfToken;
-            // También agregar como X-XSRF-TOKEN para compatibilidad
             config.headers['X-XSRF-TOKEN'] = csrfToken;
         }
         
@@ -38,32 +39,19 @@ api.interceptors.request.use(
 export const getCsrfToken = async () => {
     try {
         // Intentar obtener un token CSRF del servidor
-        const response = await api.get('/api/csrf-token');
+        const response = await api.get('/csrf-token'); // Nota: quité '/api' porque ya está en baseURL
         
-        // Si el servidor devuelve un token directamente, lo guardamos
+        // Si el servidor devuelve un token, lo guardamos
         if (response.data && response.data.csrfToken) {
             localStorage.setItem('CSRF-TOKEN', response.data.csrfToken);
             return true;
         }
         
-        // Si el servidor no devuelve un token pero la respuesta es exitosa
-        // generamos uno temporal (esto es solo para desarrollo, en producción
-        // el token siempre debe venir del servidor)
-        const tempToken = `temp-csrf-${Math.random().toString(36).substring(2, 15)}`;
-        localStorage.setItem('CSRF-TOKEN', tempToken);
-        console.warn('Usando token CSRF temporal. En producción, este token debe ser generado por el servidor.');
-        return true;
+        console.error('El servidor no devolvió un token CSRF válido');
+        return false;
     } catch (error) {
         console.error('Error al obtener el token CSRF:', error);
-        
-        // Como medida temporal para desarrollo, generamos un token
-        // Esto NO debe usarse en producción
-        const tempToken = `temp-csrf-${Math.random().toString(36).substring(2, 15)}`;
-        localStorage.setItem('CSRF-TOKEN', tempToken);
-        console.warn('Usando token CSRF temporal debido a error. En producción, este token debe ser generado por el servidor.');
-        
-        // No bloqueamos el flujo de autenticación
-        return true;
+        return false;
     }
 };
 
