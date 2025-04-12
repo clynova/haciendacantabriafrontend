@@ -67,15 +67,6 @@ export const getCsrfToken = async () => {
             });
             return true;
         }
-        
-        // Si el servidor no devuelve un token, crear uno temporal para desarrollo
-        const tempToken = `temp-csrf-${Math.random().toString(36).substring(2, 15)}`;
-        Cookies.set('CSRF-Token', tempToken, { 
-            secure: window.location.protocol === 'https:',
-            sameSite: 'none',
-            expires: 1
-        });
-        console.warn('Usando token CSRF temporal. En producción, este token debe ser generado por el servidor.');
         return true;
     } catch (error) {
         console.error('Error al obtener el token CSRF:', error);
