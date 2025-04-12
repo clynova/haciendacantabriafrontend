@@ -6,6 +6,7 @@ import LoginForm from '../../components/Auth/LoginForm';
 import AuthIllustration from '../../components/Auth/AuthIllustration';
 import illustration from "../../images/login-illustration.svg";
 import { toast } from 'react-hot-toast';
+import { getCsrfToken } from '../../services/api';
 
 const Login = () => {
   const { setPageTitle } = useGlobal();
@@ -72,6 +73,9 @@ const Login = () => {
     
     setIsLoading(true);
     try {
+      // Obtener el token CSRF antes de iniciar sesión
+      await getCsrfToken();
+      
       await login({
         email: formData.email,
         password: formData.password
