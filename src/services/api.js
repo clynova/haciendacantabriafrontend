@@ -16,18 +16,23 @@ api.interceptors.request.use(
         const csrfToken = localStorage.getItem('CSRF-TOKEN');
 
         console.log('CSRF Token:', csrfToken); // Para depuración
-        console.log('Config Headers:', config.headers); // Para depuración  
-        // Si existe el token CSRF, añadirlo a los encabezados de la solicitud
-        // Usar el nombre de encabezado que espera tu backend
-        // Si el token CSRF no existe, intentar obtenerlo del servidor
-        // Si el token CSRF no existe, intentar obtenerlo del servidor
         
+        // Asegurarse de que config.headers existe
+        if (!config.headers) {
+            config.headers = {};
+        }
+        
+        // Si existe el token CSRF, añadirlo a los encabezados de la solicitud
         if (csrfToken) {
-            // Usar el nombre de encabezado que espera tu backend
-            config.headers['CSRF-Token'] = csrfToken; // Nombre principal usado en el backend
-            // También agregar como alternativas para compatibilidad
+            // Asegurarse de que los encabezados se establecen correctamente
+            // Usar todos los formatos comunes para mayor compatibilidad
+            config.headers['CSRF-Token'] = csrfToken;
             config.headers['X-CSRF-TOKEN'] = csrfToken;
             config.headers['X-XSRF-TOKEN'] = csrfToken;
+            // Algunas APIs también esperan el token en un encabezado simplificado
+            config.headers['csrf-token'] = csrfToken;
+            // Para Express.js que a menudo usa este formato
+            config.headers['_csrf'] = csrfToken;
         }
         
         // Si hay un token de autenticación, incluirlo en todas las solicitudes
