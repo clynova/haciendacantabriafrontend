@@ -84,7 +84,7 @@ export const getCsrfToken = async () => {
         const tempToken = `temp-csrf-${Math.random().toString(36).substring(2, 15)}`;
         Cookies.set('CSRF-Token', tempToken, { 
             secure: window.location.protocol === 'https:',
-            sameSite: 'Lax',
+            sameSite: 'none',
             expires: 1
         });
         console.warn('Usando token CSRF temporal debido a error. En producción, este token debe ser generado por el servidor.');
