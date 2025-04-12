@@ -39,7 +39,7 @@ api.interceptors.request.use(
 export const getCsrfToken = async () => {
     try {
         // Intentar obtener un token CSRF del servidor
-        const response = await api.get('/csrf-token'); // Nota: quité '/api' porque ya está en baseURL
+        const response = await api.get('/api/csrf-token'); // Nota: quité '/api' porque ya está en baseURL
         
         // Si el servidor devuelve un token, lo guardamos
         if (response.data && response.data.csrfToken) {
