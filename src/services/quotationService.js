@@ -1,4 +1,4 @@
-import api from './api';
+import api, { ensureCsrfCookie } from './api';
 
 
 /* response example createQuotation
@@ -63,6 +63,9 @@ import api from './api';
 
 export const createQuotation = async (quotationData, token) => {
     try {
+        // Ensure CSRF token is present before mutation
+        await ensureCsrfCookie();
+        
         const response = await api.post('/api/quotations', quotationData, {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -871,91 +874,79 @@ export const getQuotationById = async (quotationId, token) => {
                             "requiereCongelacion": false,
                             "vidaUtil": "12 meses",
                             "instrucciones": "Mantener en un lugar fresco y seco, alejado de la luz solar directa."
-                        },
-                        "opcionesPeso": {
-                            "esPesoVariable": false,
-                            "pesosEstandar": [
-                                {
-                                    "descuentos": {
-                                        "regular": 5
-                                    },
-                                    "peso": 500,
-                                    "unidad": "ml",
-                                    "esPredeterminado": false,
-                                    "precio": 1500,
-                                    "sku": "ACEITE-001-500ML",
-                                    "stockDisponible": 50,
-                                    "umbralStockBajo": 10,
-                                    "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
-                                    "_id": "67f087e3ddc8c38ace4961fd",
-                                    "id": "67f087e3ddc8c38ace4961fd"
-                                },
-                                {
-                                    "descuentos": {
-                                        "regular": 5
-                                    },
-                                    "peso": 1,
-                                    "unidad": "L",
-                                    "esPredeterminado": true,
-                                    "precio": 3000,
-                                    "sku": "ACEITE-001-1L",
-                                    "stockDisponible": 5,
-                                    "umbralStockBajo": 10,
-                                    "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
-                                    "_id": "67f087e3ddc8c38ace4961fe",
-                                    "id": "67f087e3ddc8c38ace4961fe"
-                                }
-                            ],
-                            "rangosPreferidos": []
-                        },
-                        "_id": "67f087e3ddc8c38ace4961fb",
-                        "sku": "ACEITE-001",
-                        "nombre": "Aceite de Oliva Extra Virgen",
-                        "slug": "aceite-de-oliva-extra-virgen",
-                        "categoria": "ACEITE",
-                        "estado": true,
-                        "destacado": true,
-                        "tags": [
-                            "aceite de oliva",
-                            "cocina saludable",
-                            "ensaladas",
-                            "Destacado",
-                            "MasVendidos"
-                        ],
-                        "tipoProducto": "ProductoAceite",
-                        "usosRecomendados": [
-                            "Ensaladas",
-                            "Cocina saludable",
-                            "Salsas"
-                        ],
-                        "fechaCreacion": "2025-04-05T01:31:15.404Z",
-                        "fechaActualizacion": "2025-04-06T01:47:13.546Z",
-                        "__v": 2,
-                        "precioVariantesPorPeso": [
+                    },
+                    "opcionesPeso": {
+                        "esPesoVariable": false,
+                        "pesosEstandar": [
                             {
-                                "pesoId": "67f087e3ddc8c38ace4961fd",
+                                "descuentos": {
+                                    "regular": 5
+                                },
                                 "peso": 500,
                                 "unidad": "ml",
-                                "precio": 1500,
-                                "descuento": 5,
-                                "precioFinal": 1425,
-                                "stockDisponible": 50,
                                 "esPredeterminado": false,
-                                "sku": "ACEITE-001-500ML"
+                                "precio": 1500,
+                                "sku": "ACEITE-001-500ML",
+                                "stockDisponible": 50,
+                                "umbralStockBajo": 10,
+                                "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
+                                "_id": "67f087e3ddc8c38ace4961fd",
+                                "id": "67f087e3ddc8c38ace4961fd"
                             },
                             {
-                                "pesoId": "67f087e3ddc8c38ace4961fe",
+                                "descuentos": {
+                                    "regular": 5
+                                },
                                 "peso": 1,
                                 "unidad": "L",
-                                "precio": 3000,
-                                "descuento": 5,
-                                "precioFinal": 2850,
-                                "stockDisponible": 5,
                                 "esPredeterminado": true,
-                                "sku": "ACEITE-001-1L"
+                                "precio": 3000,
+                                "sku": "ACEITE-001-1L",
+                                "stockDisponible": 5,
+                                "umbralStockBajo": 10,
+                                "ultimaActualizacion": "2023-10-01T10:00:00.000Z",
+                                "_id": "67f087e3ddc8c38ace4961fe",
+                                "id": "67f087e3ddc8c38ace4961fe"
                             }
                         ],
-                        "variantePredeterminada": {
+                        "rangosPreferidos": []
+                    },
+                    "_id": "67f087e3ddc8c38ace4961fb",
+                    "sku": "ACEITE-001",
+                    "nombre": "Aceite de Oliva Extra Virgen",
+                    "slug": "aceite-de-oliva-extra-virgen",
+                    "categoria": "ACEITE",
+                    "estado": true,
+                    "destacado": true,
+                    "tags": [
+                        "aceite de oliva",
+                        "cocina saludable",
+                        "ensaladas",
+                        "Destacado",
+                        "MasVendidos"
+                    ],
+                    "tipoProducto": "ProductoAceite",
+                    "usosRecomendados": [
+                        "Ensaladas",
+                        "Cocina saludable",
+                        "Salsas"
+                    ],
+                    "fechaCreacion": "2025-04-05T01:31:15.404Z",
+                    "fechaActualizacion": "2025-04-06T01:47:13.546Z",
+                    "__v": 2,
+                    "precioVariantesPorPeso": [
+                        {
+                            "pesoId": "67f087e3ddc8c38ace4961fd",
+                            "peso": 500,
+                            "unidad": "ml",
+                            "precio": 1500,
+                            "descuento": 5,
+                            "precioFinal": 1425,
+                            "stockDisponible": 50,
+                            "esPredeterminado": false,
+                            "sku": "ACEITE-001-500ML"
+                        },
+                        {
                             "pesoId": "67f087e3ddc8c38ace4961fe",
                             "peso": 1,
                             "unidad": "L",
@@ -966,20 +957,31 @@ export const getQuotationById = async (quotationId, token) => {
                             "esPredeterminado": true,
                             "sku": "ACEITE-001-1L"
                         }
-                    },
-                    "quantity": 1,
-                    "price": 2850,
-                    "variant": {
+                    ],
+                    "variantePredeterminada": {
                         "pesoId": "67f087e3ddc8c38ace4961fe",
                         "peso": 1,
                         "unidad": "L",
                         "precio": 3000,
+                        "descuento": 5,
+                        "precioFinal": 2850,
+                        "stockDisponible": 5,
+                        "esPredeterminado": true,
                         "sku": "ACEITE-001-1L"
                     }
+                },
+                "quantity": 1,
+                "price": 2850,
+                "variant": {
+                    "pesoId": "67f087e3ddc8c38ace4961fe",
+                    "peso": 1,
+                    "unidad": "L",
+                    "precio": 3000,
+                    "sku": "ACEITE-001-1L"
                 }
-            ]
-        }
-    ]
+            }
+        ]
+    }
 }
 
 */
@@ -1000,6 +1002,9 @@ export const getAllQuotations = async (token) => {
 
 export const updateQuotation = async (_id, updatedData, token) => {
     try {
+        // Ensure CSRF token is present before mutation
+        await ensureCsrfCookie();
+        
         const response = await api.put(`/api/quotations/${_id}`, updatedData, {
             headers: {
                 Authorization: `Bearer ${token}`

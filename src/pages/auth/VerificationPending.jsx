@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { HiMail } from 'react-icons/hi';
 import { validarToken, reenviarToken } from '../../services/authService';
+import { ensureCsrfCookie } from '../../services/api'; // Import ensureCsrfCookie
 import { toast } from 'react-hot-toast';
 import TokenInput from '../../components/Auth/TokenInput';
 
@@ -29,7 +30,28 @@ const VerificationPending = () => {
         if (!email) {
             navigate('/auth');
             toast.error('Acceso no válido a la página de verificación');
+            return;
         }
+
+        console.log("Componente VerificationPending Montado: Intentando asegurar cookie CSRF...");
+        setIsSubmitting(true); // Mostrar carga mientras se verifica CSRF
+
+        ensureCsrfCookie()
+            .then(success => {
+                if (success) {
+                    console.log("Cookie CSRF asegurada o ya existía.");
+                } else {
+                    console.error("FALLO al asegurar la cookie CSRF. La verificación podría fallar.");
+                    toast.error("No se pudo establecer la conexión segura. Intenta recargar la página.");
+                }
+            })
+            .catch(error => {
+                console.error("Error inesperado llamando a ensureCsrfCookie:", error);
+                toast.error("Ocurrió un error inesperado al preparar la verificación.");
+            })
+            .finally(() => {
+                setIsSubmitting(false); // Ocultar carga general
+            });
     }, [email, navigate]);
 
     // Verificación automática si llega con token en la URL
