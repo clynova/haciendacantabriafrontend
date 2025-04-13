@@ -1,7 +1,8 @@
-import api from './api';
+import api, { ensureCsrfCookie } from './api';
 
 const register = async (formData) => {
   try {
+    await ensureCsrfCookie();
     const response = await api.post('/api/user/registrar', formData);
     return response.data;
   } catch (error) {
@@ -16,6 +17,7 @@ const register = async (formData) => {
 
 const login = async (credentials) => {
   try {
+    await ensureCsrfCookie();
     const response = await api.post('/login', credentials);
     return response.data;
   } catch (error) {
@@ -25,6 +27,7 @@ const login = async (credentials) => {
 
 const validarToken = async (token, email) => {
   try {
+    await ensureCsrfCookie();
     const response = await api.post('/api/user/confirmar', { token, email });
     return response.data;
   } catch (error) {
@@ -34,6 +37,7 @@ const validarToken = async (token, email) => {
 
 const reenviarToken = async (email) => {
   try {
+    await ensureCsrfCookie();
     const response = await api.post('/api/user/reenviar', { email });
     return response.data;
   } catch (error) {
@@ -43,6 +47,7 @@ const reenviarToken = async (email) => {
 
 const logout = async (token) => {
   try {
+    await ensureCsrfCookie();
     const response = await api.get(`/api/user/logout`, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -56,6 +61,7 @@ const logout = async (token) => {
 
 const requestPasswordReset = async (email) => {
   try {
+    await ensureCsrfCookie();
     const response = await api.post('/api/user/reset-password', { email });
     return response.data;
   } catch (error) {
@@ -63,11 +69,9 @@ const requestPasswordReset = async (email) => {
   }
 }
 
-
-///api/user/reset-password/validar-token
-
 const requestPasswordResetConfirmToken = async (token, email) => {
   try {
+    await ensureCsrfCookie();
     const response = await api.post('/api/user/reset-password/validar-token', { token, email });
     return response.data;
   } catch (error) {
@@ -75,18 +79,14 @@ const requestPasswordResetConfirmToken = async (token, email) => {
   }
 }
 
-
-// api/user//reset-password/validar-nuevoPass
-
 const requestPasswordResetConfirmNewPass = async (token, email, password, confirmPassword) => {
   try {
+    await ensureCsrfCookie();
     const response = await api.post('/api/user/reset-password/validar-nuevoPass', { token, email, password, confirmPassword });
     return response.data;
   } catch (error) {
     throw error.response.data;
   }
 }
-
-
 
 export { register, login, validarToken, reenviarToken, logout, requestPasswordReset, requestPasswordResetConfirmToken, requestPasswordResetConfirmNewPass };

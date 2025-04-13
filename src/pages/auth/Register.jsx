@@ -6,6 +6,7 @@ import illustration from "../../images/login-illustration.svg";
 import { register } from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { ensureCsrfCookie } from '../../services/api'; // Import ensureCsrfCookie
 
 const Register = () => {
     const { setPageTitle } = useGlobal();
@@ -33,9 +34,34 @@ const Register = () => {
         repPassword: false,
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [isCsrfReady, setIsCsrfReady] = useState(false); // Nuevo estado para CSRF
+    const [csrfError, setCsrfError] = useState(''); // Nuevo estado para error CSRF
 
     useEffect(() => {
         setPageTitle('Registro | Cohesa');
+
+        console.log("Componente Register Montado: Intentando asegurar cookie CSRF...");
+        setIsLoading(true); // Mostrar carga mientras se verifica CSRF
+        setCsrfError(''); // Limpiar error previo
+
+        ensureCsrfCookie()
+            .then(success => {
+                if (success) {
+                    console.log("Cookie CSRF asegurada o ya existía.");
+                    setIsCsrfReady(true); // Marcar como listo
+                } else {
+                    console.error("FALLO al asegurar la cookie CSRF. El registro podría fallar.");
+                    setCsrfError("No se pudo establecer la conexión segura. Intenta recargar la página.");
+                }
+            })
+            .catch(error => {
+                console.error("Error inesperado llamando a ensureCsrfCookie:", error);
+                setCsrfError("Ocurrió un error inesperado al preparar el formulario.");
+            })
+            .finally(() => {
+                setIsLoading(false); // Ocultar carga general
+            });
+
     }, [setPageTitle]);
 
     const validateNombre = (value) => value ? '' : 'El nombre es requerido';
@@ -102,6 +128,13 @@ const Register = () => {
 
     const handleRegister = async (e) => {
         e.preventDefault();
+
+        // Verificar si CSRF está listo antes de proceder
+        if (!isCsrfReady) {
+            toast.error(csrfError || "La configuración de seguridad aún no está lista. Por favor, espera o recarga.");
+            return;
+        }
+
         console.log('Iniciando registro...'); // Log para depuración
 
         // Validación de campos
@@ -115,7 +148,7 @@ const Register = () => {
         setTouched(touchedFields);
         if (!isValid) return;
 
-        console.log(touchedFields)
+        console.log(touchedFields);
 
         setIsLoading(true);
         try {
@@ -153,6 +186,17 @@ const Register = () => {
         // Por ahora solo mostramos un mensaje informativo
         toast.error(`Inicio de sesión con ${provider} no está implementado aún`);
     };
+
+    if (csrfError) {
+        // Muestra un error bloqueante si CSRF falló catastróficamente
+        return (
+            <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
+                <h2>Error de Seguridad</h2>
+                <p>{csrfError}</p>
+                <button onClick={() => window.location.reload()}>Recargar Página</button>
+            </div>
+        );
+    }
 
     return (
         <>

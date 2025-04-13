@@ -1,4 +1,4 @@
-import api from './api';
+import api, { ensureCsrfCookie } from './api';
 
 /* example response createOrder
 {
@@ -89,6 +89,9 @@ import api from './api';
 
 export const createOrder = async (orderData, token) => {
   try {
+    // Asegurar que tengamos el token CSRF antes de la operación
+    await ensureCsrfCookie();
+    
     const response = await api.post('/api/order', orderData, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -103,6 +106,9 @@ export const createOrder = async (orderData, token) => {
 
 export const createOrderFromQuotation = async (quotationId, paymentMethodId, token) => {
   try {
+    // Asegurar que tengamos el token CSRF antes de la operación
+    await ensureCsrfCookie();
+    
     console.log('Creating order from quotation:', { quotationId, paymentMethodId });
     const response = await api.post('/api/order/from-quotation',
       {
@@ -124,6 +130,9 @@ export const createOrderFromQuotation = async (quotationId, paymentMethodId, tok
 
 export const initiatePayment = async (orderId, token) => {
   try {
+    // Asegurar que tengamos el token CSRF antes de la operación
+    await ensureCsrfCookie();
+    
     const response = await api.post(`/api/payments/initiate/${orderId}`, {}, {
       headers: {
         Authorization: `Bearer ${token}`,

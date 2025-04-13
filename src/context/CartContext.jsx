@@ -10,6 +10,7 @@ import {
   updateProductQuantity 
 } from '../services/paymentService';
 import { getProductById } from '../services/productService';
+import { ensureCsrfCookie } from '../services/api';
 
 // Crear el contexto
 const CartContext = createContext();
@@ -23,9 +24,36 @@ function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCsrfReady, setIsCsrfReady] = useState(false);
+  const [csrfError, setCsrfError] = useState('');
   const pendingOperations = useRef(new Map());
   const [shippingInfo, setShippingInfo] = useState(null);
   const [paymentInfo, setPaymentInfo] = useState(null);
+
+  // Effect para asegurar la cookie CSRF al montar el componente
+  useEffect(() => {
+    console.log("CartContext: Intentando asegurar cookie CSRF...");
+    setIsLoading(true);
+    setCsrfError('');
+
+    ensureCsrfCookie()
+      .then(success => {
+        if (success) {
+          console.log("CartContext: Cookie CSRF asegurada.");
+          setIsCsrfReady(true);
+        } else {
+          console.error("CartContext: Fallo al asegurar la cookie CSRF.");
+          setCsrfError("No se pudo establecer la conexión segura. Las operaciones del carrito podrían fallar.");
+        }
+      })
+      .catch(error => {
+        console.error("CartContext: Error inesperado con CSRF:", error);
+        setCsrfError("Error inesperado al preparar la seguridad del carrito.");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
 
   // Effect para cargar el carrito desde la API cuando el usuario está autenticado
   useEffect(() => {
@@ -658,7 +686,9 @@ function CartProvider({ children }) {
       calculateTax,
       calculateShippingCost,
       calculateTotalWeight,
-      getOrderSummary
+      getOrderSummary,
+      isCsrfReady,
+      csrfError
     }}>
       {children}
     </CartContext.Provider>

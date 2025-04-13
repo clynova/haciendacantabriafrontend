@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { HiArrowLeft, HiMail, HiUser, HiKey, HiShieldCheck, HiExclamationCircle } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import { createUser } from '../../services/adminService';
+import { ensureCsrfCookie } from '../../services/api'; // Import ensureCsrfCookie
 
 const AdminUserCreate = () => {
     const navigate = useNavigate();
@@ -14,14 +15,40 @@ const AdminUserCreate = () => {
         lastName: '',
         email: '',
         password: '',
-        repPassword: '', // Changed from passwordConfirm to repPassword
+        repPassword: '',
         roles: ['customer'],
         confirmado: true,
-        estado: true, // Add estado field
+        estado: true,
         addresses: []
     });
 
-    // Password validation
+    const [isCsrfReady, setIsCsrfReady] = useState(false); // Nuevo estado para CSRF
+    const [csrfError, setCsrfError] = useState(''); // Nuevo estado para error CSRF
+
+    useEffect(() => {
+        console.log("Componente AdminUserCreate Montado: Intentando asegurar cookie CSRF...");
+        setLoading(true); // Mostrar carga mientras se verifica CSRF
+        setCsrfError(''); // Limpiar error previo
+
+        ensureCsrfCookie()
+            .then(success => {
+                if (success) {
+                    console.log("Cookie CSRF asegurada o ya existía.");
+                    setIsCsrfReady(true); // Marcar como listo
+                } else {
+                    console.error("FALLO al asegurar la cookie CSRF. La creación de usuario podría fallar.");
+                    setCsrfError("No se pudo establecer la conexión segura. Intenta recargar la página.");
+                }
+            })
+            .catch(error => {
+                console.error("Error inesperado llamando a ensureCsrfCookie:", error);
+                setCsrfError("Ocurrió un error inesperado al preparar el formulario.");
+            })
+            .finally(() => {
+                setLoading(false); // Ocultar carga general
+            });
+    }, []);
+
     const [passwordValidation, setPasswordValidation] = useState({
         isValid: false,
         errors: {
@@ -30,7 +57,6 @@ const AdminUserCreate = () => {
         }
     });
 
-    // Add validation functions from Register component
     const validatePassword = (value) => {
         if (!value) return 'La contraseña es requerida';
         if (value.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
@@ -49,7 +75,6 @@ const AdminUserCreate = () => {
         return '';
     };
 
-    // Update password change handlers
     const handlePasswordChange = (e) => {
         const password = e.target.value;
         const passwordError = validatePassword(password);
@@ -66,11 +91,11 @@ const AdminUserCreate = () => {
     };
 
     const handleConfirmPasswordChange = (e) => {
-        const repPassword = e.target.value; // Changed variable name
+        const repPassword = e.target.value;
         const passwordError = validatePassword(formData.password);
         const repPasswordError = validateRepPassword(formData.password, repPassword);
 
-        setFormData({ ...formData, repPassword }); // Update state key
+        setFormData({ ...formData, repPassword });
         setPasswordValidation({
             isValid: !passwordError && !repPasswordError,
             errors: {
@@ -83,30 +108,31 @@ const AdminUserCreate = () => {
     const handleRoleChange = (e) => {
         setFormData({
             ...formData,
-            roles: [e.target.value] // Update roles as array
+            roles: [e.target.value]
         });
     };
 
-    // Update the handleSubmit function
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // Create an array to collect all validation errors
+
+        // Verificar si CSRF está listo antes de proceder
+        if (!isCsrfReady) {
+            toast.error(csrfError || "La configuración de seguridad aún no está lista. Por favor, espera o recarga.");
+            return;
+        }
+
         const errors = [];
 
-        // Check for empty required fields
         if (!formData.firstName) errors.push('El nombre es requerido');
         if (!formData.lastName) errors.push('El apellido es requerido');
         if (!formData.email) errors.push('El correo electrónico es requerido');
 
-        // Check password validation
         const passwordError = validatePassword(formData.password);
         const repPasswordError = validateRepPassword(formData.password, formData.repPassword);
 
         if (passwordError) errors.push(passwordError);
         if (repPasswordError) errors.push(repPasswordError);
 
-        // If there are any errors, show them and stop
         if (errors.length > 0) {
             errors.forEach(error => toast.error(error));
             return;
@@ -123,7 +149,7 @@ const AdminUserCreate = () => {
                 repPassword: formData.repPassword,
                 roles: formData.roles,
                 confirmado: true,
-                estado: true // Include estado in API call
+                estado: true
             };
 
             const response = await createUser(userData, token);
@@ -132,7 +158,6 @@ const AdminUserCreate = () => {
                 toast.success('Usuario creado exitosamente');
                 navigate('/admin/users');
             } else {
-                // If the API returns validation errors, show them
                 if (response.errors && Array.isArray(response.errors)) {
                     response.errors.forEach(error => {
                         toast.error(error.msg);
@@ -157,7 +182,6 @@ const AdminUserCreate = () => {
     return (
         <div className="p-6">
             <div className="max-w-4xl mx-auto">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <button
                         onClick={() => navigate('/admin/users')}
@@ -168,7 +192,6 @@ const AdminUserCreate = () => {
                     </button>
                 </div>
 
-                {/* Main Form Card */}
                 <div className="bg-slate-800 rounded-xl shadow-xl overflow-hidden">
                     <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-slate-700">
                         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -178,7 +201,6 @@ const AdminUserCreate = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                        {/* Personal Information Section */}
                         <div className="space-y-6">
                             <h2 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
                                 <HiUser className="h-5 w-5 text-blue-400" />
@@ -228,7 +250,6 @@ const AdminUserCreate = () => {
                             </div>
                         </div>
 
-                        {/* Account Settings Section */}
                         <div className="space-y-6">
                             <h2 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
                                 <HiKey className="h-5 w-5 text-blue-400" />
@@ -303,7 +324,6 @@ const AdminUserCreate = () => {
                             </div>
                         </div>
 
-                        {/* Submit Button */}
                         <div className="flex justify-end pt-6 border-t border-slate-700">
                             <button
                                 type="submit"

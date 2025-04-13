@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { ensureCsrfCookie } from "./api";
 
 /**
  * Cart API Functions
@@ -36,6 +36,9 @@ const addToCart = async (productData, token) => {
         msg: 'ID de producto inválido'
       };
     }
+
+    // Ensure CSRF token is present before mutation
+    await ensureCsrfCookie();
 
     // Asegurar que los datos enviados a la API siguen el formato esperado
     const cartItemData = {
@@ -75,6 +78,9 @@ const removeFromCart = async (productId, variantId, token) => {
         msg: "ID de producto es requerido para remover del carrito"
       };
     }
+
+    // Ensure CSRF token is present before mutation
+    await ensureCsrfCookie();
 
     // Construir URL con parámetros
     let url = `/api/cart/product/${productId}`;
@@ -155,6 +161,9 @@ const updateProductQuantity = async (productId, variantId, quantity, action, tok
 
 const clearCart = async (token) => {
   try {
+    // Ensure CSRF token is present before mutation
+    await ensureCsrfCookie();
+
     // Usando la ruta correcta según los comentarios de la API
     const response = await api.delete("/api/cart", {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -191,6 +200,9 @@ const syncCart = async (cartItems, token, preferServerCart = false) => {
   if (!token) return null;
 
   try {
+    // Ensure CSRF token is present before mutations
+    await ensureCsrfCookie();
+
     // Si preferimos el carrito del servidor y no hay items locales, simplemente devolvemos el carrito del servidor
     if (preferServerCart && (!cartItems || cartItems.length === 0)) {
       return await getCart(token);

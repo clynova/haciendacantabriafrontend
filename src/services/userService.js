@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { ensureCsrfCookie } from "./api";
 
 const updateProfile = async (formData, token) => {
     try {
@@ -440,6 +440,9 @@ const getWishlist = async (token) => {
 
 const addProductToWishlist = async (productId, token) => {
     try {
+        // Asegurar que tengamos el token CSRF antes de la operación
+        await ensureCsrfCookie();
+        
         const response = await api.post("/api/wishlist/add", { productId }, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -454,6 +457,9 @@ const addProductToWishlist = async (productId, token) => {
 
 const removeFromWishlist = async (productId, token) => {
     try {
+        // Asegurar que tengamos el token CSRF antes de la operación
+        await ensureCsrfCookie();
+        
         const response = await api.delete(`/api/wishlist/remove/${productId}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -557,6 +563,9 @@ const getMyPaymentMethods = async (token) => {
 
 const setDefaultPaymentMethod = async (paymentMethodId, token) => {
     try {
+        // Ensure CSRF token is present before mutation
+        await ensureCsrfCookie();
+        
         const response = await api.put(`/api/payment-methods/${paymentMethodId}/default`, {}, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -571,6 +580,9 @@ const setDefaultPaymentMethod = async (paymentMethodId, token) => {
 
 const togglePaymentMethodStatus = async (paymentMethodId, token) => {
     try {
+        // Ensure CSRF token is present before mutation
+        await ensureCsrfCookie();
+
         const response = await api.put(`/api/payment-methods/${paymentMethodId}/toggle-status`, {}, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -585,6 +597,9 @@ const togglePaymentMethodStatus = async (paymentMethodId, token) => {
 
 const deletePaymentMethod = async (paymentMethodId, token) => {
     try {
+        // Ensure CSRF token is present before mutation
+        await ensureCsrfCookie();
+
         const response = await api.delete(`/api/payment-methods/${paymentMethodId}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -599,6 +614,9 @@ const deletePaymentMethod = async (paymentMethodId, token) => {
 
 const addPaymentMethod = async (paymentMethodData, token) => {
     try {
+        // Ensure CSRF token is present before mutation
+        await ensureCsrfCookie();
+
         const response = await api.post("/api/payment-methods", paymentMethodData, {
             headers: {
                 Authorization: `Bearer ${token}`,
